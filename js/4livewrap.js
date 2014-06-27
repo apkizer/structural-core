@@ -16,22 +16,22 @@ function live(component) {
     return;
   }
 
-  var standardFunctions = {};
-  standardFunctions.live = {};
+  var std = {};
+  std.live = {};
 
-  standardFunctions.live.set = function(key, value) {
+  std.live.set = function(key, value) {
     vars[key] = value;
   }
 
-  standardFunctions.live.get = function(key) {
+  std.live.get = function(key) {
     return vars[key];
   }
 
-  standardFunctions.live.is = function(key, value) {
+  std.live.is = function(key, value) {
     return vars[key] === value;
   }
 
-  standardFunctions.live.log = function(str) {
+  std.live.log = function(str) {
     console.log(str);
   }
 
@@ -124,7 +124,7 @@ function live(component) {
     }
   }
 
-  algo.wrap(standardFunctions);
+  algo.wrap(std);
   algo.wrap(component);
 
   algo.close = function() {
