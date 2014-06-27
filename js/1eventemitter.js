@@ -15,4 +15,6 @@ S.ee = function() {
       ee.registeredEvents[eventName][i].call(event, event);
     }
   };
+
+  return ee;
 }

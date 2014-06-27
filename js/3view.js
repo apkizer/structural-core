@@ -12,7 +12,19 @@ S.view = function() {
     _speed = spd;
   }
 
+  v.focus = function() {
+    // focus
+    console.log('focus?')
+    if(v.$e) {
+      v.$e.css('border', '2px solid blue');
+      console.log('focused');
+    }
+  }
 
+  v.unfocus = function() {
+    if(v.$e)
+      v.$e.css('box-shadow', 'none');
+  }
 
   return v;
 }

@@ -9,3 +9,12 @@ var result = S.algos.insertion(myArray);
 result.execute(); // self executing
 
 S.stepper(result); // execute using stepper
+
+
+S.algorithm(meta, reqs, func);
+
+S.algorithm({
+  name: 'insertion',
+  desc: 'A simple insertion sort.',
+  author: '*'
+}, ['array!', 'comments'])

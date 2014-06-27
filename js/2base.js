@@ -9,7 +9,7 @@ S.base = function(view) {
     c.view = view;
     view.component = c;
   }
-  //var vars = {}; TODO move to base algo
+  var vars = {}; //TODO move to base algo
 
   c.structureName = 'general';
 
@@ -31,13 +31,11 @@ S.base = function(view) {
   };
 
   // TODO these should all be moved to algo:
-  /*c.live.set = function(key, value) {
-    console.log('set is called! setting ' + key + ' to ' + value);
+  c.live.set = function(key, value) {
     vars[key] = value;
   }
 
   c.live.get = function(key) {
-    console.log('get is called! value of ' + key + ' is ' + vars[key]);
     return vars[key];
   }
 
@@ -47,7 +45,7 @@ S.base = function(view) {
 
   c.live.flog = function(str) {
     console.log(str);
-  }*/
+  }
 
   c.algorithm = function(name, fn) {
     //c.algo[name] todo

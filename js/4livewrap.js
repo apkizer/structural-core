@@ -4,8 +4,7 @@ function live(component) {
     properties = [],
     open = true;
   algo.paused = false;
-  var lastI = 0;
-
+  var last = 0;
 
 
   if(typeof component.live === 'undefined') {
@@ -22,15 +21,19 @@ function live(component) {
         var func = function() {
           if(!open)
             return;
-
           var args = Array.prototype.slice.call(arguments), // convert arguments to an array
             ret = null; // proxy return of sync portion
 
           //null indicates that the method is async only (superficial)
 
+
           if(component.live[property] !== null) {
             //do now
+            //console.log('donow');
             ret = component.live[property].apply({}, args);
+          } else {
+            //console.log('no donow on property ' + property);
+
           }
 
           //push async & sync if found on view:
@@ -59,11 +62,13 @@ function live(component) {
           } else {
             // declared as async only, but method not found on view.
             console.log('method ' + property.toString() + ' was declared as async only (null), but no corresponding view method was found.');
-            return;
+            pushFn = function(fn) {
+              fn();
+            }
           }
 
 
-          if(component.view.hasOwnProperty(property)) {
+          /*if(component.view.hasOwnProperty(property)) {
             pushFn = function(fn) {
               // call sync:
               if(component.live[property] !== null)
@@ -80,57 +85,69 @@ function live(component) {
               // do not call async
             }
             pushFn.sync = true; // mark as sync only
-          }
+          }*/
 
           fns.push(pushFn);
 
-
-
           if(ret !== null) {
-            console.log('proxy returning ' + ret);
+            // proxy return
             return ret;
           }
         };
         return func;
       })(prop);
   }
+
   algo.close = function() {
     open = false;
   }
+
   algo.pause = function(){
     algo.paused = true;
   }
+
   algo.play = function() {
     algo.paused = false;
     algo.exec();
   }
+
   algo.getIndex = function() {
-    return lastI;
+    return last;
   }
-  algo.getLength = function() {
+
+  algo.__getLength = function() {
     return fns.length;
   }
+
   algo.exec = function() {
+    console.log('executing');
+    console.log('fns.length is ' + fns.length);
     if(open)
       return;
-    var i = lastI;
+    var i = last;
     function doNext() {
+      console.log('doNext');
       if(i >= fns.length || algo.paused)
         return;
       if(algo.update)
         algo.update();
       //sync override
-      if(fns[i].sync) {
+
+      last++;
+      fns[i++].call({}, function(){
+        setTimeout(doNext, 0);
+      });
+      /*if(fns[i].sync) {
         console.log('sync detected');
         fns[i++].call({});
-        lastI++;
+        last++;
         doNext();
       } else {
-        lastI++;
+        last++;
         fns[i++].call({}, function(){
-          setTimeout(doNext, /*options.sleep ||*/ 300);
+          setTimeout(doNext, 300);
         });
-      }
+      }*/
     }
     doNext();
   }
