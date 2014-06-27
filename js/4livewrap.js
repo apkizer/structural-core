@@ -31,7 +31,7 @@ function live(component) {
     return vars[key] === value;
   }
 
-  standardFunctions.live.flog = function(str) {
+  standardFunctions.live.log = function(str) {
     console.log(str);
   }
 

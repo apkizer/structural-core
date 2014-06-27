@@ -9,7 +9,6 @@ S.base = function(view) {
     c.view = view;
     view.component = c;
   }
-  var vars = {}; //TODO move to base algo
 
   c.structureName = 'general';
 
@@ -29,27 +28,6 @@ S.base = function(view) {
   c.setState = function(state) {
     console.log('setState not implemented!');
   };
-
-  // TODO these should all be moved to algo:
-  /*c.live.set = function(key, value) {
-    vars[key] = value;
-  }
-
-  c.live.get = function(key) {
-    return vars[key];
-  }
-
-  c.live.is = function(key, value) {
-    return vars[key] === value;
-  }
-
-  c.live.flog = function(str) {
-    console.log(str);
-  }*/
-
-  c.algorithm = function(name, fn) {
-    //c.algo[name] todo
-  }
 
   return c;
 }

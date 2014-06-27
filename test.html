@@ -51,7 +51,7 @@
                     wrap('j', i);
                     while(wrap('j') > 0 && wrap.getItem(wrap('j') - 1) > wrap.getItem(wrap('j'))) {
                         //swap:
-                        console.log('swapping');
+                        wrap.log('swapping');
                         wrap('temp', wrap.getItem(wrap('j')));
                         wrap.setItem(wrap('j'), wrap.getItem(wrap('j') - 1));
                         wrap.setItem(wrap('j') - 1, wrap('temp'));
@@ -87,7 +87,7 @@
 
                 wrap.leftTo(0);/*@line 17*/
 
-                wrap.flog('wrap.length ' + wrap.getLength());
+                wrap.log('wrap.length ' + wrap.getLength());
                 console.log('wrap.length ' + wrap.getLength());
                 for(var i = 0; i < wrap.getLength(); i++) {
                     wrap.flag(i);
