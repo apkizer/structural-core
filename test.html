@@ -47,10 +47,12 @@
             }
 
             function flagOddNumbers(wrap) {
-                for(var i = 0; i < wrap.getLength2(); i++) {
+                for(var i = 0; i < wrap.getLength(); i++) {
                     if(wrap.getItem(i) % 2 !== 0) {
                         wrap.leftTo(i);
                         wrap.flag(i);
+                        wrap.set('j', 5);
+                        wrap.get('j');
                     }
                 }
             }
@@ -81,7 +83,7 @@
             console.log(myArray.array);
 
             livewrap.close();
-            //livewrap.exec();
+            livewrap.exec();
 
         });
     </script>

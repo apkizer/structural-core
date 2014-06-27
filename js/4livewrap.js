@@ -5,7 +5,7 @@ function live(component) {
     open = true;
   algo.paused = false;
   var last = 0;
-
+  var vars = {};
 
   if(typeof component.live === 'undefined') {
     console.log('cannot livewrap component, no component.live');
@@ -97,6 +97,34 @@ function live(component) {
         return func;
       })(prop);
   }
+
+  /*algo.set = function(key, value) {
+    fns.push(function(fn){
+      vars[key] = value;
+      fn();
+    });
+  }
+
+  algo.get = function(key) {
+    fns.push(function(fn){
+      fn();
+    });
+    return vars[key];
+  }
+
+  algo.is = function(key, value) {
+    fns.push(function(fn){
+      fn();
+    });
+    return vars[key] === value;
+  }
+
+  algo.flog = function(str) {
+    fns.push(function(fn){
+      console.log(str);
+      fn();
+    });
+  }*/
 
   algo.close = function() {
     open = false;
