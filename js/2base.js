@@ -31,7 +31,7 @@ S.base = function(view) {
   };
 
   // TODO these should all be moved to algo:
-  c.live.set = function(key, value) {
+  /*c.live.set = function(key, value) {
     vars[key] = value;
   }
 
@@ -45,7 +45,7 @@ S.base = function(view) {
 
   c.live.flog = function(str) {
     console.log(str);
-  }
+  }*/
 
   c.algorithm = function(name, fn) {
     //c.algo[name] todo

@@ -17,4 +17,5 @@ S.algorithm({
   name: 'insertion',
   desc: 'A simple insertion sort.',
   author: '*'
-}, ['array!', 'comments'])
+}, ['array!', 'comments']);
+

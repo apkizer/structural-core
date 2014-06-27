@@ -28,7 +28,7 @@
 
             var livewrap = live(myArray);
 
-            function insertionsort(wrap) {
+            /*function insertionsort(wrap) {
                 for(var i = 0; i < wrap.getLength(); i++) {
                     wrap.set('j', i);
                     while(wrap.get('j') > 0 && wrap.getItem(wrap.get('j') - 1) > wrap.getItem(wrap.get('j'))) {
@@ -39,6 +39,24 @@
                         wrap.setItem(wrap.get('j') - 1, wrap.get('temp'));
                         wrap.set('swapped', true);
                         wrap.set('j', wrap.get('j') - 1);
+                    }
+                    wrap.range(0, i, 1); //show sorted portion of array
+                }
+                wrap.clearfocus();
+                wrap.clearrange(1);
+            }*/
+
+            function insertionsort(wrap) {
+                for(var i = 0; i < wrap.getLength(); i++) {
+                    wrap('j', i);
+                    while(wrap('j') > 0 && wrap.getItem(wrap('j') - 1) > wrap.getItem(wrap('j'))) {
+                        //swap:
+                        console.log('swapping');
+                        wrap('temp', wrap.getItem(wrap('j')));
+                        wrap.setItem(wrap('j'), wrap.getItem(wrap('j') - 1));
+                        wrap.setItem(wrap('j') - 1, wrap('temp'));
+                        wrap('swapped', true);
+                        wrap('j', wrap('j') - 1);
                     }
                     wrap.range(0, i, 1); //show sorted portion of array
                 }
