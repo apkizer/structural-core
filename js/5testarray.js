@@ -189,11 +189,13 @@
       view.focus(index, function() {
         setTimeout(function() {
           var initialColor = $topRow.find('td').eq(index).css('color');
-          $topRow.find('td').eq(index).css('color', 'red');
+          //$topRow.find('td').eq(index).css('color', 'red');
+          $topRow.find('td').eq(index).addClass('array-remove');
           setTimeout(function() {
             $topRow.find('td').eq(index).text(item);
             // TODO reset to configurable default color:
-            $topRow.find('td').eq(index).css('color', 'black'/*initialColor*/);
+            //$topRow.find('td').eq(index).css('color', 'black'/*initialColor*/);
+            $topRow.find('td').eq(index).removeClass('array-remove');
             fn();
           }, 300);
         }, 200);

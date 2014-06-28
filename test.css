@@ -83,7 +83,9 @@ th.focus {
 }
 
 .range1 {
-    background-color: #66ff66 !important;
+    /*background-color: #66ff66 !important;*/
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAE0lEQVQIW2OUvuLwnwENMNJAEACP4QrsdsC6NQAAAABJRU5ErkJggg==');
+    background-repeat: repeat-x;
 }
 
 .range2 {
@@ -92,4 +94,9 @@ th.focus {
 
 .range3 {
     background-color: #0066cc !important;
+}
+
+.array-remove {
+    color: red !important;
+    text-decoration: line-through;
 }

@@ -2,9 +2,10 @@ if(!S) console.log('S is not defined.');
 if(!S.ee) console.log('S is not defined.');
 
 S.base = function(view) {
-  var c = S.ee();//{};
+  var c = S.ee();
   c.live = {};
   c.algo = {};
+  c.factory = {};
   if(view) {
     c.view = view;
     view.component = c;
@@ -28,6 +29,16 @@ S.base = function(view) {
   c.setState = function(state) {
     console.log('setState not implemented!');
   };
+
+  // wrappable interface:
+
+  c.getSync = function() {
+    return c.live;
+  }
+
+  c.getAsync = function() {
+    return c.view;
+  }
 
   return c;
 }

@@ -11,14 +11,20 @@ function live(component) {
   var last = 0;
   var vars = {};
 
+  //mixin event handling:
+  $.extend(algo, S.ee());
+
   if(typeof component.live === 'undefined') {
     console.log('cannot livewrap component, no item.live');
     return;
   }
 
-  var std = {};
-  std.live = {};
+  var std = S.simpleWrappable();
 
+
+  std.live.end = function(){
+    algo.fire('end', {}); // todo create event object
+  }
   std.live.set = function(key, value) {
     vars[key] = value;
   }
@@ -32,14 +38,14 @@ function live(component) {
   }
 
   std.live.log = function(str) {
-    console.log(str);
+      console.log(str);
   }
 
   // build the livewrap. for each method on the component's live, create a clone method which first calls the sync portion of the method, then queues both the sync & async portions
 
 
   algo.wrap = function(item) {
-    for(var prop in item.live) {
+    for(var prop in item.getSync()) {
       algo[prop] =
         // inject property; otherwise, pushed functions will all reference last iterated property
         (function(property){
@@ -52,7 +58,7 @@ function live(component) {
             //null indicates that the method is async only (superficial)
 
 
-            if(item.live[property] !== null) {
+            if(item.getSync()[property] !== null) {
               //do now
               //console.log('donow');
               ret = item.live[property].apply({}, args);
@@ -67,16 +73,16 @@ function live(component) {
             // * both sync and async
             // * only sync
             // * only async
-            if(component.view.hasOwnProperty(property) && item.live[property] !== null) {
+            if(component.view.hasOwnProperty(property) && item.getSync()[property] !== null) {
               // both
               pushFn = function(fn) {
-                item.live[property].apply(item.live, args);
+                item.getSync()[property].apply(item.getSync(), args);
                 component.view[property].apply(component.view, args.concat(fn)); // concat callback
               }
-            } else if(item.live[property] !== null) {
+            } else if(item.getSync()[property] !== null) {
               // sync only
               pushFn = function(fn) {
-                item.live[property].apply(item.live, args);
+                item.getSync()[property].apply(item.getSync(), args);
                 fn();
               }
             } else if(component.view.hasOwnProperty(property)) {
@@ -125,6 +131,13 @@ function live(component) {
   }
 
   algo.wrap(std);
+  if(Array.isArray(component)) {
+    component.forEach(function(c){
+      algo.wrap(c);
+    });
+  } else {
+    algo.wrap(component);
+  }
   algo.wrap(component);
 
   algo.close = function() {
@@ -149,34 +162,23 @@ function live(component) {
   }
 
   algo.exec = function() {
-    console.log('executing');
-    console.log('fns.length is ' + fns.length);
     if(open)
       return;
     var i = last;
     function doNext() {
       console.log('doNext');
-      if(i >= fns.length || algo.paused)
+      if(i >= fns.length) {
+        algo.fire('end', {}); // todo create event obj
         return;
-      if(algo.update)
-        algo.update();
-      //sync override
-
+      }
+      else if(algo.paused) {
+        return;
+      }
+      algo.fire('update', {});
       last++;
       fns[i++].call({}, function(){
         setTimeout(doNext, 0);
       });
-      /*if(fns[i].sync) {
-        console.log('sync detected');
-        fns[i++].call({});
-        last++;
-        doNext();
-      } else {
-        last++;
-        fns[i++].call({}, function(){
-          setTimeout(doNext, 300);
-        });
-      }*/
     }
     doNext();
   }

@@ -16,5 +16,19 @@ window.S = (function($) {
       S.views[component] = {};
     S.views[component][name] = func;
   }
+
+  S.simpleWrappable = function() {
+    var wrappable = {
+      live: {},
+      async: {}
+    };
+    wrappable.getSync = function() {
+      return wrappable.live;
+    }
+    wrappable.getAsync = function() {
+      return wrappable.async;
+    }
+    return wrappable;
+  }
   return S;
 })(jQuery);

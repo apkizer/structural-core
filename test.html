@@ -99,9 +99,14 @@
 
             var oldArray = myArray.array.slice(0, myArray.array.length);
             insertionsort(livewrap);
+            //flagOddNumbers(livewrap);
             console.log(myArray.array);
             myArray.array = oldArray;
             console.log(myArray.array);
+
+            livewrap.on('end', function(){
+                //alert('finished execution');
+            });
 
             livewrap.close();
             livewrap.exec();
