@@ -5,6 +5,8 @@ S.view = function() {
   var v = S.ee(),
     _speed = 0;
 
+  v.$e = $('<div class="sview"></div>');
+
   v.speed = function(speed) {
     if(!speed)
       return _speed;

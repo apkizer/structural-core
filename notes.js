@@ -19,3 +19,8 @@ S.algorithm({
   author: '*'
 }, ['array!', 'comments']);
 
+// tree view:
+
+tree.node(value);
+tree.traverse('level', 'consider');
+tree.node(c('currentNode'), 45);

@@ -6,21 +6,16 @@ function live(component) {
     },
     fns = [], //array of functions that accept a single callback param
     properties = [],
-    open = true;
-  algo.paused = false;
-  var last = 0;
-  var vars = {};
+    open = true,
+    last = 0,
+    vars = {}; // TODO move to std
 
   //mixin event handling:
   $.extend(algo, S.ee());
 
-  if(typeof component.live === 'undefined') {
-    console.log('cannot livewrap component, no item.live');
-    return;
-  }
+  algo.paused = false;
 
   var std = S.simpleWrappable();
-
 
   std.live.end = function(){
     algo.fire('end', {}); // todo create event object
@@ -44,7 +39,12 @@ function live(component) {
   // build the livewrap. for each method on the component's live, create a clone method which first calls the sync portion of the method, then queues both the sync & async portions
 
 
-  algo.wrap = function(item) {
+  algo.wrap = function(item, wrapAlgo) {
+    if(typeof item.getSync() === 'undefined' || typeof item.getAsync() === 'undefined') {
+      console.log('cannot livewrap item. no item.getSync() or item.getAsync()');
+      return;
+    }
+
     for(var prop in item.getSync()) {
       algo[prop] =
         // inject property; otherwise, pushed functions will all reference last iterated property
@@ -54,25 +54,13 @@ function live(component) {
               return;
             var args = Array.prototype.slice.call(arguments), // convert arguments to an array
               ret = null; // proxy return of sync portion
-
             //null indicates that the method is async only (superficial)
-
-
             if(item.getSync()[property] !== null) {
               //do now
-              //console.log('donow');
               ret = item.live[property].apply({}, args);
-            } else {
-              //console.log('no donow on property ' + property);
-
             }
-
             //push async & sync if found on view:
             var pushFn;
-            // 3 cases:
-            // * both sync and async
-            // * only sync
-            // * only async
             if(component.view.hasOwnProperty(property) && item.getSync()[property] !== null) {
               // both
               pushFn = function(fn) {
@@ -93,37 +81,12 @@ function live(component) {
             } else {
               // declared as async only, but method not found on view.
               console.log('method ' + property.toString() + ' was declared as async only (null), but no corresponding view method was found.');
-              pushFn = function(fn) {
-                fn();
-              }
+              pushFn = false;
             }
-
-
-            /*if(component.view.hasOwnProperty(property)) {
-             pushFn = function(fn) {
-             // call sync:
-             if(item.live[property] !== null)
-             item.live[property].apply(item.live, args); //  does args change?
-             // call async with callback added
-             component.view[property].apply(component.view, args.concat(fn));
-             }
-             pushFn.sync = false;
-             } else {
-             // not found on view, so is sync only
-             pushFn = function(fn) {
-             // call sync:
-             item.live[property].apply({}, args); //  does args change?
-             // do not call async
-             }
-             pushFn.sync = true; // mark as sync only
-             }*/
-
-            fns.push(pushFn);
-
-            if(ret !== null) {
-              // proxy return
+            if(pushFn)
+              fns.push(pushFn);
+            if(ret !== null)
               return ret;
-            }
           };
           return func;
         })(prop);

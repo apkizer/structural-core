@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script src="js/lib/jquery-1.11.1.min.js" type="text/javascript"></script>
+    <script src="js/lib/snap.svg-min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="js/0core.js"></script>
+    <script src="js/1eventemitter.js" type="text/javascript"></script>
+    <script src="js/2base.js" type="text/javascript"></script>
+    <script src="js/3view.js" type="text/javascript"></script>
+    <script src="js/4livewrap.js" type="text/javascript"></script>
+    <script src="js/5testarray.js" type="text/javascript"></script>
+    <script src="js/6reingold.js" type="text/javascript"></script>
+    <style>
+        .tree-svg {
+            width: 100%;
+            height: 100%;
+        }
+        .tree-node {
+            fill: blue;
+        }
+    </style>
+    <script type="text/javascript">
+        $(document).ready(function(){
+
+            function Node(value) {
+                this.value = value;
+                this.left = null;
+                this.right = null;
+                this.sid = S.nextId()
+            }
+            function genTree(root, h, maxh) {
+                if(h > maxh)
+                    return;
+                root.left = new Node(Math.random());
+                root.right = new Node(Math.random());
+                genTree(root.left, h + 1, maxh);
+                genTree(root.right, h + 1, maxh);
+            }
+
+            var root = new Node(1);
+            genTree(root, 0, 3);
+
+            var myTreeView = makeTreeView();
+            var myTree = makeTree(myTreeView);
+            myTree.init(root);
+            myTreeView.init();
+
+            $('body').append(myTreeView.render());
+
+
+
+
+
+
+            /*function printTree(root) {
+                if(!root)
+                    return;
+                console.log(root.value)
+                printTree(root.left);
+                printTree(root.right);
+            }
+            printTree(root);
+
+            function getStore() {
+                var _store = {};
+                var store = function(key, value) {
+                    if(typeof value === 'undefined')
+                        return _store[key];
+                    console.log('storing');
+                    _store[key] = value;
+                }
+                store.getStore = function(){
+                    return _store;
+                }
+                store.getLength = function() {
+                    return Object.keys(_store).length;
+                }
+                return store;
+            }
+
+            var store = getStore();
+
+            rg(root, store, {
+                mh: 15,
+                mv: 20
+            });
+
+
+            function drawNode(node, x, y) {
+                var $node = $('<span>' + node.value + '</span>').css({
+                    display: 'block',
+                    position: 'absolute',
+                    left: x,
+                    top: y,
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    border: '1px solid black',
+                    overflow: 'hidden'
+                });
+                $('body').append($node);
+            }
+
+            function drawTree(root) {
+                if(!root)
+                    return;
+                drawNode(root, store(root.sid).x + 500, store(root.sid).y + 10);
+                drawTree(root.left);
+                drawTree(root.right);
+            }
+
+            drawTree(root);  */
+
+
+
+
+
+        });
+
+
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>
