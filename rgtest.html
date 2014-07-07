@@ -11,6 +11,7 @@
     <script src="js/4livewrap.js" type="text/javascript"></script>
     <script src="js/5testarray.js" type="text/javascript"></script>
     <script src="js/6reingold.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="test.css"/>
     <style>
         .tree-svg {
             width: 100%;
@@ -31,6 +32,12 @@
         .focus {
             stroke-width: 2px;
             stroke: orange;
+        }
+        .array {
+            z-index: 999;
+            position: fixed;
+            top: 300px;
+            right: 50px;
         }
     </style>
     <script type="text/javascript">
@@ -56,23 +63,46 @@
 
             var myTreeView = makeTreeView();
             var myTree = makeTree(myTreeView);
+            var myArrayView = S.views.array.simple({
+                numElements: 16
+            });
+            
+            var myArray = S.components.array([1, 2], myArrayView);
+            myArrayView.scaleTo({
+                width: 600,
+                height: 200
+            });
+            myArrayView.init();
             myTree.init(root);
             myTreeView.init();
-
             $('body').append(myTreeView.render());
+            $('body').append(myArrayView.render());
             
-            var livewrap = live(myTree);
+            myArray.live.push(1);
+            
+            
+            var livewrap = live([myTree, myArray]);
             
             function traversal(c) {
-                console.log('c.root is ' + c.root());
+                c.log('c.root is ' + c.root());
                 //c.focus(c.root());
-                preorder(c.root());
+                //preorder(c.root());
+                inorder(c.root());
                 
                 function preorder(node) {
                     if(node) {
-                        c.focus(node);
-                        c.focus(node.left);
-                        c.focus(node.right);
+                        c.focusNode(node);
+                        preorder(node.left);
+                        preorder(node.right);
+                    }
+                }
+                
+                function inorder(node) {
+                    if(node) {
+                        inorder(node.left);
+                        c.focusNode(node);
+                        c.push(node.value);//array
+                        inorder(node.right);
                     }
                 }
             }

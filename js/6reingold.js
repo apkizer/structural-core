@@ -41,7 +41,7 @@ function makeTree(view) {
   
   c.live.traverse = null;
 
-  c.live.focus = null;
+  c.live.focusNode = null;
 
   return c;
 }
@@ -56,7 +56,8 @@ function makeTreeView() {
     },
     $e,
     svg,
-    $svg;
+    $svg,
+    data = S.map();
 
   view.init = function() {
     $e = $('<div class="tree"></div>');
@@ -64,6 +65,10 @@ function makeTreeView() {
     var svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     $e.append($(svgElement));
     $svg = $e.find('svg').first();
+      
+      $svg.width(1000);
+      $svg.height(300);
+      
     $svg.addClass('tree-svg');
     svg = Snap(svgElement);
     console.log('typeof elem ' + typeof $e.find('svg').first().get());
@@ -118,14 +123,17 @@ function makeTreeView() {
   }
   
 
-  view.focus = function(node, fn) {
+  view.focusNode = function(node, fn) {
+      console.log('treeview.focus');
     focus(elems(node), fn);
   }
 
   function focus($elem, fn) {
+      console.log('treeview.focus');
     $elem.addClass('focus');
     S.wait(function(){
       $elem.removeClass('focus');
+      console.log('calling fn!');
       fn();
     }, 500);
   }

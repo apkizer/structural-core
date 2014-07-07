@@ -40,7 +40,8 @@ function live(component) {
 
 
   algo.wrap = function(item, wrapAlgo) {
-    if(typeof item.getSync() === 'undefined' || typeof item.getAsync() === 'undefined') {
+      console.log('item is ' + item);
+    if(typeof item.getSync === 'undefined' || typeof item.getAsync === 'undefined') {
       console.log('cannot livewrap item. no item.getSync() or item.getAsync()');
       return;
     }
@@ -61,11 +62,11 @@ function live(component) {
             }
             //push async & sync if found on view:
             var pushFn;
-            if(component.view.hasOwnProperty(property) && item.getSync()[property] !== null) {
+            if(item.getAsync().hasOwnProperty(property) && item.getSync()[property] !== null) {
               // both
               pushFn = function(fn) {
                 item.getSync()[property].apply(item.getSync(), args);
-                component.view[property].apply(component.view, args.concat(fn)); // concat callback
+                item.getAsync()[property].apply(item.getAsync(), args.concat(fn)); // concat callback
               }
             } else if(item.getSync()[property] !== null) {
               // sync only
@@ -73,10 +74,10 @@ function live(component) {
                 item.getSync()[property].apply(item.getSync(), args);
                 fn();
               }
-            } else if(component.view.hasOwnProperty(property)) {
+            } else if(item.getAsync().hasOwnProperty(property)) {
               // async only
               pushFn = function(fn) {
-                component.view[property].apply(component.view, args.concat(fn)); // concat callback
+                item.getAsync()[property].apply(item.getAsync(), args.concat(fn)); // concat callback
               }
             } else {
               // declared as async only, but method not found on view.
@@ -95,13 +96,13 @@ function live(component) {
 
   algo.wrap(std);
   if(Array.isArray(component)) {
+      console.log('is array!');
     component.forEach(function(c){
       algo.wrap(c);
     });
   } else {
     algo.wrap(component);
   }
-  algo.wrap(component);
 
   algo.close = function() {
     open = false;
@@ -125,11 +126,13 @@ function live(component) {
   }
 
   algo.exec = function() {
+    console.log('exec: fns.length ' + fns.length);
     if(open)
       return;
     var i = last;
     function doNext() {
       console.log('doNext');
+      console.log(fns[i]);
       if(i >= fns.length) {
         algo.fire('end', {}); // todo create event obj
         return;
