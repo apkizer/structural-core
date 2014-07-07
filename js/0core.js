@@ -4,7 +4,10 @@ window.S = (function($) {
   S.views = {};
   var id = 0;
 
-  S.wait = setTimeout;
+  S.wait = function(func, time) {
+      setTimeout(func, time);
+  }
+  
   if(!$)
     console.log('jQuery is missing.');
 

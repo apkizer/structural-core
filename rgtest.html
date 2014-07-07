@@ -17,7 +17,20 @@
             height: 100%;
         }
         .tree-node {
-            fill: blue;
+            fill: #0033cc;
+            cursor: pointer;
+        }
+        .tree-node:hover {
+            fill: #0099cc;
+        }
+        .tree-node-value {
+            font-family: arial;
+            fill: white;
+            cursor: pointer;
+        }
+        .focus {
+            stroke-width: 2px;
+            stroke: orange;
         }
     </style>
     <script type="text/javascript">
@@ -32,8 +45,8 @@
             function genTree(root, h, maxh) {
                 if(h > maxh)
                     return;
-                root.left = new Node(Math.random());
-                root.right = new Node(Math.random());
+                root.left = new Node(Math.floor(Math.random() * 10));
+                root.right = new Node(Math.floor(Math.random() * 10));
                 genTree(root.left, h + 1, maxh);
                 genTree(root.right, h + 1, maxh);
             }
@@ -47,9 +60,31 @@
             myTreeView.init();
 
             $('body').append(myTreeView.render());
-
-
-
+            
+            var livewrap = live(myTree);
+            
+            function traversal(c) {
+                console.log('c.root is ' + c.root());
+                //c.focus(c.root());
+                preorder(c.root());
+                
+                function preorder(node) {
+                    if(node) {
+                        c.focus(node);
+                        c.focus(node.left);
+                        c.focus(node.right);
+                    }
+                }
+            }
+            
+            traversal(livewrap);
+            
+            livewrap.on('end', function(){
+                console.log('end');
+            });
+            
+            livewrap.close();
+            livewrap.exec();
 
 
 

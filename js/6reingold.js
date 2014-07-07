@@ -35,9 +35,11 @@ function makeTree(view) {
   }
 
   c.live.root = function() {
-    if(tree)
-      return tree.sid;
+    if(c.tree)
+      return c.tree;//.sid;
   }
+  
+  c.live.traverse = null;
 
   c.live.focus = null;
 
@@ -66,18 +68,41 @@ function makeTreeView() {
     svg = Snap(svgElement);
     console.log('typeof elem ' + typeof $e.find('svg').first().get());
     rg(view.component.tree, positions, opts);
+    drawLines(view.component.tree);
     drawTree(view.component.tree);
+    drawValues(view.component.tree);
   }
 
-  function drawNode(value, x, y) {
+  function drawNode(node, value, x, y) {
     var circle = svg.circle(x, y, 10);
     circle.addClass('tree-node');
+    elems(node, circle);
   }
+    
+    function drawValues(root) {
+        if(root) {
+            svg.text(positions(root).x + 500 - 5, positions(root).y + 10 + 5, root.value + '')
+                .addClass('tree-node-value');
+            drawValues(root.left);
+            drawValues(root.right);
+        }
+    }
+    
+    function drawLines(root) {
+        if(root.left) {
+            svg.line(positions(root).x + 500, positions(root).y + 10, positions(root.left).x + 500, positions(root.left).y + 10).attr('stroke', 'black');
+            drawLines(root.left);
+        }
+        if(root.right) {
+            svg.line(positions(root).x + 500, positions(root).y + 10, positions(root.right).x + 500, positions(root.right).y + 10).attr('stroke', 'black');
+            drawLines(root.right);
+        }
+    }
 
   function drawTree(root) {
     if(!root)
       return;
-    drawNode(root.value, positions(root).x + 500, positions(root).y + 10);
+    drawNode(root, root.value, positions(root).x + 500, positions(root).y + 10);
     drawTree(root.left);
     drawTree(root.right);
   };
@@ -91,7 +116,7 @@ function makeTreeView() {
   view.render = function() {
     return $e;
   }
-
+  
 
   view.focus = function(node, fn) {
     focus(elems(node), fn);
@@ -102,7 +127,7 @@ function makeTreeView() {
     S.wait(function(){
       $elem.removeClass('focus');
       fn();
-    }, 100);
+    }, 500);
   }
 
 
