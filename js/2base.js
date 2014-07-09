@@ -21,6 +21,10 @@ S.base = function(view) {
   c.copy = function(other) {
     c.setState(other.getState());
   };
+    
+  c.getFactory = function() {
+    console.log('getState not implemented!');
+  }
 
   c.getState = function() {
     console.log('getState not implemented!');

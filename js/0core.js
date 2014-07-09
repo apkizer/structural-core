@@ -4,6 +4,11 @@ window.S = (function($) {
   S.views = {};
   var id = 0;
     
+  S.components.getFactory = function(name) {
+      if(S.components[name])
+        return S.components[name].factory;
+  }
+  
   S.config = {
       viewClass: 'sview'
   };
@@ -16,6 +21,16 @@ window.S = (function($) {
     console.log('jQuery is missing.');
 
   S.add = function(name, func) {
+    func.factory = func; // so that livewrap can copy   
+    console.log('func.factory is ' + func.factory);
+      
+    // add in queue, rewrite methods
+   /* var actualFunc = function() {
+        var c = {};
+        c = func.apply(this, arguments);
+    }*/
+    
+      
     S.components[name] = func;
   }
 
@@ -30,12 +45,15 @@ window.S = (function($) {
       live: {},
       async: {}
     };
+      
     wrappable.getSync = function() {
       return wrappable.live;
     }
+    
     wrappable.getAsync = function() {
       return wrappable.async;
     }
+    
     return wrappable;
   }
 

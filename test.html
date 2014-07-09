@@ -98,7 +98,7 @@
             }
 
             var oldArray = myArray.array.slice(0, myArray.array.length);
-            insertionsort(livewrap);
+            //insertionsort(livewrap);
             //flagOddNumbers(livewrap);
             console.log(myArray.array);
             myArray.array = oldArray;
@@ -109,7 +109,16 @@
             });
 
             livewrap.close();
-            livewrap.exec();
+            
+            window.focus = function(i) {
+                var wrap = S.live(myArray);
+                wrap.focus(i);
+                wrap.close();
+                wrap.exec();
+            }
+            
+            window.lwrap = S.live(myArray);
+            //livewrap.exec();
 
         });
     </script>

@@ -1,4 +1,5 @@
 S.live = function(component) {
+    
   var algo = function(key, value){
       if(!value)
         return algo.get(key);
@@ -15,7 +16,7 @@ S.live = function(component) {
 
   algo.paused = false;
 
-  var std = S.simpleWrappable();
+  var std = S.simpleWrappable()
 
   std.live.end = function(){
     algo.fire('end', {}); // todo create event object
@@ -38,14 +39,11 @@ S.live = function(component) {
 
   // build the livewrap. for each method on the component's live, create a clone method which first calls the sync portion of the method, then queues both the sync & async portions
 
-
   algo.wrap = function(item, wrapAlgo) {
-      console.log('item is ' + item);
     if(typeof item.getSync === 'undefined' || typeof item.getAsync === 'undefined') {
       console.log('cannot livewrap item. no item.getSync() or item.getAsync()');
       return;
     }
-
     for(var prop in item.getSync()) {
       algo[prop] =
         // inject property; otherwise, pushed functions will all reference last iterated property
@@ -147,6 +145,10 @@ S.live = function(component) {
       });
     }
     doNext();
+  }
+  
+  algo.finish = function() {
+      
   }
 
   return algo;
