@@ -1,5 +1,4 @@
-(function(){
-  function makeArray(arr, view) {
+S.add('array', function (arr, view) {
     var c = S.base(view),
       flags = [];
     c.array = arr;
@@ -44,12 +43,11 @@
     }
 
     return c;
-  }
+  });
 
-  S.add('array', makeArray);
-})();
-(function(){
-  function makeArrayView(options) {
+
+S.addView('array', 'simple', 
+  function (options) {
     var view = S.view(),
       config = {
         hiddenDelimiter: ',',
@@ -219,7 +217,7 @@
       var $both = $newTd.add($newTh).css('opacity', 0);
       $topRow.append($newTd);
       $bottomRow.append($newTh);
-      $both.css('width', config.elementWidth);
+      /*$both.css('width', config.elementWidth);*/
       view.fire('change', {});
       return $both;
     }
@@ -320,8 +318,6 @@
     }
 
     return view;
-  }
-  S.addView('array', 'simple', makeArrayView);
-})();
+  });
 
 

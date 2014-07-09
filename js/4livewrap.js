@@ -1,4 +1,4 @@
-function live(component) {
+S.live = function(component) {
   var algo = function(key, value){
       if(!value)
         return algo.get(key);

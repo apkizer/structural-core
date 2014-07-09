@@ -61,16 +61,15 @@
             var root = new Node(1);
             genTree(root, 0, 3);
 
-            var myTreeView = makeTreeView();
-            var myTree = makeTree(myTreeView);
+            var myTreeView = S.views.tree.simple();
+            var myTree = S.components.tree(myTreeView);
             var myArrayView = S.views.array.simple({
                 numElements: 16
             });
-            
-            var myArray = S.components.array([1, 2], myArrayView);
+            var myArray = S.components.array([], myArrayView);
             myArrayView.scaleTo({
                 width: 600,
-                height: 200
+                height: 300
             });
             myArrayView.init();
             myTree.init(root);
@@ -81,7 +80,7 @@
             myArray.live.push(1);
             
             
-            var livewrap = live([myTree, myArray]);
+            var livewrap = S.live([myTree, myArray]);
             
             function traversal(c) {
                 c.log('c.root is ' + c.root());
@@ -107,7 +106,14 @@
                 }
             }
             
-            traversal(livewrap);
+            function buildArray(c) {
+                for(var i = 0; i < 5; i++) {
+                    c.push(i);
+                }
+            }
+            
+            //traversal(livewrap);
+            buildArray(livewrap);
             
             livewrap.on('end', function(){
                 console.log('end');

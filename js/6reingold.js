@@ -1,4 +1,4 @@
-function makeTree(view) {
+S.add('tree', function (view) {
   var c = S.base(view),
     nodes = S.map();
   c.tree = new Node(0);
@@ -44,9 +44,10 @@ function makeTree(view) {
   c.live.focusNode = null;
 
   return c;
-}
+});
 
-function makeTreeView() {
+
+S.addView('tree', 'simple', function () {
   var view = S.view(),
     elems = S.map(),
     positions = S.map(),
@@ -402,8 +403,7 @@ function makeTreeView() {
   }
 
   return view;
-}
-
+} );
 
 
 
