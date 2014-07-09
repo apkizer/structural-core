@@ -3,6 +3,10 @@ window.S = (function($) {
   S.components = {};
   S.views = {};
   var id = 0;
+    
+  S.config = {
+      viewClass: 'sview'
+  };
 
   S.wait = function(func, time) {
       setTimeout(func, time);

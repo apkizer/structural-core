@@ -3,13 +3,13 @@
 <head>
     <title></title>
     <script type="text/javascript" src="js/lib/jquery-1.11.1.min.js"></script>
-    <!-- <script type="text/javascript" src="js/0core.js"></script>
+    <script type="text/javascript" src="js/0core.js"></script>
     <script src="js/1eventemitter.js" type="text/javascript"></script>
     <script src="js/2base.js" type="text/javascript"></script>
     <script src="js/3view.js" type="text/javascript"></script>
     <script src="js/4livewrap.js" type="text/javascript"></script>
-    <script src="js/5testarray.js" type="text/javascript"></script> -->
-    <script src="structural.min.js" type="text/javascript"></script>
+    <script src="js/5testarray.js" type="text/javascript"></script> 
+    <!-- <script src="structural.min.js" type="text/javascript"></script> -->
     <link rel="stylesheet" href="test.css"/>
     <script type="text/javascript">
         $(document).ready(function(){
@@ -22,7 +22,6 @@
                 array[i] = Math.floor(Math.random() * 50);
             }
             var myArray = S.components.array(array, myView);
-            myView.init();
             myView.scaleTo({
                 width: $(document).width()
             });

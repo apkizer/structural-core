@@ -1,12 +1,12 @@
 if(!S) console.log('S is not defined.')
-if(!S.ee) console.log('S is not defined.')
+if(!S.ee) console.log('S.ee is not defined.')
 
 S.view = function() {
   var v = S.ee(),
     _speed = 0;
 
-  v.$e = $('<div class="sview"></div>');
-
+  v.$element = $('<div></div>').addClass(S.config.viewClass);
+    
   v.speed = function(speed) {
     if(!speed)
       return _speed;

@@ -4,6 +4,10 @@ window.S = (function($) {
   S.components = {};
   S.views = {};
   var id = 0;
+    
+  S.config = {
+      viewClass: 'sview'
+  };
 
   S.wait = function(func, time) {
       setTimeout(func, time);
@@ -145,14 +149,14 @@ S.base = function(view) {
   return c;
 }
 if(!S) console.log('S is not defined.')
-if(!S.ee) console.log('S is not defined.')
+if(!S.ee) console.log('S.ee is not defined.')
 
 S.view = function() {
   var v = S.ee(),
     _speed = 0;
 
-  v.$e = $('<div class="sview"></div>');
-
+  v.$element = $('<div></div>').addClass(S.config.viewClass);
+    
   v.speed = function(speed) {
     if(!speed)
       return _speed;
@@ -336,12 +340,6 @@ S.add('array', function (arr, view) {
     c.array = arr;
 
     c.live.focus = null; // informs livewrap that this method only makes sense async
-    /*c.async.focus = function(index, fn) {
-     view.focus(index, function(){
-     fn();
-     });
-     }*/
-
     c.live.range = null;
     c.live.clearfocus = null;
     c.live.clearrange = null;
@@ -366,6 +364,7 @@ S.add('array', function (arr, view) {
     c.live.setItem = function(index, value) {
       c.array[index] = value;
     }
+    
     c.live.getItem = function(index) {
       return c.array[index];
     }
@@ -391,11 +390,11 @@ S.addView('array', 'simple',
         maxScrollTime: 1000,
         areObjs: false
       },
+      $e,
       onScrollFn,
       computedWidth,
       wrapWidth,
-      border = 0,//1,
-      //view.$e,
+      border = 0,
       $topRow,
       $bottomRow;
     $.extend(config, options);
@@ -403,33 +402,53 @@ S.addView('array', 'simple',
     view.array = array;
     view.leftBound = 0;
     view.rightBound = config.numElements - 1;
-
+      
+    view.init();
+      
     view.init = function() {
-      console.log('view.component is ');
-      console.log(view.component);
-      view.$e = $('<div class="array"><table><tr></tr><tr class="indices"></tr></table></div>');
-      $topRow = view.$e.find('tr').first();
-      $bottomRow = view.$e.find('tr').eq(1);
+        //init logic ?
+    }
+
+
+    view.render = function() {
+      $e = $('<div class="array"><table><tr></tr><tr class="indices"></tr></table></div>');
+      $topRow = $e.find('tr').first();
+      $bottomRow = $e.find('tr').eq(1);
       for(var i = 0; i < view.component.array.length; i++) {
         var $td = $('<td>' + view.component.array[i] + '<span style="font-size: 0;">' + config.hiddenDelimiter + '</span></td>').data('index', i),
           $th = $('<th>' + i + '</th>').data('index', i);
         $topRow.append($td);
         $bottomRow.append($th);
       }
-      view.$e.find('td').add('th').css('width', config.elementWidth);
+      $e.find('td').add('th').css('width', config.elementWidth);
       computedWidth = config.elementWidth + border;
+        
       setWrapWidth();
+
       bindEvents();
+        
+      view.$element.append($e);
+        
+      console.log('view.element ' + view.$element);
+        
+      return view.$element;
     }
 
+    view.scaleTo = function(dimensions) {
+      console.log('scaling');
+      config.elementWidth = Math.floor(dimensions.width / config.numElements) - border;
+      //view.init();
+      view.render();
+    }
+    
     function setWrapWidth() {
       /*wrapWidth = config.numElements * (config.elementWidth + border) + border;*/
       wrapWidth = config.numElements * computedWidth + border;
-      view.$e.css('width', wrapWidth);
+      $e.css('width', wrapWidth);
     }
 
     function bindEvents() {
-      //view.$e.mousewheel(handleMousewheel); // TODO needs mousewheel
+      //$e.mousewheel(handleMousewheel); // TODO needs mousewheel
       $topRow.find('td').click(handleTdClick);
       $topRow.find('td').dblclick(handleTdDblClick);
     }
@@ -462,15 +481,6 @@ S.addView('array', 'simple',
         view.right();
     }
 
-    view.render = function() {
-      return view.$e;
-    }
-
-    view.scaleTo = function(dimensions) {
-      console.log('scaling');
-      config.elementWidth = Math.floor(dimensions.width / config.numElements) - border;
-      view.init();
-    }
 
     view.onScroll = function(fn) {
       onScrollFn = fn;
@@ -635,7 +645,7 @@ S.addView('array', 'simple',
       if(!right) str = '-=';
       var anim = {};
       anim.scrollLeft = str + amount;
-      view.$e.animate(anim, time);
+      $e.animate(anim, time);
       //view.fire('change', {});
     }
 
@@ -643,7 +653,7 @@ S.addView('array', 'simple',
       var anim = {};
       anim.scrollLeft = amount;
       //view.fire('change', {}); //TODO add view events
-      view.$e.animate(anim, time, function(){
+      $e.animate(anim, time, function(){
         if(typeof fn !== 'undefined')
           fn();
       });
