@@ -1,2 +1,4 @@
 Structural
 ==========
+
+Build with `grunt`.
