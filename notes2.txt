@@ -6,6 +6,7 @@ array.stop();
 // pile on execution, perhaps with algorithm (separate livewrap)
 array.next();
 array.next();
++
 array.play();
 array.pause();
 array.next();

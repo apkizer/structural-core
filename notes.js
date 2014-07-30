@@ -24,3 +24,4 @@ S.algorithm({
 tree.node(value);
 tree.traverse('level', 'consider');
 tree.node(c('currentNode'), 45);
+.
