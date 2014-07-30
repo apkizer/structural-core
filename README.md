@@ -5,6 +5,7 @@ The core library for the Structural web app. Allows you to create components wit
 * Create components with animated views.
 * Wrap the methods of these components with a deferred execution context which lets you animate the code you write.
 * Use or extend a set of standard, already-coded data structures.
+* Use a set of standard algorithms that operate on the aforementioned data structures.
 
 ### Bundled Data Structures
 * array
