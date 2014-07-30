@@ -10,7 +10,15 @@ module.exports = function(grunt) {
                 banner: '/* Structural, by Alex Kizer */ \n'
             },
             js: {
-                src: ['src/js/*.js'],
+                src: [
+                    'src/js/core.js',
+                    'src/js/eventEmitter.js',
+                    'src/js/baseComponent.js',
+                    'src/js/baseView.js',
+                    'src/js/deferred.js',
+                    'src/js/components/*.js'
+                    
+                     ],
                 dest: 'build/structural.js'
             },
             css: {
