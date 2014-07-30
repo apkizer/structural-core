@@ -1,12 +1,17 @@
 module.exports = function(grunt) {
     grunt.initConfig({
+        clean :{
+            build: {
+                src: ['build']
+            }
+        },
         concat: {
             options: {
                 banner: '/* Structural, by Alex Kizer */ \n'
             },
             dist: {
-                src: ['js/*.js'],
-                dest: 'structural.js'
+                src: ['src/js/*.js'],
+                dest: 'build/structural.js'
             }
         },
         uglify: {
@@ -15,14 +20,15 @@ module.exports = function(grunt) {
             }, 
             dist: {
                 files: {
-                    'structural.min.js': ['structural.js']
+                    'build/structural.min.js': ['build/structural.js']
                 }
             }
         }
     });
     
+    grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     
-    grunt.registerTask('default', ['concat', 'uglify']);
+    grunt.registerTask('default', ['clean', 'concat', 'uglify']);
 };
