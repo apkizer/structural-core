@@ -40,7 +40,7 @@ window.S = (function($) {
     S.views[component][name] = func;
   }
 
-  S.simpleWrappable = function() {
+  /*S.simpleWrappable = function() {
     var wrappable = {
       live: {},
       async: {}
@@ -55,7 +55,7 @@ window.S = (function($) {
     }
     
     return wrappable;
-  }
+  }*/
 
   S.nextId = function() {
     return 'sid_' + id++;

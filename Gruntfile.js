@@ -9,9 +9,13 @@ module.exports = function(grunt) {
             options: {
                 banner: '/* Structural, by Alex Kizer */ \n'
             },
-            dist: {
+            js: {
                 src: ['src/js/*.js'],
                 dest: 'build/structural.js'
+            },
+            css: {
+                src: ['src/css/*.css'],
+                dest: 'build/structural.css'
             }
         },
         uglify: {
