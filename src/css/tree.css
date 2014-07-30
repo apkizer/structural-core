@@ -1,0 +1,26 @@
+/* @namespace svg url(http://www.w3.org/2000/svg); ? */
+.tree-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.tree-node {
+    fill: #0033cc;
+    cursor: pointer;
+}
+
+.tree-node:hover {
+    fill: #0099cc;
+}
+
+.tree-node-value {
+    font-family: arial;
+    fill: white;
+    cursor: pointer;
+}
+
+.tree-svg .focus {
+    stroke-width: 2px;
+    stroke: orange;
+}
+
