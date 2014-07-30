@@ -9,7 +9,7 @@
     <script src="js/3view.js" type="text/javascript"></script>
     <script src="js/4livewrap.js" type="text/javascript"></script>
     <script src="js/5testarray.js" type="text/javascript"></script> -->
-    <script src="../build/structural.min.js" type="text/javascript"></script>
+    <script src="../build/structural.js" type="text/javascript"></script>
     <link rel="stylesheet" href="../src/css/array.css"/>
     <script type="text/javascript">
         $(document).ready(function(){
@@ -28,8 +28,11 @@
             $('body').append(myView.render());
 
             myView.focus();
-
-            var livewrap = S.live(myArray);
+            
+            var deferred = S.deferred();
+            deferred.wrap(myArray);
+            
+            var livewrap = deferred.getContext();
 
             /*function insertionsort(wrap) {
                 for(var i = 0; i < wrap.getLength(); i++) {
@@ -51,7 +54,7 @@
 
             function insertionsort(wrap) {
                 for(var i = 0; i < wrap.getLength(); i++) {
-                    wrap('j', i);
+                    wrap('j', i);  
                     while(wrap('j') > 0 && wrap.getItem(wrap('j') - 1) > wrap.getItem(wrap('j'))) {
                         //swap:
                         wrap.log('swapping');
@@ -98,15 +101,15 @@
             }
 
             var oldArray = myArray.array.slice(0, myArray.array.length);
-            //insertionsort(livewrap);
+            insertionsort(livewrap);
             //flagOddNumbers(livewrap);
             console.log(myArray.array);
             myArray.array = oldArray;
             console.log(myArray.array);
 
-            livewrap.on('end', function(){
+           /* livewrap.on('end', function(){
                 //alert('finished execution');
-            });
+            });*/
 
             livewrap.close();
             
@@ -117,8 +120,8 @@
                 wrap.exec();
             }
             
-            window.lwrap = S.live(myArray);
-            //livewrap.exec();
+            //window.lwrap = S.live(myArray);
+            livewrap.exec();
 
         });
     </script>

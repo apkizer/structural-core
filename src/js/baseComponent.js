@@ -19,7 +19,7 @@ S.base = function(view) {
   }
 
   c.copy = function(other) {
-    c.setState(other.getState());
+    //c.setState(other.getState());
   };
     
   c.getFactory = function() {
