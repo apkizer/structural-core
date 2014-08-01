@@ -21,15 +21,6 @@ S.addView('array', 'simple',
     $.extend(config, options);
     view.leftBound = 0;
     view.rightBound = config.numElements - 1;
-      
-    
-      
-    /*view.init = function() {
-        //init logic ?
-    }
-    
-    view.init();*/
-
 
     view.render = function() {
       if($e) {
