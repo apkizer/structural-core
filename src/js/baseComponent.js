@@ -1,7 +1,7 @@
 S.base = function(view) {
   var c = S.ee();
   c.live = {};
-  c.algo = {};
+  //c.algo = {};
     
   if(view) c.setView(view);
 

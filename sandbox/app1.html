@@ -43,7 +43,10 @@
         function testAdded(msg, i0, i1) {
             this.flog('testing an added method');
             this.flog(msg);
+            this.flag(i0);
+            this.flag(i1);
             this.swap(i0, i1);
+            this.clearfocus();
         }
         
 
