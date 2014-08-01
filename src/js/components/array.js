@@ -1,4 +1,5 @@
-S.add('array', function (arr, view) {
+(function(S){
+function array(arr, view) {
     var c = S.base(view),
       flags = [];
     c.array = arr;
@@ -8,6 +9,10 @@ S.add('array', function (arr, view) {
     c.live.clearfocus = null;
     c.live.clearrange = null;
     c.live.leftTo = null;
+
+    c.copy = function() {
+        return array(c.array, view);
+    }
 
     c.live.getLength = function() {
       return c.array.length;
@@ -28,7 +33,7 @@ S.add('array', function (arr, view) {
     c.live.setItem = function(index, value) {
       c.array[index] = value;
     }
-    
+
     c.live.getItem = function(index) {
       return c.array[index];
     }
@@ -36,6 +41,10 @@ S.add('array', function (arr, view) {
     c.live.push = function(item) {
       c.array.push(item);
     }
-
+    
+    c.makeDeferred();
     return c;
-  });
+}
+S.add('array', array);
+})(window.S);
+

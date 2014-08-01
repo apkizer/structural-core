@@ -1,5 +1,3 @@
-if(!S) console.log('S is not defined.')
-if(!S.ee) console.log('S.ee is not defined.')
 
 S.view = function() {
   var v = S.ee(),

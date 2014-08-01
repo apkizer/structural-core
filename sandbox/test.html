@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="../src/css/array.css"/>
     <script type="text/javascript">
         $(document).ready(function(){
+            S.finalize();
+            
+            
             console.log();
             var myView = S.views.array.simple({
                 numElements: 16
@@ -29,9 +32,14 @@
 
             myView.focus();
             
+            
+            
             var deferred = S.deferred();
             deferred.wrap(myArray);
             
+            window.deferredContext = deferred.getContext();
+            
+            console.log('myarray.def ' + typeof myArray.def);
             var livewrap = deferred.getContext();
 
             /*function insertionsort(wrap) {
@@ -125,7 +133,7 @@
 
             var oldArray = myArray.array.slice(0, myArray.array.length);
             //insertionsort(livewrap);
-            insertionsort.call(livewrap);
+            //insertionsort.call(livewrap);
             //flagOddNumbers(livewrap);
             console.log(myArray.array);
             myArray.array = oldArray;
@@ -134,8 +142,6 @@
            /* livewrap.on('end', function(){
                 //alert('finished execution');
             });*/
-
-            livewrap.close();
             
             window.focus = function(i) {
                 var wrap = S.live(myArray);
@@ -145,7 +151,7 @@
             }
             
             //window.lwrap = S.live(myArray);
-            livewrap.exec();
+            //deferred.exec();
 
         });
     </script>

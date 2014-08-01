@@ -29,7 +29,8 @@ S.deferred = function() {
         },
         fns = [],
         last = 0,
-        open = true;
+        open = true,
+        executing = false;
     
     $.extend(deferred, S.ee());
     
@@ -99,16 +100,16 @@ S.deferred = function() {
         return fns.length;
       }
 
-      context.exec = function() {
+      deferred.exec = function() {
+        executing = true;
         console.log('exec: fns.length ' + fns.length);
-        if(open)
-          return;
         var i = last;
         function doNext() {
           console.log('doNext');
           console.log(fns[i]);
           if(i >= fns.length) {
             //context.fire('end', {}); // remove? todo create event obj
+            executing = false;
             return;
           }
           else if(context.paused) {
@@ -126,6 +127,7 @@ S.deferred = function() {
     };
     
     function wrap(wrappable) {
+        console.log('wrapping!');
         if(typeof wrappable.getSync === 'undefined' || typeof wrappable.getAsync === 'undefined') {
           return console.log('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
         }
@@ -138,8 +140,6 @@ S.deferred = function() {
             // inject property; otherwise, pushed functions will all reference last iterated property
             (function(property, clone){
               var deferredMethod = function() {
-                if(!open)
-                  return;
                 var args = Array.prototype.slice.call(arguments), // convert arguments to an array
                   ret;// = null; // proxy return of sync portion
                 //null indicates that the method is async only (superficial)
@@ -175,6 +175,7 @@ S.deferred = function() {
                 }
                 if(pushFn)
                   fns.push(pushFn);
+                deferred.fire('push', {}); 
                 if(ret !== null)
                   return ret;
               };
@@ -182,6 +183,15 @@ S.deferred = function() {
             })(prop, clone);
         }
     }
+    
+    deferred.on('push', function(event) {
+        console.log('fn pushed!');
+        console.log('open=' + open + ', executing=' + executing);
+        if(open && !executing) {
+            console.log('mode is open; executing...');
+            deferred.exec();
+        }
+    });
     
     deferred.getContext = function() {
         return context;

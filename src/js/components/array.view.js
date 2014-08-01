@@ -24,11 +24,11 @@ S.addView('array', 'simple',
       
     
       
-    view.init = function() {
+    /*view.init = function() {
         //init logic ?
     }
     
-    view.init();
+    view.init();*/
 
 
     view.render = function() {

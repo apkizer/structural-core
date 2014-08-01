@@ -1,6 +1,3 @@
-if(!S) console.log('S is not defined.');
-if(!S.ee) console.log('S is not defined.');
-
 S.base = function(view) {
   var c = S.ee();
   c.live = {};
@@ -43,6 +40,12 @@ S.base = function(view) {
   c.getAsync = function() {
     return c.view;
   }
-
+  
+  c.makeDeferred = function() {
+      c.def = S.deferred();
+      //c.def.wrap(c);
+      //c.deferredContext = c.def.getContext();
+  }
+  
   return c;
 }
