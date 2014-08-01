@@ -19,8 +19,6 @@ S.addView('array', 'simple',
       $topRow,
       $bottomRow;
     $.extend(config, options);
-    //array = config.array;
-    //view.array = array;
     view.leftBound = 0;
     view.rightBound = config.numElements - 1;
       
@@ -63,7 +61,6 @@ S.addView('array', 'simple',
     view.scaleTo = function(dimensions) {
       console.log('scaling');
       config.elementWidth = Math.floor(dimensions.width / config.numElements) - border;
-      //view.init();
       view.render();
     }
     
