@@ -34,7 +34,7 @@
             
             
             
-            var deferred = S.deferred();
+            window.deferred = S.deferred();
             deferred.wrap(myArray);
             
             window.deferredContext = deferred.getContext();

@@ -79,8 +79,15 @@ S.deferred = function() {
             wrap(wrappables);
         }
         
-      context.close = function() {
+      deferred.close = function() {
         open = false;
+      }
+      
+      deferred.open = function() {
+        open = true;
+        if(fns.length > 0) {
+            deferred.exec();
+        }
       }
 
       context.pause = function(){
@@ -118,7 +125,7 @@ S.deferred = function() {
           // context.fire('update', {}); TODO !!!!!!!
           last++;
           fns[i++].call({}, function(){
-            setTimeout(doNext, 0);
+            setTimeout(doNext, 250);
           });
         }
         doNext();
