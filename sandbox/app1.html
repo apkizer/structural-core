@@ -17,13 +17,36 @@
                 width: 650
             });
             $('body').append(arrayView.render());
-            flagIndex.call(arrayOne.deferredContext, 4);
+            // define a new method:
+            arrayOne.def.add('swap', swap); // TODO, should define on array class, not instance
+            // test it
+            testAdded.call(arrayOne.deferredContext, 'hello, world', 2, 5);
         });
         
         function flagIndex(index) {
             this.flog('flagging ' + index);
             this.flag(index);
         }
+        
+        function setAllTo(what) {
+            for(var i = 0; i < this.getLength(); i++) {
+                this.setItem(i, what);
+            }
+        }
+        
+        function swap(a, b) {
+            this('a', this.getItem(a));
+            this.setItem(a, this.getItem(b));
+            this.setItem(b, this('a'));
+        }
+        
+        function testAdded(msg, i0, i1) {
+            this.flog('testing an added method');
+            this.flog(msg);
+            this.swap(i0, i1);
+        }
+        
+
     </script>
 </head>
 <body>

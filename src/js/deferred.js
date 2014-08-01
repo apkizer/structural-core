@@ -204,6 +204,11 @@ S.deferred = function() {
   deferred.getContext = function() {
       return context;
   }
+  
+  deferred.add = function(name, func) {
+      func.bind(context);
+      context[name] = func;
+  }
 
   return deferred;
 }
