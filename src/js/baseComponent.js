@@ -31,7 +31,7 @@ S.base = function(view) {
     return c.view;
   }
   
-  c.makeDeferred = function() {
+  c.initDeferred = function() {
       c.def = S.deferred();
       c.def.wrap(c);
       c.deferredContext = c.def.getContext();
