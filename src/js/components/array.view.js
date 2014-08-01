@@ -19,8 +19,8 @@ S.addView('array', 'simple',
       $topRow,
       $bottomRow;
     $.extend(config, options);
-    array = config.array;
-    view.array = array;
+    //array = config.array;
+    //view.array = array;
     view.leftBound = 0;
     view.rightBound = config.numElements - 1;
       

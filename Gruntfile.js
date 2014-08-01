@@ -7,7 +7,7 @@ module.exports = function(grunt) {
         },
         concat: {
             options: {
-                banner: '/* Structural, by Alex Kizer */ \n'
+                banner: '"use strict";\n/* Structural, by Alex Kizer */\n'
             },
             js: {
                 src: [

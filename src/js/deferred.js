@@ -55,7 +55,20 @@ S.deferred = function() {
   std.live.log = function(str) {
       console.log(str);
   }
-
+  
+  std.live.flog = null;
+  
+  std.live.falert = null;
+  
+  std.async.falert = function(str, fn) {
+      window.alert(str);
+      fn();
+  }
+  
+  std.async.flog = function(str, fn) {
+      console.log(str);
+      fn();
+  }
   
     deferred.wrap = function(wrappables){
         wrap(std);
