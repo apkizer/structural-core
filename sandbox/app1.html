@@ -14,9 +14,10 @@
             arrayOne.initDeferred();
             arrayOne.setView(arrayView);
             arrayView.scaleTo({
-                width: 650
+                width: 650,
+                height: 50
             });
-            $('body').append(arrayView.render());
+            $('.wrap').append(arrayView.render());
             // define a new method:
             arrayOne.def.add('swap', swap); // TODO, should define on array class, not instance
             // test it
@@ -48,11 +49,11 @@
             this.swap(i0, i1);
             this.clearfocus();
         }
-        
-
     </script>
 </head>
 <body>
-    
+    <div class="wrap" style="text-align: center;">
+        
+    </div>
 </body>
 </html>

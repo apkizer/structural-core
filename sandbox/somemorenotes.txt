@@ -1,7 +1,0 @@
-DEFERRED CONTEXT
-----------------
-- interfaces a set of components
-- by default, always interfaces the standard component
-- maintains ONE queue, which represents all the
-
--- are deferred contexts cheap or permanent?

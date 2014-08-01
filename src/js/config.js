@@ -1,4 +1,4 @@
 /* configuration */
 S.config = {
-    viewClass: 'sview' /* CSS class for views */
+    viewClass: 'structural_view' /* CSS class for views */
 };
