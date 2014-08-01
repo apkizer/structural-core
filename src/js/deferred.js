@@ -17,9 +17,7 @@ S.simpleWrappable = function() {
   return wrappable;
 }
 
-
 S.deferred = function() {
-
   var deferred = {},
       vars = {},
       context = function(key, value) {
@@ -30,15 +28,15 @@ S.deferred = function() {
       fns = [],
       last = 0,
       open = true,
-      executing = false;
+      executing = false,
+      std = S.simpleWrappable();
 
   $.extend(deferred, S.ee());
-
-  var std = S.simpleWrappable()
 
   std.live.end = function() {
       //algo.fire('end', {}); // todo create event object
   }
+  
   std.live.set = function(key, value) {
       //console.log('DEF setting');
       vars[key] = value;
@@ -58,7 +56,7 @@ S.deferred = function() {
   }
 
   std.live.flog = null;
-
+    
   std.live.falert = null;
 
   std.async.falert = function(str, fn) {
@@ -70,24 +68,26 @@ S.deferred = function() {
       console.log(str);
       fn();
   }
+  
+  deferred.close = function() {
+      open = false;
+  }
+
+  deferred.open = function() {
+      open = true;
+      if (fns.length > 0) {
+          deferred.exec();
+      }
+  }
 
   deferred.wrap = function(wrappables) {
+      console.log('beginning wrap');
       wrap(std);
+      
       if (Array.isArray(wrappables)) {
           wrappables.forEach(wrap);
       } else {
           wrap(wrappables);
-      }
-
-      deferred.close = function() {
-          open = false;
-      }
-
-      deferred.open = function() {
-          open = true;
-          if (fns.length > 0) {
-              deferred.exec();
-          }
       }
 
       context.pause = function() {
@@ -125,7 +125,7 @@ S.deferred = function() {
               // context.fire('update', {}); TODO !!!!!!!
               last++;
               fns[i++].call({}, function() {
-                  setTimeout(doNext, 250);
+                  setTimeout(doNext, 50);
               });
           }
           doNext();
@@ -134,14 +134,15 @@ S.deferred = function() {
   };
 
   function wrap(wrappable) {
-      console.log('wrapping!');
+      console.log('wrapping ' + wrappable);
       if (typeof wrappable.getSync === 'undefined' || typeof wrappable.getAsync === 'undefined') {
           return console.log('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
       }
-
+      
       if (!wrappable.noCopy)
           var clone = wrappable.copy();
 
+      console.log('going');
       for (var prop in wrappable.getSync()) {
           context[prop] =
               // inject property; otherwise, pushed functions will all reference last iterated property

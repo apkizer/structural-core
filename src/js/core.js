@@ -58,13 +58,3 @@ S.map = function() {
 
     return map;
 }
-
-S.finalize = function() {
-   /* for(var name in S.components) {
-        console.log('finalizing ' + name);
-        S.components[name].def = S.deferred();
-        console.log(name + '.def is now ' + S.components[name].def);
-        S.components[name].def.wrap(S.components[name]);
-        S.components[name].deferredContext = S.components[name].def.getContext();
-    }*/
-}

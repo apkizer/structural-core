@@ -3,6 +3,7 @@ S.base = function(view) {
   c.live = {};
   c.algo = {};
   c.factory = {};
+    
   if(view) {
     c.view = view;
     view.component = c;
@@ -32,7 +33,6 @@ S.base = function(view) {
   };
 
   // wrappable interface:
-
   c.getSync = function() {
     return c.live;
   }
@@ -43,8 +43,8 @@ S.base = function(view) {
   
   c.makeDeferred = function() {
       c.def = S.deferred();
-      //c.def.wrap(c);
-      //c.deferredContext = c.def.getContext();
+      c.def.wrap(c);
+      c.deferredContext = c.def.getContext();
   }
   
   return c;

@@ -42,7 +42,6 @@ function array(arr, view) {
       c.array.push(item);
     }
     
-    c.makeDeferred();
     return c;
 }
 S.add('array', array);

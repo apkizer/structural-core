@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="../src/css/array.css"/>
     <script type="text/javascript">
         $(document).ready(function(){
-            S.finalize();
+            
             
             
             console.log();
@@ -32,7 +32,7 @@
 
             myView.focus();
             
-            
+            myArray.makeDeferred();
             
             window.deferred = S.deferred();
             deferred.wrap(myArray);
@@ -150,6 +150,11 @@
                 wrap.exec();
             }
             
+            window.testOne = function() {
+                myArray.def.close();
+                insertionsort.call(myArray.deferredContext);
+                myArray.def.open();
+            }
             //window.lwrap = S.live(myArray);
             //deferred.exec();
 
