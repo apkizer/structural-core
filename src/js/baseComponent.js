@@ -2,28 +2,18 @@ S.base = function(view) {
   var c = S.ee();
   c.live = {};
   c.algo = {};
-  c.factory = {};
     
-  if(view) {
-    c.view = view;
-    view.component = c;
-  }
-
-  c.structureName = 'general';
+  if(view) c.setView(view);
 
   c.setView = function(view) {
     c.view = view;
-    view.setComponent(c);
+    view.component = c;
   }
 
   c.copy = function(other) {
     //c.setState(other.getState());
   };
     
-  c.getFactory = function() {
-    console.log('getState not implemented!');
-  }
-
   c.getState = function() {
     console.log('getState not implemented!');
   };
