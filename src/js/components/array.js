@@ -1,21 +1,13 @@
 S.add('array', function (arr, view) {
     var c = S.base(view),
-      flags = [],
-      self = this;
+      flags = [];
     c.array = arr;
-    
-    console.log('c.factory is ' + c.factory);
 
     c.live.focus = null; // informs livewrap that this method only makes sense async
     c.live.range = null;
     c.live.clearfocus = null;
     c.live.clearrange = null;
     c.live.leftTo = null;
-    
-    c.getFactory = function() {
-        console.log('returning factory');
-        return self.getFactory('array');
-    }
 
     c.live.getLength = function() {
       return c.array.length;
