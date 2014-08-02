@@ -42,9 +42,9 @@
         }
 
         c.getMethods = function() {
-          console.log('returning S.getComponentMethods: ' + S.getComponentMethods('array'));
           return S.getComponentMethods('array');
         }
+
 
         return c;
     }

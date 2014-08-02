@@ -3,15 +3,6 @@ S.views = {};
 var id = 0,
     componentMethods = {};
 
-
-S.nextId = function() {
-    return 'sid_' + id++;
-}
-
-S.wait = function(func, time) {
-  setTimeout(func, time);
-}
-
 S.add = function(name, func) {
     S.components[name] = func;
 }
@@ -30,6 +21,10 @@ S.addMethod = function(componentName, methodName, func) {
 
 S.getComponentMethods = function(componentName) {
   return componentMethods[componentName];
+}
+
+S.nextId = function() {
+    return 'sid_' + id++;
 }
 
 S.map = function() {
@@ -69,4 +64,8 @@ S.map = function() {
     }
 
     return map;
+}
+
+S.wait = function(func, time) {
+  setTimeout(func, time);
 }

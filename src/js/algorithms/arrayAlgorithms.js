@@ -1,4 +1,4 @@
-/*S.addMethod('array', 'sort', function(kind){
+S.addMethod('array', 'sort', function(kind){
 	// insertion sort
 	for(var i = 0; i < this.getLength(); i++) {
 	    this('j', i);  
@@ -15,4 +15,4 @@
 	}
 	this.clearfocus();
 	this.clearrange(1);
-});*/
+});
