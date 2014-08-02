@@ -190,6 +190,17 @@ S.deferred = function() {
                   return deferredMethod;
               })(prop, clone);
       }
+      /* now, add in defined methods */
+      console.log('now adding defined methods');
+      if(wrappable.getMethods) {
+        var methods = wrappable.getMethods();
+        for(var method in methods) {
+          console.log('adding ' + method);
+          deferred.add(method, methods[method]);
+        }
+      } else {
+        console.log('no getMethods found');
+      }
   }
 
   deferred.on('push', function(event) {

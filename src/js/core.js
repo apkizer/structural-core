@@ -1,6 +1,8 @@
 S.components = {};
 S.views = {};
-var id = 0;
+var id = 0,
+    componentMethods = {};
+
 
 S.nextId = function() {
     return 'sid_' + id++;
@@ -18,6 +20,16 @@ S.addView = function(component, name, func) {
     if(!S.views[component])
       S.views[component] = {};
     S.views[component][name] = func;
+}
+
+S.addMethod = function(componentName, methodName, func) {
+  if(!componentMethods[componentName])
+    componentMethods[componentName] = {};
+  componentMethods[componentName][methodName] = func;
+}
+
+S.getComponentMethods = function(componentName) {
+  return componentMethods[componentName];
 }
 
 S.map = function() {

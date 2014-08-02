@@ -19,7 +19,8 @@ module.exports = function(grunt) {
                     'src/js/baseView.js',
                     'src/js/deferred.js',
                     'src/js/footer.js',
-                    'src/js/components/*.js'
+                    'src/js/components/*.js',
+                    'src/js/algorithms/*.js'
                     
                      ],
                 dest: 'build/structural.js'

@@ -49,3 +49,12 @@ app space
 - compound methods defined pre-runtime, defined ON components.
 */
 
+
+// wrappable:
+
+{
+	getSync: function(){},
+	getAsync: function(){},
+	getMethods: function(){}
+}
+

@@ -1,0 +1,54 @@
+<html>
+<head>
+    <title>structural-core 1</title>
+    <script type="text/javascript" src="../lib/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
+    <script type="text/javascript" src="../build/structural.js"></script>
+    <link rel="stylesheet" type="text/css" href="../build/structural.css"></link>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var arrayOne = S.components.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]),
+                arrayView = S.views.array.simple({
+                    numElements: 7
+                });
+            
+            arrayOne.setView(arrayView);
+            arrayView.scaleTo({
+                width: 650,
+                height: 50
+            });
+            $('.wrap').append(arrayView.render());
+
+            S.addMethod('array', 'sort', function(kind){
+                // insertion sort
+                for(var i = 0; i < this.getLength(); i++) {
+                    this('j', i);  
+                    while(this('j') > 0 && this.getItem(this('j') - 1) > this.getItem(this('j'))) {
+                        //swap:
+                        this.log('swapping');
+                        this('temp', this.getItem(this('j')));
+                        this.setItem(this('j'), this.getItem(this('j') - 1));
+                        this.setItem(this('j') - 1, this('temp'));
+                        this('swapped', true);
+                        this('j', this('j') - 1);
+                    }
+                    this.range(0, i, 1); //show sorted portion of array
+                }
+                this.clearfocus();
+                this.clearrange(1);
+            });
+
+
+            arrayOne.initDeferred();
+
+            window.arr1 = arrayOne.deferredContext;
+
+        });
+    </script>
+</head>
+<body>
+    <div class="wrap" style="text-align: center;">
+        
+    </div>
+</body>
+</html>
