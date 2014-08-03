@@ -15,3 +15,5 @@ The core library for the Structural web app. Allows you to create components wit
 
 ### How to Build
 `npm install`, then build with `grunt`.
+
+Aye
