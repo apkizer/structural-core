@@ -1,7 +1,7 @@
 S.deferred = function() {
   var deferred = {},
-      //vars = {},
       context = function(key, value) {
+        // expects std component
           if (typeof value === 'undefined')
               return context.get(key);
           context.set(key, value);
@@ -10,7 +10,6 @@ S.deferred = function() {
       last = 0,
       open = true,
       executing = false;
-      //std = S.simpleWrappable();
 
   $.extend(deferred, S.ee());
   
@@ -26,61 +25,17 @@ S.deferred = function() {
   }
 
   deferred.wrap = function(wrappables) {
-      console.log('beginning wrap');
-
       wrap(S.components.std());
-      
+
       if (Array.isArray(wrappables)) {
           wrappables.forEach(wrap);
       } else {
           wrap(wrappables);
       }
 
-      context.pause = function() {
-          context.paused = true;
-      }
-
-      context.play = function() {
-          context.paused = false;
-          context.exec();
-      }
-
-      context.getIndex = function() {
-          return last;
-      }
-
-      context.__getLength = function() {
-          return fns.length;
-      }
-
-      deferred.exec = function() {
-          executing = true;
-          console.log('exec: fns.length ' + fns.length);
-          var i = last;
-
-          function doNext() {
-              console.log('doNext');
-              console.log(fns[i]);
-              if (i >= fns.length) {
-                  //context.fire('end', {}); // remove? todo create event obj
-                  executing = false;
-                  return;
-              } else if (context.paused) {
-                  return;
-              }
-              // context.fire('update', {}); TODO !!!!!!!
-              last++;
-              fns[i++].call({}, function() {
-                  setTimeout(doNext, 50);
-              });
-          }
-          doNext();
-      }
-
   };
 
   function wrap(wrappable) {
-      console.log('wrapping ' + wrappable);
       if (typeof wrappable.getSync === 'undefined' || typeof wrappable.getAsync === 'undefined') {
           return console.log('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
       }
@@ -88,7 +43,6 @@ S.deferred = function() {
       if (!wrappable.noCopy)
           var clone = wrappable.copy();
 
-      console.log('going');
       for (var prop in wrappable.getSync()) {
           context[prop] =
               // inject property; otherwise, pushed functions will all reference last iterated property
@@ -147,6 +101,47 @@ S.deferred = function() {
       } else {
         console.log('no getMethods found');
       }
+  }
+
+  deferred.pause = function() {
+    context.paused = true;
+  }
+
+  deferred.play = function() {
+    context.paused = false;
+    context.exec();
+  }
+
+  deferred.getIndex = function() {
+    return last;
+  }
+
+  deferred.getLength = function() {
+    return fns.length;
+  }
+
+  deferred.exec = function() {
+    executing = true;
+    console.log('exec: fns.length ' + fns.length);
+    var i = last;
+
+    function doNext() {
+      console.log('doNext');
+      console.log(fns[i]);
+      if (i >= fns.length) {
+        //context.fire('end', {}); // remove? todo create event obj
+        executing = false;
+        return;
+      } else if (context.paused) {
+        return;
+      }
+      // context.fire('update', {}); TODO !!!!!!!
+      last++;
+      fns[i++].call({}, function() {
+        setTimeout(doNext, 50);
+      });
+    }
+    doNext();
   }
 
   deferred.on('push', function(event) {
