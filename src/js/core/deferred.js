@@ -9,7 +9,8 @@ S.deferred = function() {
       fns = [],
       last = 0,
       open = true,
-      executing = false;
+      executing = false,
+      stepTime = 50;
 
   $.extend(deferred, S.ee());
   
@@ -119,6 +120,14 @@ S.deferred = function() {
     return fns.length;
   }
 
+  deferred.getCompletion = function() {
+    return last / deferred.getLength();
+  }
+
+  deferred.setStepTime = function(time) {
+    stepTime = time;
+  }
+
   deferred.exec = function() {
     executing = true;
     var i = last;
@@ -135,7 +144,8 @@ S.deferred = function() {
       // context.fire('update', {}); TODO !!!!!!!
       last++;
       fns[i++].call({}, function() {
-        setTimeout(doNext, 50);
+        //setTimeout(doNext, 50);
+        S.wait(doNext, stepTime);
       });
     }
 

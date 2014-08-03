@@ -48,6 +48,9 @@
 
         return c;
     }
-    S.component('array', array);
+    S.component('array', array, {
+      name: 'Array',
+      desc: 'A standard array.'
+    });
 })(window.S);
 
