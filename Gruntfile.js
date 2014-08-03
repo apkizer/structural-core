@@ -14,6 +14,7 @@ module.exports = function(grunt) {
                     'src/js/core/header.js',
                     'src/js/core/core.js',
                     'src/js/core/config.js',
+                    'src/js/core/utils.js',
                     'src/js/core/eventEmitter.js',
                     'src/js/core/baseComponent.js',
                     'src/js/core/baseView.js',

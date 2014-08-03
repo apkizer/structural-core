@@ -3,6 +3,23 @@ S.views = {};
 var id = 0,
     componentMethods = {};
 
+S.defineComponent = function(name, factoryFunction) {
+
+}
+
+S.defineMethodOn = function(name, func) {
+
+}
+
+S.defineStandaloneMethod = function(requirements, func) {
+
+}
+
+S.generateDefaultExecutionContexts = function() {
+
+}
+
+
 S.add = function(name, func) {
     S.components[name] = func;
 }
@@ -23,7 +40,7 @@ S.getComponentMethods = function(componentName) {
   return componentMethods[componentName];
 }
 
-S.nextId = function() {
+/*S.nextId = function() {
     return 'sid_' + id++;
 }
 
@@ -64,8 +81,8 @@ S.map = function() {
     }
 
     return map;
-}
+}*/
 
-S.wait = function(func, time) {
+/*S.wait = function(func, time) {
   setTimeout(func, time);
-}
+} */
