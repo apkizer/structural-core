@@ -18,6 +18,7 @@ module.exports = function(grunt) {
                     'src/js/core/eventEmitter.js',
                     'src/js/core/baseComponent.js',
                     'src/js/core/baseView.js',
+                    'src/js/core/standardComponent.js',
                     'src/js/core/deferred.js',
                     'src/js/core/api.js',
                     'src/js/core/footer.js',

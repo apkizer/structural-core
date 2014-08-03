@@ -1,5 +1,5 @@
 S.component = function(name, factory, meta) {
-  S.defineComponent(name, factory);
+  S.defineComponent(name, factory, false);
   if(meta)
     S.setMetaData(name, meta);
 }

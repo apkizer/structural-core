@@ -9,17 +9,18 @@ var components = {},
  * Registers a component.
  * @param name The name of the component.
  * @param factoryFunction A function which returns new instances of the component.
+ * @param noDefault If true, Structural does not provide a default deferred execution context on instances of this component.
  */
-S.defineComponent = function(name, factoryFunction) {
-  components[name] = factoryFunction;
-  /* default deferred context */
-  if(S.config.provideDefaultDeferredContext) {
+S.defineComponent = function(name, factoryFunction, noDefault) {
+    components[name] = factoryFunction;
+    /* middleware & default deferred context */
     S.components[name] = function() {
-      var component = components[name].apply(this, arguments);
-      provideDefaultDeferredContext(component);
-      return component;
+        var component = components[name].apply(this, arguments);
+        if(S.config.provideDefaultDeferredContext && !noDefault) {
+          provideDefaultDeferredContext(component);
+        }
+        return component;
     }
-  }
 }
 
 S.defineMethodOn = function(name, methodName, func) {

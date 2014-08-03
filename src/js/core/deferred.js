@@ -1,25 +1,6 @@
-S.simpleWrappable = function() {
-  var wrappable = {
-      live: {},
-      async: {}
-  };
-
-  wrappable.noCopy = true;
-
-  wrappable.getSync = function() {
-      return wrappable.live;
-  }
-
-  wrappable.getAsync = function() {
-      return wrappable.async;
-  }
-
-  return wrappable;
-}
-
 S.deferred = function() {
   var deferred = {},
-      vars = {},
+      //vars = {},
       context = function(key, value) {
           if (typeof value === 'undefined')
               return context.get(key);
@@ -28,46 +9,10 @@ S.deferred = function() {
       fns = [],
       last = 0,
       open = true,
-      executing = false,
-      std = S.simpleWrappable();
+      executing = false;
+      //std = S.simpleWrappable();
 
   $.extend(deferred, S.ee());
-
-  std.live.end = function() {
-      //algo.fire('end', {}); // todo create event object
-  }
-  
-  std.live.set = function(key, value) {
-      //console.log('DEF setting');
-      vars[key] = value;
-  }
-
-  std.live.get = function(key) {
-      //console.log('DEF getting');
-      return vars[key];
-  }
-
-  std.live.is = function(key, value) {
-      return vars[key] === value;
-  }
-
-  std.live.log = function(str) {
-      console.log(str);
-  }
-
-  std.live.flog = null;
-    
-  std.live.falert = null;
-
-  std.async.falert = function(str, fn) {
-      window.alert(str);
-      fn();
-  }
-
-  std.async.flog = function(str, fn) {
-      console.log(str);
-      fn();
-  }
   
   deferred.close = function() {
       open = false;
@@ -82,7 +27,8 @@ S.deferred = function() {
 
   deferred.wrap = function(wrappables) {
       console.log('beginning wrap');
-      wrap(std);
+
+      wrap(S.components.std());
       
       if (Array.isArray(wrappables)) {
           wrappables.forEach(wrap);
