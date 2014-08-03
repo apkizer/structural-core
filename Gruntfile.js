@@ -11,14 +11,14 @@ module.exports = function(grunt) {
             },
             js: {
                 src: [
-                    'src/js/header.js',
-                    'src/js/core.js',
-                    'src/js/config.js',
-                    'src/js/eventEmitter.js',
-                    'src/js/baseComponent.js',
-                    'src/js/baseView.js',
-                    'src/js/deferred.js',
-                    'src/js/footer.js',
+                    'src/js/core/header.js',
+                    'src/js/core/core.js',
+                    'src/js/core/config.js',
+                    'src/js/core/eventEmitter.js',
+                    'src/js/core/baseComponent.js',
+                    'src/js/core/baseView.js',
+                    'src/js/core/deferred.js',
+                    'src/js/core/footer.js',
                     'src/js/components/*.js',
                     'src/js/algorithms/*.js'
                     
