@@ -32,6 +32,9 @@ module.exports = function(grunt) {
                 dest: 'build/structural.css'
             }
         },
+        jsbeautifier: {
+          src: ['build/structural.js']
+        },
         uglify: {
             options: {
                 sourcemap: true
@@ -47,6 +50,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
-    
-    grunt.registerTask('default', ['clean', 'concat', 'uglify']);
+    grunt.loadNpmTasks('grunt-jsbeautifier');
+
+    grunt.registerTask('default', ['clean', 'concat', 'jsbeautifier', 'uglify',]);
 };

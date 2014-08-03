@@ -13,15 +13,12 @@ S.defineComponent = function(name, factoryFunction) {
   components[name] = factoryFunction;
   /* default deferred context */
   if(S.config.provideDefaultDeferredContext) {
-
+    S.components[name] = function() {
+      var component = components[name].apply(this, arguments);
+      provideDefaultDeferredContext(component);
+      return component;
+    }
   }
-  S.components[name] = function() {
-    console.log('adding default deferred context to ' + name);
-    var component = components[name].apply(this, arguments);
-    provideDefaultDeferredContext(component);
-    return component;
-  }
-
 }
 
 S.defineMethodOn = function(name, methodName, func) {

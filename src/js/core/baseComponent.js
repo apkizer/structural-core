@@ -35,11 +35,5 @@ S.base = function(name, view) {
     return S.getComponentMethods(base.name);
   }
   
-  /*base.initDeferred = function() {
-      base.def = S.deferred();
-      base.def.wrap(base);
-      base.deferredContext = base.def.getContext();
-  }*/
-  
   return base;
 }
