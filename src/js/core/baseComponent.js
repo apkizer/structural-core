@@ -1,40 +1,45 @@
-S.base = function(view) {
-  var c = S.ee();
-  c.live = {};
+S.base = function(name, view) {
+  var base = S.ee();
+  base.name = name;
+  base.live = {};
 
-  if(view) c.setView(view);
+  if(view) base.setView(view);
 
-  c.setView = function(view) {
-    c.view = view;
-    view.component = c;
+  base.setView = function(view) {
+    base.view = view;
+    view.component = base;
   }
 
-  c.copy = function(other) {
+  base.copy = function(other) {
     //c.setState(other.getState());
   };
     
-  c.getState = function() {
+  base.getState = function() {
     console.log('getState not implemented!');
   };
 
-  c.setState = function(state) {
+  base.setState = function(state) {
     console.log('setState not implemented!');
   };
 
   // wrappable interface:
-  c.getSync = function() {
-    return c.live;
+  base.getSync = function() {
+    return base.live;
   }
 
-  c.getAsync = function() {
-    return c.view;
+  base.getAsync = function() {
+    return base.view;
+  }
+
+  base.getMethods = function() {
+    return S.getComponentMethods(base.name);
   }
   
-  c.initDeferred = function() {
-      c.def = S.deferred();
-      c.def.wrap(c);
-      c.deferredContext = c.def.getContext();
-  }
+  /*base.initDeferred = function() {
+      base.def = S.deferred();
+      base.def.wrap(base);
+      base.deferredContext = base.def.getContext();
+  }*/
   
-  return c;
+  return base;
 }

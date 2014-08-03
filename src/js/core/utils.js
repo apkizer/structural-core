@@ -1,3 +1,5 @@
+var id = 0;
+
 S.nextId = function() {
   return 'sid_' + id++;
 }

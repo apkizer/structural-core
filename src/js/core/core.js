@@ -1,7 +1,8 @@
 S.components = {};
 S.views = {};
-var id = 0,
-    componentMethods = {};
+var components = {},
+    componentMethods = {},
+    standaloneMethods = {};
 
 /**
  * Registers a component.
@@ -9,28 +10,43 @@ var id = 0,
  * @param factoryFunction A function which returns new instances of the component.
  */
 S.defineComponent = function(name, factoryFunction) {
+  components[name] = factoryFunction;
+  /* default deferred context */
+  if(S.config.provideDefaultDeferredContext) {
+
+  }
+  S.components[name] = function() {
+    console.log('adding default deferred context to ' + name);
+    var component = components[name].apply(this, arguments);
+    provideDefaultDeferredContext(component);
+    return component;
+  }
 
 }
 
-S.defineMethodOn = function(name, func) {
-
+S.defineMethodOn = function(name, methodName, func) {
+  if(!componentMethods[name])
+    componentMethods[name] = {};
+  componentMethods[name][methodName] = func;
 }
 
 S.defineStandaloneMethod = function(requirements, func) {
-
+  if(!standaloneMethods[name])
+    standaloneMethods[name] = {};
+  standaloneMethods[name].requirements = requirements;
+  standaloneMethods[name][methodName] = func;
 }
 
-/**
- * Generates default deferred execution contexts on all registered components.
- */
-S.generateDefaultExecutionContexts = function() {
-
+function provideDefaultDeferredContext(component) {
+  component.def = S.deferred();
+  component.def.wrap(component);
+  component.deferredContext = component.def.getContext();
 }
 
 
-S.add = function(name, func) {
+/*S.add = function(name, func) {
     S.components[name] = func;
-}
+} */
 
 S.addView = function(component, name, func) {
     if(!S.views[component])

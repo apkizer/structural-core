@@ -19,6 +19,7 @@ module.exports = function(grunt) {
                     'src/js/core/baseComponent.js',
                     'src/js/core/baseView.js',
                     'src/js/core/deferred.js',
+                    'src/js/core/api.js',
                     'src/js/core/footer.js',
                     'src/js/components/*.js',
                     'src/js/algorithms/*.js'

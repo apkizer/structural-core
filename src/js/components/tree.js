@@ -1,4 +1,4 @@
-S.add('tree', function (view) {
+S.component('tree', function (view) {
   var c = S.base(view),
     nodes = S.map();
   c.tree = new Node(0);

@@ -48,6 +48,6 @@
 
         return c;
     }
-    S.add('array', array);
+    S.component('array', array);
 })(window.S);
 
