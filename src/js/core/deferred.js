@@ -15,6 +15,7 @@ S.deferred = function() {
   
   deferred.close = function() {
       open = false;
+      executing = false;
   }
 
   deferred.open = function() {
@@ -26,13 +27,11 @@ S.deferred = function() {
 
   deferred.wrap = function(wrappables) {
       wrap(S.components.std());
-
       if (Array.isArray(wrappables)) {
           wrappables.forEach(wrap);
       } else {
           wrap(wrappables);
       }
-
   };
 
   function wrap(wrappable) {
@@ -122,17 +121,15 @@ S.deferred = function() {
 
   deferred.exec = function() {
     executing = true;
-    console.log('exec: fns.length ' + fns.length);
     var i = last;
+    console.log('statements: ' + deferred.getLength());
 
     function doNext() {
-      console.log('doNext');
-      console.log(fns[i]);
       if (i >= fns.length) {
         //context.fire('end', {}); // remove? todo create event obj
         executing = false;
         return;
-      } else if (context.paused) {
+      } else if (!executing) {
         return;
       }
       // context.fire('update', {}); TODO !!!!!!!
@@ -141,6 +138,7 @@ S.deferred = function() {
         setTimeout(doNext, 50);
       });
     }
+
     doNext();
   }
 
