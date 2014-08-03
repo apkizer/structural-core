@@ -14,4 +14,4 @@ The core library for the Structural web app. Allows you to create components wit
 * stack/queue
 
 ### How to Build
-Build with `grunt`.
+`npm install`, then build with `grunt`.

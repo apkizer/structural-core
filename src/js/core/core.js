@@ -2,7 +2,8 @@ S.components = {};
 S.views = {};
 var components = {},
     componentMethods = {},
-    standaloneMethods = {};
+    standaloneMethods = {},
+    componentMeta = {};
 
 /**
  * Registers a component.
@@ -34,16 +35,15 @@ S.defineStandaloneMethod = function(requirements, func) {
   standaloneMethods[name][methodName] = func;
 }
 
+S.setMetaData = function(name, meta) {
+  componentMeta[name] = meta;
+}
+
 function provideDefaultDeferredContext(component) {
   component.def = S.deferred();
   component.def.wrap(component);
   component.deferredContext = component.def.getContext();
 }
-
-
-/*S.add = function(name, func) {
-    S.components[name] = func;
-} */
 
 S.addView = function(component, name, func) {
     if(!S.views[component])

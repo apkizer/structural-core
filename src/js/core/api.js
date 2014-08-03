@@ -1,8 +1,11 @@
-S.component = function(name, factory) {
+S.component = function(name, factory, meta) {
   S.defineComponent(name, factory);
+  if(meta)
+    S.setMetaData(name, meta);
 }
 
-S.method = function(name_s, func) {
-
+S.method = function(componentName, methodName, func) {
+  // TODO
+  S.defineMethodOn(componentName, methodName, func);
 };
 
