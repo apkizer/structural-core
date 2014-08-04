@@ -19,8 +19,28 @@ S.simpleWrappable = function() {
 
 S.defineComponent('std', function() {
   var std = S.simpleWrappable(),
-      vars = {};
-
+      vars = {},
+      errors = [],
+      warnings = [];
+  
+  std.live.errors = function() {
+    return errors;
+  }
+  
+  std.live.throwError = function(err) {
+    errors.push(err);
+  }
+  
+  std.live.warnings = function() {
+    return warnings;
+  }
+  
+  std.live.warn = function(msg) {
+    console.log('warning: ' + msg);
+    warnings.push(msg);
+  }
+  
+  
   std.live.set = function(key, value) {
     vars[key] = value;
   }

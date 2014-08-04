@@ -10,7 +10,11 @@ S.method('array', 'searchLinear', function(target) {
 });
 
 S.method('array', 'searchBinary', function(target) {
-    
+  
+    if(!this.isSorted()) {
+      this.warn('Array is not sorted. Binary search will not behave correctly.');
+    }
+  
     function search(left, right) {
         if(right < left) {
             this.finish();
