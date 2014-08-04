@@ -10,18 +10,10 @@ S.method('array', 'swap', function(a, b) {
   this.setItem(b, this('temp'));
 });
 
-S.method('array', 'searchLinear', function(target) {
-  for(var i = 0; i < this.getLength(); i++) {
-    this.focus(i);
-    if(this.getItem(i) == target) {
-      this.flag(i);
-      return;
+S.method('array', 'isSorted', function() {
+    for(var i = 1; i < this.getLength(); i++) {
+        if(this.getItem(i) < this.getItem(i - 1))
+            return false;
     }
-  }
-  this.finish();
+    return true;
 });
-
-S.method('array', 'searchBinary', function(target) {
-  // TODO
-});
-

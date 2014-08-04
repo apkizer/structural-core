@@ -29,10 +29,11 @@ S.defineMethodOn = function(name, methodName, func) {
   componentMethods[name][methodName] = func;
 }
 
-S.defineStandaloneMethod = function(requirements, func) {
+S.defineStandaloneMethod = function(requirements, optionalRequirements, func) {
   if(!standaloneMethods[name])
     standaloneMethods[name] = {};
   standaloneMethods[name].requirements = requirements;
+  standaloneMethods[name].optionalRequirements = optionalRequirements;
   standaloneMethods[name][methodName] = func;
 }
 
