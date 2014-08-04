@@ -7,18 +7,22 @@
     <link rel="stylesheet" type="text/css" href="../build/structural.css"></link>
     <script type="text/javascript">
         $(document).ready(function() {
-            var arrayOne = S.components.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]),
-                arrayView = S.views.array.simple({
+            var arrayOne = S.components.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+                /*arrayView = S.views.array.simple({
                     numElements: 7
-                });
+                });*/
             
-            arrayOne.setView(arrayView);
-            arrayView.scaleTo({
+            //arrayOne.setView(arrayView);
+            arrayOne.view.scaleTo({
                 width: 650,
                 height: 50
             });
+          
+          arrayOne.view.config({
+            numElements: 7
+          });
 
-            $('.wrap').append(arrayView.render());
+            $('.wrap').append(arrayOne.view.render());
 
             window.def = arrayOne.def;
             window.arr1 = arrayOne.deferredContext;

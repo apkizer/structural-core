@@ -1,6 +1,6 @@
-S.addView('array', 'simple', 
+S.view('array', 
   function (options) {
-    var view = S.view(),
+    var view = S.baseView(),
       config = {
         hiddenDelimiter: ',',
         numElements: 5,
@@ -21,6 +21,10 @@ S.addView('array', 'simple',
     $.extend(config, options);
     view.leftBound = 0;
     view.rightBound = config.numElements - 1;
+    
+    view.config = function(options) {
+      $.extend(config, options);
+    }
 
     view.render = function() {
       if($e) {

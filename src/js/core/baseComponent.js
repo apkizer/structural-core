@@ -29,8 +29,8 @@ S.base = function(name, view) {
   }
 
   base.getAsync = function() {
-    //return base.view;
-    return base.representation;
+    return base.view;
+    //return base.representation;
   }
 
   base.getMethods = function() {

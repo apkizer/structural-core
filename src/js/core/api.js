@@ -9,3 +9,6 @@ S.method = function(componentName, methodName, func) {
   S.defineMethodOn(componentName, methodName, func);
 };
 
+S.view = function(componentName, factory) {
+  S.setDefaultView(componentName, factory);
+}

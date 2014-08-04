@@ -15,11 +15,16 @@ S.defineComponent = function(name, factoryFunction, noDefault) {
     components[name] = factoryFunction;
     /* middleware & default deferred context */
     S.components[name] = function() {
-        var component = components[name].apply(this, arguments);
-        if(S.config.provideDefaultDeferredContext && !noDefault) {
-          provideDefaultDeferredContext(component);
-        }
-        return component;
+      var component = components[name].apply(this, arguments);
+      // provide default deferred context
+      if(S.config.provideDefaultDeferredContext && !noDefault) {
+        provideDefaultDeferredContext(component);
+      }
+      // give default view
+      if(S.views[name]) {
+        component.setView(S.views[name]());
+      }
+      return component;
     }
 }
 
@@ -47,11 +52,15 @@ function provideDefaultDeferredContext(component) {
   component.deferredContext = component.def.getContext();
 }
 
-S.addView = function(component, name, func) {
+S.setDefaultView = function(name, factory) {
+    S.views[name] = factory;
+}
+
+/*S.addView = function(component, name, func) {
     if(!S.views[component])
       S.views[component] = {};
     S.views[component][name] = func;
-}
+}*/
 
 S.addMethod = function(componentName, methodName, func) {
   if(!componentMethods[componentName])

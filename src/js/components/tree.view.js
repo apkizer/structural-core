@@ -1,5 +1,5 @@
-S.addView('tree', 'simple', function () {
-  var view = S.view(),
+S.view('tree', function () {
+  var view = S.baseView(),
     elems = S.map(),
     positions = S.map(),
     opts = {
