@@ -1,5 +1,6 @@
 structural-core
 ===============
+[![Build Status](https://travis-ci.org/AlexKizer/structural-core.svg?branch=master)](https://travis-ci.org/AlexKizer/structural-core)
 
 The core library for the Structural web app. Allows you to create components with animated views that represent data structures, and write code for these structures that executes asynchronously. Specifically, structural-core lets you:
 * Create components with animated views.
