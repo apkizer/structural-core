@@ -1,20 +1,20 @@
 <html>
 <head>
-    <title>structural-core 2</title>
+    <title>structural-core 3</title>
     <script type="text/javascript" src="../lib/jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
     <script type="text/javascript" src="../build/structural.js"></script>
     <link rel="stylesheet" type="text/css" href="../build/structural.css"></link>
     <script type="text/javascript">
         $(document).ready(function() {
-            var arrayOne = S.components.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]),
-                arrayView = S.views.array.simple({
-                    numElements: 7
-                });
-            
+            var arrayOne = S.components.array('This is a test'.split('')),
+                    arrayView = S.views.array.simple({
+                        numElements: 13
+                    });
+
             arrayOne.setView(arrayView);
             arrayView.scaleTo({
-                width: 650,
+                width: 1000,
                 height: 50
             });
 
@@ -27,8 +27,8 @@
     </script>
 </head>
 <body>
-    <div class="wrap" style="text-align: center;">
-        
-    </div>
+<div class="wrap" style="text-align: center;">
+
+</div>
 </body>
 </html>
