@@ -13,14 +13,15 @@
                 });*/
             
             //arrayOne.setView(arrayView);
-            arrayOne.view.scaleTo({
-                width: 650,
-                height: 50
-            });
-          
           arrayOne.view.config({
             numElements: 7
           });
+          
+            arrayOne.view.scaleTo({
+                width: 650,
+                height: 100
+            });
+          
 
             $('.wrap').append(arrayOne.view.render());
 

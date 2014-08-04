@@ -24,6 +24,8 @@ S.view('array',
     
     view.config = function(options) {
       $.extend(config, options);
+      view.leftBound = 0;
+      view.rightBound = config.numElements - 1;
     }
 
     view.render = function() {
