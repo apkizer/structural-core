@@ -9,7 +9,7 @@ S.base = function(name, view) {
     base.view = view;
     view.component = base;
   }
-
+  
   base.copy = function(other) {
     //c.setState(other.getState());
   };
