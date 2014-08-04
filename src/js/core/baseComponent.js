@@ -2,6 +2,7 @@ S.base = function(name, view) {
   var base = S.ee();
   base.name = name;
   base.live = {};
+  base.representation = {};
 
   if(view) base.setView(view);
 
@@ -28,7 +29,8 @@ S.base = function(name, view) {
   }
 
   base.getAsync = function() {
-    return base.view;
+    //return base.view;
+    return base.representation;
   }
 
   base.getMethods = function() {
