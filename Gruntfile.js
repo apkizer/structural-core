@@ -7,7 +7,8 @@ module.exports = function(grunt) {
         },
         concat: {
             options: {
-                banner: '/* Structural, by Alex Kizer */\n'
+                banner: '/* Structural, by Alex Kizer */\n',
+                separator: '\n'
             },
             js: {
                 src: [
@@ -34,7 +35,12 @@ module.exports = function(grunt) {
             }
         },
         jsbeautifier: {
-          src: ['build/structural.js']
+          src: ['build/structural.js'],
+          options: {
+            js: {
+              jslintHappy: true
+            }
+          }
         },
         uglify: {
             options: {
