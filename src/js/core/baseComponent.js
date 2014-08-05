@@ -9,6 +9,7 @@ S.base = function(name, view) {
   base.setView = function(view) {
     base.view = view;
     view.component = base;
+    view.init(); 
   }
   
   base.copy = function(other) {

@@ -40,7 +40,6 @@ S.defineComponent('std', function() {
     warnings.push(msg);
   }
   
-  
   std.live.set = function(key, value) {
     vars[key] = value;
   }
