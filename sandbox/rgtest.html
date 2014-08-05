@@ -2,9 +2,9 @@
 <html>
 <head>
     <title></title>
-    <script src="js/lib/jquery-1.11.1.min.js" type="text/javascript"></script>
-    <script src="js/lib/snap.svg-min.js" type="text/javascript"></script>
-    <script src="structural.min.js" type="text/javascript"></script>
+    <script src="../lib/jquery-1.11.1.min.js" type="text/javascript"></script>
+    <script src="../lib/snap.svg-min.js" type="text/javascript"></script>
+    <script src="../build/structural.js" type="text/javascript"></script>
     <link rel="stylesheet" href="test.css"/>
     <style>
         .tree-svg {
@@ -56,26 +56,14 @@
             var root = new Node(1);
             genTree(root, 0, 3);
 
-            var myTreeView = S.views.tree.simple();
-            var myTree = S.components.tree(myTreeView);
-            var myArrayView = S.views.array.simple({
-                numElements: 16
-            });
-            var myArray = S.components.array([], myArrayView);
-            myArrayView.scaleTo({
-                width: 600,
-                height: 300
-            });
-            myArrayView.init();
+            //var myTreeView = S.views.tree.simple();
+            var myTree = S.components.tree(/*myTreeView*/);
             myTree.init(root);
-            myTreeView.init();
-            $('body').append(myTreeView.render());
-            $('body').append(myArrayView.render());
-            
-            myArray.live.push(1);
+            $('body').append(myTree.view.render());
             
             
-            var livewrap = S.live([myTree, myArray]);
+            
+            //var livewrap = S.live([myTree]);
             
             function traversal(c) {
                 c.log('c.root is ' + c.root());
@@ -107,15 +95,15 @@
                 }
             }
             
-            traversal(livewrap);
+           // traversal(livewrap);
             //buildArray(livewrap);
             
-            livewrap.on('end', function(){
+            /*livewrap.on('end', function(){
                 console.log('end');
-            });
+            });*/
             
-            livewrap.close();
-            livewrap.exec();
+            //livewrap.close();
+            //livewrap.exec();
 
 
 

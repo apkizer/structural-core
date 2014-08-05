@@ -1,5 +1,5 @@
-S.component('tree', function (view) {
-  var c = S.base(view),
+S.component('tree', function (tree, view) {
+  var c = S.base(),
     nodes = S.map();
   c.tree = new Node(0);
 
@@ -10,8 +10,9 @@ S.component('tree', function (view) {
     this.sid = S.nextId();
   }
 
-  c.init = function(root) {
-    c.tree = copyTree(root);
+  c.init = function() {
+    console.log('init tree');
+    c.tree = copyTree(tree);
   }
 
   function copyTree(node) {

@@ -22,8 +22,11 @@ S.defineComponent = function(name, factoryFunction, noDefault) {
       }
       // give default view
       if(S.views[name]) {
+        console.log('setting view ' + name);
         component.setView(S.views[name]());
       }
+      // initialize component
+      if(component.init) component.init();
       return component;
     }
 }

@@ -1,0 +1,39 @@
+<html>
+<head>
+    <title>structural-core 4</title>
+    <script type="text/javascript" src="../lib/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
+    <script type="text/javascript" src="../build/structural.js"></script>
+    <link rel="stylesheet" type="text/css" href="../build/structural.css"></link>
+    <script type="text/javascript">
+        $(document).ready(function() {
+          var node = function(value) {
+            return {
+              value: value,
+              left: null,
+              right: null
+            };
+          }
+          
+          var root = node(17);
+          root.left = node(16);
+          root.right = node(18);
+          root.left.left = node(12);
+          root.left.left.right = node(13);
+          root.right.left = node(12);
+          root.right.left.left = node(15);
+          root.left.left.left = node(0);
+          
+          
+          var treeOne = S.components.tree(root);
+          $('body').append(treeOne.view.render());
+            
+        });
+    </script>
+</head>
+<body>
+<div class="wrap" style="text-align: center;">
+
+</div>
+</body>
+</html>

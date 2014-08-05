@@ -7,10 +7,14 @@
     <link rel="stylesheet" type="text/css" href="../build/structural.css"></link>
     <script type="text/javascript">
         $(document).ready(function() {
-            var arrayOne = S.components.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+          var arr = [];
+          for(var i = 0; i < 50; i++) {
+            arr.push(50 - i);
+          }
+            var arrayOne = S.components.array(arr);
             var scaling = true;
             arrayOne.view.config({
-              numElements: 7
+              numElements: 50
             });
           
             arrayOne.view.scaleTo({

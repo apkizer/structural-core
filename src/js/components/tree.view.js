@@ -12,22 +12,7 @@ S.view('tree', function () {
     data = S.map();
 
   view.init = function() {
-    $e = $('<div class="tree"></div>');
-    // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
-    var svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    $e.append($(svgElement));
-    $svg = $e.find('svg').first();
-      
-      $svg.width(1000);
-      $svg.height(300);
-      
-    $svg.addClass('tree-svg');
-    svg = Snap(svgElement);
-    console.log('typeof elem ' + typeof $e.find('svg').first().get());
-    rg(view.component.tree, positions, opts);
-    drawLines(view.component.tree);
-    drawTree(view.component.tree);
-    drawValues(view.component.tree);
+
   }
 
   function drawNode(node, value, x, y) {
@@ -71,7 +56,24 @@ S.view('tree', function () {
 
 
   view.render = function() {
-    return $e;
+    $e = $('<div class="tree"></div>');
+    // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
+    var svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    $e.append($(svgElement));
+    $svg = $e.find('svg').first();
+      
+      $svg.width(1000);
+      $svg.height(300);
+      
+    $svg.addClass('tree-svg');
+    svg = Snap(svgElement);
+    console.log('typeof elem ' + typeof $e.find('svg').first().get());
+    rg(view.component.tree, positions, opts);
+    drawLines(view.component.tree);
+    drawTree(view.component.tree);
+    drawValues(view.component.tree);
+    view.$element.append($e);
+    return view.$element;
   }
   
 
@@ -205,12 +207,14 @@ S.view('tree', function () {
       if(left === null && right === null) {
         // node is a leaf
         // base case?
-        rightMost.node = node;
-        leftMost.node = node;
-        rightMost.level = level; // single node is both rightMost and leftMost on lowest level (which is current level)
-        leftMost.level = level;
-        rightMost.offset = 0; // ? TODO
-        leftMost.offset = 0;  // ? TODO
+        if(leftMost && rightMost) {
+          rightMost.node = node;
+          leftMost.node = node;
+          rightMost.level = level; // single node is both rightMost and leftMost on lowest level (which is current level)
+          leftMost.level = level;
+          rightMost.offset = 0; // ? TODO
+          leftMost.offset = 0;  // ? TODO
+        }
         node.offset = 0;
       } else {
         // node is not a leaf
@@ -296,7 +300,7 @@ S.view('tree', function () {
 // threading:
 // necessary if uneven heights? TODO
 
-        if(left != null && left != node.left) {
+        if(left != null && left != node.left && rRightMost.node) {
           rRightMost.node.thread = true;
           // no idea what's going on here: TODO
           rRightMost.node.offset = Math.abs( (rRightMost.offset + node.offset) - leftOffsetSum);
@@ -305,7 +309,7 @@ S.view('tree', function () {
           } else {
             rRightMost.node.right = left;
           }
-        } else if(right != null && right != node.right) {
+        } else if(right != null && right != node.right && lLeftMost.node) {
           lLeftMost.node.thread = true;
           lLeftMost.node.offset = Math.abs( (lLeftMost.offset - node.offset) - rightOffsetSum);
           if(rightOffsetSum + node.offset >= lLeftMost.offset) {

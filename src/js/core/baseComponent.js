@@ -7,6 +7,7 @@ S.base = function(name, view) {
   if(view) base.setView(view);
 
   base.setView = function(view) {
+    console.log('setView');
     base.view = view;
     view.component = base;
     view.init(); 

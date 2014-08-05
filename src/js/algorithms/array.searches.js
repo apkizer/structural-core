@@ -17,19 +17,21 @@ S.method('array', 'searchBinary', function(target) {
   
     function search(left, right) {
         if(right < left) {
-            this.finish();
-            return;
+          this.clearrange(1);
+          this.finish();
+          return;
         }
         this.clearrange(1);
         this.range(left, right, 1);
-        var mid = (left + right) / 2;
-        this.focus( Math.round(mid));
+        var mid = Math.floor( (left + right) / 2 );
+        this.focus(mid);
         if(target < this.getItem(mid)) {
             search.call(this, left, mid - 1);
         } else if(target > this.getItem(mid)) {
             search.call(this, mid + 1, right);
         } else {
-            this.flag(mid); // TODO this causes error
+            this.focus(mid);
+            this.flag(mid);
             return;
         }
     }

@@ -8,13 +8,10 @@
     border-collapse: collapse;
     width: 100%;
     font-family: monospace;
-    font-size: 14px;
-    height: 50px;
 }
 
 .array table td, .array table th {
     text-align: center;
-    /*border: 1px solid #999;*/
     border-bottom: none;
     border-top: none;
     padding: 0;
@@ -25,7 +22,6 @@
 .array table td {
   font-family: arial;
   position: relative;
-  
 }
 
 .array table td:hover {
@@ -42,12 +38,6 @@
     background-color: #0033CC;/*#ddd;*/
     color: white;
 }
-
-.indices {
-
-}
-
-
 
 .array td.focus {
     background-color: #333 !important;
