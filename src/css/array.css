@@ -7,10 +7,9 @@
     table-layout: fixed;
     border-collapse: collapse;
     width: 100%;
-    font-family: monospace;
 }
 
-.array table td, .array table th {
+.array-cell, .array-index {
     text-align: center;
     border-bottom: none;
     border-top: none;
@@ -19,46 +18,34 @@
     overflow: hidden;
 }
 
-.array table td {
-  font-family: arial;
+.array-cell {
   position: relative;
+  font-family: arial;
 }
 
-.array table td:hover {
+.array-cell:hover {
     text-decoration: underline;
 }
 
-.array table td:nth-child(odd) {
+.array-cell:nth-child(odd) {
     background-color: #eee;
 }
 
-.array table th {
-    font-size: 10px;
+.array-index {
     height: 10px;
-    background-color: #0033CC;/*#ddd;*/
+    font-size: 10px;
+    font-family: monospace;
+    background-color: #0033CC;
     color: white;
 }
 
-.array td.focus {
+.array-cell.focus {
     background-color: #333 !important;
     color: white;
-    box-shadow: none !important;
 }
 
-.array th.focus {
+.array-index.focus {
     background-color: black !important;
-}
-
-.array .obj {
-    background-color: #003399;
-    color: white;
-    text-shadow: 1px 1px black;
-    font-weight: bold;
-    border-radius: 4px;
-    width: 100%;
-    padding-left: 10px;
-    padding-right: 10px;
-
 }
 
 .array .flagged:before {
@@ -71,17 +58,16 @@
     border-radius: 50%;
 }
 
-.range1 {
-    /*background-color: #66ff66 !important;*/
+.array .range1 {
     background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAE0lEQVQIW2OUvuLwnwENMNJAEACP4QrsdsC6NQAAAABJRU5ErkJggg==');
     background-repeat: repeat-x;
 }
 
-.range2 {
+.array .range2 {
     background-color: #ffcc00 !important;
 }
 
-.range3 {
+.array .range3 {
     background-color: #0066cc !important;
 }
 

@@ -195,6 +195,8 @@ S.view('array',
         opacity: 0,
         width: computedCellWidth
       });
+      $newTd.addClass('array-cell');
+      $newTh.addClass('array-index');
       $both.data('index', index);
       $topRow.append($newTd);
       $bottomRow.append($newTh);

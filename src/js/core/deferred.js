@@ -35,6 +35,72 @@ S.deferred = function() {
       }
   };
 
+  deferred.pause = function() {
+    context.paused = true;
+  }
+
+  deferred.play = function() {
+    context.paused = false;
+    context.exec();
+  }
+
+  deferred.getIndex = function() {
+    return last;
+  }
+
+  deferred.getLength = function() {
+    return fns.length;
+  }
+
+  deferred.getCompletion = function() {
+    return last / deferred.getLength();
+  }
+
+  deferred.setStepTime = function(time) {
+    stepTime = time;
+  }
+
+  deferred.exec = function() {
+    executing = true;
+    var i = last;
+    //console.log('statements: ' + deferred.getLength());
+
+    function doNext() {
+      if (i >= fns.length) {
+        //context.fire('end', {}); // remove? todo create event obj
+        executing = false;
+        return;
+      } else if (!executing) {
+        return;
+      }
+      // context.fire('update', {}); TODO !!!!!!!
+      last++;
+      fns[i++].call({}, function() {
+        //setTimeout(doNext, 50);
+        S.wait(doNext, stepTime);
+      });
+    }
+
+    doNext();
+  }
+
+  deferred.on('push', function(event) {
+      if (open && !executing) {
+          console.log('mode is open; executing...');
+          deferred.exec();
+      }
+  });
+
+  deferred.getContext = function() {
+      return context;
+  }
+  
+  
+  deferred.add = function(name, func) {
+      func.bind(context);
+      context[name] = func;
+  }
+  
   function wrap(wrappable) {
       if (typeof wrappable.getSync === 'undefined' || typeof wrappable.getAsync === 'undefined') {
           return console.log('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
@@ -107,73 +173,6 @@ S.deferred = function() {
       } else {
         //console.log('no getMethods found');
       }
-  }
-
-  deferred.pause = function() {
-    context.paused = true;
-  }
-
-  deferred.play = function() {
-    context.paused = false;
-    context.exec();
-  }
-
-  deferred.getIndex = function() {
-    return last;
-  }
-
-  deferred.getLength = function() {
-    return fns.length;
-  }
-
-  deferred.getCompletion = function() {
-    return last / deferred.getLength();
-  }
-
-  deferred.setStepTime = function(time) {
-    stepTime = time;
-  }
-
-  deferred.exec = function() {
-    executing = true;
-    var i = last;
-    //console.log('statements: ' + deferred.getLength());
-
-    function doNext() {
-      if (i >= fns.length) {
-        //context.fire('end', {}); // remove? todo create event obj
-        executing = false;
-        return;
-      } else if (!executing) {
-        return;
-      }
-      // context.fire('update', {}); TODO !!!!!!!
-      last++;
-      fns[i++].call({}, function() {
-        //setTimeout(doNext, 50);
-        S.wait(doNext, stepTime);
-      });
-    }
-
-    doNext();
-  }
-
-  deferred.on('push', function(event) {
-      //console.log('fn pushed!');
-      //console.log('open=' + open + ', executing=' + executing);
-      if (open && !executing) {
-          console.log('mode is open; executing...');
-          deferred.exec();
-      }
-  });
-
-  deferred.getContext = function() {
-      return context;
-  }
-  
-  deferred.add = function(name, func) {
-      func.bind(context);
-      context[name] = func;
   }
 
   return deferred;
