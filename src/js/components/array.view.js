@@ -1,3 +1,4 @@
+
 S.view('array', 
   function (options) {
     var view = S.baseView(),
@@ -5,7 +6,8 @@ S.view('array',
         $table,
         $topRow,
         $bottomRow,
-        onScrollFn,
+        $cells = $(),
+        $indices = $(),
         computedWidth,
         width,
         border = 0,
@@ -14,12 +16,12 @@ S.view('array',
         
     view.init = function() {
       view.config({
-        hiddenDelimiter: ',', //
-        numElements: 5, //
-        pageTime: 300, //
-        stepTime: 50, // 
-        scrollTime: 500, //
-        maxScrollTime: 1000, //
+        hiddenDelimiter: ',', 
+        numElements: 5, 
+        pageTime: 300, 
+        stepTime: 50, 
+        scrollTime: 500, 
+        maxScrollTime: 1000, 
       });
       view.config(options);
       view.leftBound = 0;
@@ -35,6 +37,8 @@ S.view('array',
     view.render = function() {
       if($e)
         $e.remove();
+      $cells = $();
+      $indices = $();
       $e = $('<div class="array"></div>');
       $table = $('<table></table>');
       $topRow = $('<tr></tr>');
@@ -59,12 +63,14 @@ S.view('array',
         $th.width(computedCellWidth);
         $topRow.append($td);
         $bottomRow.append($th);
+        $cells = $cells.add($td);
+        $indices = $indices.add($th);
       }
 
       computedWidth = computedCellWidth + border;
       width = view.config.numElements * computedWidth + border;
       $e.css('width', width);
-      bindEvents();
+      bindEvents($cells);
       view.$element.append($e);
       return view.$element;
     }
@@ -78,13 +84,15 @@ S.view('array',
       view.render();  
     }
 
-    function bindEvents() {
+    function bindEvents($_cells, $_indices) {
       //$e.mousewheel(handleMousewheel); // TODO needs mousewheel
-      $topRow.find('td').click(handleTdClick);
-      $topRow.find('td').dblclick(handleTdDblClick);
+      $_cells.click(handleTdClick);
+      $_cells.dblclick(handleTdDblClick);
     }
 
     function handleTdClick(e) {
+      console.log('handleTdClick');
+      console.log('setting focus to ' + $(this).data('index'));
       view.live.focus($(this).data('index'));
     }
 
@@ -103,7 +111,6 @@ S.view('array',
       } else {
         view.right();
       }
-      onScrollFn();
     }
 
     function handleKeydown(e) {
@@ -112,36 +119,33 @@ S.view('array',
         view.right();
     }
 
-    view.onScroll = function(fn) {
-      onScrollFn = fn;
-    }
-
     view.live.focus = function(index, fn) {
       if(index < 0 || index > view.component.array.length - 1)
         return;
-      $topRow.find('td').removeClass('focus');
-      $bottomRow.find('th').removeClass('focus');
+      $cells.removeClass('focus');
+      $indices.removeClass('focus');
+      $cells.eq(index).addClass('focus');
+      $indices.eq(index).addClass('focus');
       var idx = index - Math.floor(view.config.numElements/2);
-      $topRow.find('td').eq(index).addClass('focus');
-      $bottomRow.find('th').eq(index).addClass('focus');
       view.live.leftTo(idx, fn);
     }
 
     view.live.clearfocus = function(fn) {
-      $topRow.find('td').removeClass('focus');
-      $bottomRow.find('th').removeClass('focus');
+      $cells.removeClass('focus');
+      $indices.removeClass('focus');
       fn();
     }
 
     view.live.flag = function(index, fn) {
-      $topRow.find('td').eq(index).addClass('flagged');
+      $cells.eq(index).addClass('flagged');
       if(fn) fn();
     }
 
     view.live.range = function(start, end, num, fn) {
-      var $range = $topRow.find('td').slice(start, end + 1),
-        clazz = 'range' + num;
-      $topRow.find('td').slice(start, end + 1).addClass(function(i){
+      var $range = $cells.slice(start, end + 1),
+          clazz = 'range' + num;
+      // TODO why do I do this? -v
+      $range.addClass(function(i){
         var classes = $range.eq(i).attr('class'),
           newClass = clazz + ' ' + classes;
         $range.eq(i).attr('class', newClass);
@@ -150,21 +154,17 @@ S.view('array',
     }
 
     view.live.clearrange = function(num, fn) {
-      $topRow.find('td').removeClass('range' + num);
+      $cells.removeClass('range' + num);
       fn();
     }
 
     view.live.setItem = function(index, item, fn) {
       view.live.focus(index, function() {
-        setTimeout(function() {
-          var initialColor = $topRow.find('td').eq(index).css('color');
-          //$topRow.find('td').eq(index).css('color', 'red');
-          $topRow.find('td').eq(index).addClass('array-remove');
-          setTimeout(function() {
-            $topRow.find('td').eq(index).text(item);
-            // TODO reset to view.configurable default color:
-            //$topRow.find('td').eq(index).css('color', 'black'/*initialColor*/);
-            $topRow.find('td').eq(index).removeClass('array-remove');
+        S.wait(function() {
+          $cells.eq(index).addClass('array-remove');
+          S.wait(function() {
+            $cells.eq(index).text(item);
+            $cells.eq(index).removeClass('array-remove');
             fn();
           }, 300);
         }, 200);
@@ -172,7 +172,11 @@ S.view('array',
     }
 
     view.live.push = function(item, fn) {
-      var $added = addItem(item, view.component.array.length -1);
+      console.log('pushing ' + item + ' in array.view.js');
+      console.log('view.component.array = ' + view.component.array);
+      console.log('view.component.array.length = ' + view.component.array.length);
+      console.log('view.component.array.length - 1 = ' +  view.component.array.length - 1);
+      var $added = addItem(item, view.component.array.length - 1);
       view.live.leftTo(view.component.array.length - 1, function() {
         $added.animate({
           opacity: 1
@@ -185,11 +189,16 @@ S.view('array',
     function addItem(item, index) {
       var $newTd = $('<td>' + item + '</td>'),
         $newTh = $('<th>' + index + '</th>');
-      var $both = $newTd.add($newTh).css('opacity', 0);
+      var $both = $newTd.add($newTh).css({
+        opacity: 0,
+        width: computedCellWidth
+      });
+      $both.data('index', index);
       $topRow.append($newTd);
       $bottomRow.append($newTh);
-      /*$both.css('width', view.config.elementWidth);*/
-      view.fire('change', {});
+      $cells = $cells.add($newTd);
+      $indices = $indices.add($newTh);
+      bindEvents($newTd, $newTh);
       return $both;
     }
 

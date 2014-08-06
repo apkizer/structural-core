@@ -10,7 +10,7 @@
         c.live.leftTo = null;
 
         c.copy = function() {
-            return array(c.array);
+            return array(c.array.slice(0)); // by value copy
         }
 
         c.live.getLength = function() {
@@ -38,13 +38,13 @@
         }
 
         c.live.push = function(item) {
+          console.log('pushing ' + item + ' in array.js');
           c.array.push(item);
         }
 
         c.getMethods = function() {
           return S.getComponentMethods('array');
         }
-
 
         return c;
     }

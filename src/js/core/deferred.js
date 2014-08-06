@@ -40,8 +40,10 @@ S.deferred = function() {
           return console.log('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
       }
       
-      if (!wrappable.noCopy)
+      if (!wrappable.noCopy) {
+          console.log('deferred copying ' + wrappable);
           var clone = wrappable.copy();
+      }
 
       for (var prop in wrappable.getSync()) {
           context[prop] =
@@ -53,9 +55,12 @@ S.deferred = function() {
                       //null indicates that the method is async only (superficial)
                       if (wrappable.getSync()[property] !== null) {
                           //do now
-                          //if(wrappable.noCopy)
-                          ret = wrappable.live[property].apply({}, args);
-                          /* ret = clone.getSync()[property].apply({}, args);*/
+                          if(wrappable.noCopy)
+                            ret = wrappable.live[property].apply({}, args);
+                          else {
+                            console.log('calling clone');
+                            ret = clone.getSync()[property].apply({}, args);
+                          }
                       }
                       //push async & sync if found on view:
                       var pushFn;
