@@ -1,5 +1,6 @@
 S.components = {};
 S.views = {};
+
 var components = {},
     componentMethods = {},
     standaloneMethods = {},

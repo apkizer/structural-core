@@ -1,1 +1,2 @@
-})(window.S, jQuery);
+return S;
+})(jQuery);

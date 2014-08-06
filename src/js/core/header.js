@@ -1,4 +1,5 @@
-window.S = {};
 
-(function(S, $) {
+
+window.S = (function($) {
 "use strict";
+var S = {};
