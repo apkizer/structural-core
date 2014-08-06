@@ -2,6 +2,7 @@ S.baseView = function() {
   var v = S.ee(),
     _speed = 0;
   
+  v.live = {};
   v._config = {};
   v.$element = $('<div></div>').addClass(S.config.viewClass);
   

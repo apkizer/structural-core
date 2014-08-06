@@ -1,29 +1,27 @@
 S.view('array', 
   function (options) {
     var view = S.baseView(),
-      $e,
-      $table,
-      onScrollFn,
-      computedWidth,
-      wrapWidth,
-      border = 0,
-      $topRow,
-      $bottomRow;
-    
-    view.config(options);
-    
+        $e,
+        $table,
+        $topRow,
+        $bottomRow,
+        onScrollFn,
+        computedWidth,
+        width,
+        border = 0,
+        computedCellWidth,
+        height;
+        
     view.init = function() {
       view.config({
-        hiddenDelimiter: ',',
-        numElements: 5,
-        elementHeight: 50,
-        elementWidth: 20,
-        pageTime: 300,
-        stepTime: 50,
-        scrollTime: 500,
-        maxScrollTime: 1000,
-        areObjs: false
+        hiddenDelimiter: ',', //
+        numElements: 5, //
+        pageTime: 300, //
+        stepTime: 50, // 
+        scrollTime: 500, //
+        maxScrollTime: 1000, //
       });
+      view.config(options);
       view.leftBound = 0;
       view.rightBound = view.config.numElements - 1;
     }
@@ -35,39 +33,49 @@ S.view('array',
     }
 
     view.render = function() {
-      if($e) $e.remove();
-      $e = $('<div class="array"><table><tr></tr><tr class="indices"></tr></table></div>');
-      $table = $e.find('table').first();
-      $table.css('height', view.config.elementHeight);
-      $topRow = $e.find('tr').first();
-      $bottomRow = $e.find('tr').eq(1);
-      $topRow.css('font-size', Math.round($table.height() * .25));
+      if($e)
+        $e.remove();
+      $e = $('<div class="array"></div>');
+      $table = $('<table></table>');
+      $topRow = $('<tr></tr>');
+      $bottomRow = $('<tr class="indices"></tr>');
+      $e.append($table);
+      $table.append($topRow).append($bottomRow); 
+      
+      $table.css({
+        height: height
+      });
+      
+      $topRow.css({
+        fontSize: Math.round($table.height() * .25)
+      });
+      
       for(var i = 0; i < view.component.array.length; i++) {
-        var $td = $('<td>' + view.component.array[i] + '<span style="font-size: 0;">' + view.config.hiddenDelimiter + '</span></td>').data('index', i),
-          $th = $('<th>' + i + '</th>').data('index', i);
+        var $td = $('<td>' + view.component.array[i] + '<span style="font-size: 0;">' + view.config.hiddenDelimiter + '</span></td>'),
+            $th = $('<th>' + i + '</th>');
+        $td.data('index', i);
+        $th.data('index', i);
+        $td.width(computedCellWidth);
+        $th.width(computedCellWidth);
         $topRow.append($td);
         $bottomRow.append($th);
       }
-      $e.find('td').add('th').css('width', view.config.elementWidth);
-      computedWidth = view.config.elementWidth + border;
-      setWrapWidth();
+
+      computedWidth = computedCellWidth + border;
+      width = view.config.numElements * computedWidth + border;
+      $e.css('width', width);
       bindEvents();
       view.$element.append($e);
       return view.$element;
     }
 
     view.scaleTo = function(dimensions) {
+      width = dimensions.width;
+      height = dimensions.height;
       view.$element.css('width', dimensions.width);
       view.$element.css('height', dimensions.height);
-      view.config.elementWidth = Math.floor(dimensions.width / view.config.numElements) - border;
-      view.config.elementHeight = dimensions.height;
-      view.render();
-    }
-    
-    function setWrapWidth() {
-      /*wrapWidth = view.config.numElements * (view.config.elementWidth + border) + border;*/
-      wrapWidth = view.config.numElements * computedWidth + border;
-      $e.css('width', wrapWidth);
+      computedCellWidth = Math.floor(width / view.config.numElements) - border;
+      view.render();  
     }
 
     function bindEvents() {
@@ -77,7 +85,7 @@ S.view('array',
     }
 
     function handleTdClick(e) {
-      view.focus($(this).data('index'));
+      view.live.focus($(this).data('index'));
     }
 
     function handleTdDblClick(e) {
@@ -108,7 +116,7 @@ S.view('array',
       onScrollFn = fn;
     }
 
-    view.focus = function(index, fn) {
+    view.live.focus = function(index, fn) {
       if(index < 0 || index > view.component.array.length - 1)
         return;
       $topRow.find('td').removeClass('focus');
@@ -116,21 +124,21 @@ S.view('array',
       var idx = index - Math.floor(view.config.numElements/2);
       $topRow.find('td').eq(index).addClass('focus');
       $bottomRow.find('th').eq(index).addClass('focus');
-      view.leftTo(idx, fn);
+      view.live.leftTo(idx, fn);
     }
 
-    view.clearfocus = function(fn) {
+    view.live.clearfocus = function(fn) {
       $topRow.find('td').removeClass('focus');
       $bottomRow.find('th').removeClass('focus');
       fn();
     }
 
-    view.flag = function(index, fn) {
+    view.live.flag = function(index, fn) {
       $topRow.find('td').eq(index).addClass('flagged');
       if(fn) fn();
     }
 
-    view.range = function(start, end, num, fn) {
+    view.live.range = function(start, end, num, fn) {
       var $range = $topRow.find('td').slice(start, end + 1),
         clazz = 'range' + num;
       $topRow.find('td').slice(start, end + 1).addClass(function(i){
@@ -141,13 +149,13 @@ S.view('array',
       fn();
     }
 
-    view.clearrange = function(num, fn) {
+    view.live.clearrange = function(num, fn) {
       $topRow.find('td').removeClass('range' + num);
       fn();
     }
 
-    view.setItem = function(index, item, fn) {
-      view.focus(index, function() {
+    view.live.setItem = function(index, item, fn) {
+      view.live.focus(index, function() {
         setTimeout(function() {
           var initialColor = $topRow.find('td').eq(index).css('color');
           //$topRow.find('td').eq(index).css('color', 'red');
@@ -163,9 +171,9 @@ S.view('array',
       });
     }
 
-    view.push = function(item, fn) {
+    view.live.push = function(item, fn) {
       var $added = addItem(item, view.component.array.length -1);
-      view.leftTo(view.component.array.length - 1, function() {
+      view.live.leftTo(view.component.array.length - 1, function() {
         $added.animate({
           opacity: 1
         }, 200, function(){
@@ -185,7 +193,7 @@ S.view('array',
       return $both;
     }
 
-    view.leftTo = function(index, fn) {
+    view.live.leftTo = function(index, fn) {
       index = parseInt(index, 10);
       if(isNaN(index))
         return;
@@ -207,7 +215,7 @@ S.view('array',
       scrollTo(index * computedWidth, time, fn);
     }
 
-    view.rightTo = function(index) {
+    view.live.rightTo = function(index) {
       index = parseInt(index, 10);
       if(isNan(index))
         return;
@@ -254,7 +262,7 @@ S.view('array',
     }
 
     function page(right) {
-      scroll(right, view.config.pageTime, wrapWidth - 1);
+      scroll(right, view.config.pageTime, width - 1);
     }
 
     function step(right) {

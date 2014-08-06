@@ -31,7 +31,7 @@ S.base = function(name, view) {
   }
 
   base.getAsync = function() {
-    return base.view;
+    return base.view.live;
     //return base.representation;
   }
 

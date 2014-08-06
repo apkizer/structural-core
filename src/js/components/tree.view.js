@@ -15,13 +15,7 @@ S.view('tree', function () {
     y0;
 
   view.init = function() {
-    view.config({
-      /*mh: 50,
-      mv: 50,
-      x0: 150,
-      y0: 50*/
-      
-    });
+    
   }
 
   function drawNode(node, value, x, y) {
@@ -32,7 +26,7 @@ S.view('tree', function () {
     
   function drawValues(root) {
       if(root) {
-          svg.text(positions(root).x + x0 - 5, positions(root).y + y0 + 5, root.value + '')
+          svg.text(positions(root).x + x0 - 10, positions(root).y + y0 + 5, root.value + '')
               .addClass('tree-node-value');
           drawValues(root.left);
           drawValues(root.right);
@@ -140,8 +134,6 @@ S.view('tree', function () {
     //1. copy tree
     //2. run rg
     //3. copy to store
-    
-    console.log('rg, options = ' + JSON.stringify(options));
 
 
     var config = {
