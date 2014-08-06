@@ -5,6 +5,11 @@
     <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
     <script type="text/javascript" src="../build/structural.js"></script>
     <link rel="stylesheet" type="text/css" href="../build/structural.css"></link>
+    <style>
+      .structural_view {
+        border: 1px dashed black;
+      }
+    </style>
     <script type="text/javascript">
         $(document).ready(function() {
           var node = function(value) {
@@ -13,7 +18,8 @@
               left: null,
               right: null
             };
-          }
+          };
+          var scaling = true;
           
           var root = node(17);
           root.left = node(16);
@@ -23,11 +29,30 @@
           root.right.left = node(12);
           root.right.left.left = node(15);
           root.left.left.left = node(0);
-          
+          root.right.left.left.left = node(23);
+          root.left.left.right.right = node(3);
           
           var treeOne = S.components.tree(root);
+          
           $('body').append(treeOne.view.render());
-            
+          
+          treeOne.view.scaleTo({
+            width: 500,
+            height: 600
+          });
+          
+          $(document).mousemove(function(event) {
+            if(!scaling) return;
+            treeOne.view.scaleTo({
+              width: event.pageX,
+              height: event.pageY
+            });
+          });
+
+          $(document).click(function(event){
+            scaling = false;
+          });
+          
         });
     </script>
 </head>

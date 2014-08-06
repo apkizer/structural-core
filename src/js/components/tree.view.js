@@ -2,73 +2,94 @@ S.view('tree', function () {
   var view = S.baseView(),
     elems = S.map(),
     positions = S.map(),
-    opts = {
-      mh: 30,
-      mv: 50
-    },
     $e,
     svg,
     $svg,
-    data = S.map();
+    data = S.map(),
+    width,
+    height,
+    nodeRadius,
+    mh,
+    mv,
+    x0,
+    y0;
 
   view.init = function() {
-
+    view.config({
+      /*mh: 50,
+      mv: 50,
+      x0: 150,
+      y0: 50*/
+      
+    });
   }
 
   function drawNode(node, value, x, y) {
-    var circle = svg.circle(x, y, 10);
+    var circle = svg.circle(x, y, nodeRadius);
     circle.addClass('tree-node');
     elems(node, circle);
   }
     
-    function drawValues(root) {
-        if(root) {
-            svg.text(positions(root).x + 500 - 5, positions(root).y + 10 + 5, root.value + '')
-                .addClass('tree-node-value');
-            drawValues(root.left);
-            drawValues(root.right);
-        }
-    }
+  function drawValues(root) {
+      if(root) {
+          svg.text(positions(root).x + x0 - 5, positions(root).y + y0 + 5, root.value + '')
+              .addClass('tree-node-value');
+          drawValues(root.left);
+          drawValues(root.right);
+      }
+  }
     
-    function drawLines(root) {
-        if(root.left) {
-            svg.line(positions(root).x + 500, positions(root).y + 10, positions(root.left).x + 500, positions(root.left).y + 10).attr('stroke', 'black');
-            drawLines(root.left);
-        }
-        if(root.right) {
-            svg.line(positions(root).x + 500, positions(root).y + 10, positions(root.right).x + 500, positions(root.right).y + 10).attr('stroke', 'black');
-            drawLines(root.right);
-        }
-    }
+  function drawLines(root) {
+      if(root.left) {
+          svg.line(positions(root).x + x0, positions(root).y + y0, positions(root.left).x + x0, positions(root.left).y + y0).attr('stroke', 'black');
+          drawLines(root.left);
+      }
+      if(root.right) {
+          svg.line(positions(root).x + x0, positions(root).y + y0, positions(root.right).x + x0, positions(root.right).y + y0).attr('stroke', 'black');
+          drawLines(root.right);
+      }
+  }
 
   function drawTree(root) {
     if(!root)
       return;
-    drawNode(root, root.value, positions(root).x + 500, positions(root).y + 10);
+    drawNode(root, root.value, positions(root).x + x0, positions(root).y + y0);
     drawTree(root.left);
     drawTree(root.right);
   };
 
   view.scaleTo = function(dimensions) {
-    $e.width(dimensions.width);
-    $e.height(dimensions.height);
+    width = dimensions.width;
+    height = dimensions.height;
+    mh = height / view.component.height();
+    mv = mh;
+    x0 = dimensions.width / 2;
+    y0 = 10; // TODO
+    nodeRadius = .05 * height;
+    view.$element.width(dimensions.width);
+    view.$element.height(dimensions.height);
+    view.render();
   }
 
-
   view.render = function() {
+    if($e) $e.remove();
     $e = $('<div class="tree"></div>');
     // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
     var svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     $e.append($(svgElement));
     $svg = $e.find('svg').first();
-      
-      $svg.width(1000);
-      $svg.height(300);
+    $svg.width(width);
+    $svg.height(height);
       
     $svg.addClass('tree-svg');
     svg = Snap(svgElement);
     console.log('typeof elem ' + typeof $e.find('svg').first().get());
-    rg(view.component.tree, positions, opts);
+    rg(view.component.tree, positions, {
+      mh: mh,
+      mv: mv,
+      x0: x0,
+      y0: y0
+    });
     drawLines(view.component.tree);
     drawTree(view.component.tree);
     drawValues(view.component.tree);
@@ -92,10 +113,9 @@ S.view('tree', function () {
     }, 500);
   }
 
-
   view.add = function(parent_s, left, value, fn) {
     elems(parent_s, getNodeElement(value));
-    rg(view.component.tree, positions, opts);
+    rg(view.component.tree, positions, view.config());
     elems.forEach(function(pair){
       move(elems(pair[0]), pair[1].x, pair[1].y, function(){
         $e.append(elems(parent_s));
@@ -120,6 +140,8 @@ S.view('tree', function () {
     //1. copy tree
     //2. run rg
     //3. copy to store
+    
+    console.log('rg, options = ' + JSON.stringify(options));
 
 
     var config = {

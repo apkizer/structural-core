@@ -1,6 +1,7 @@
 S.component('tree', function (tree, view) {
   var c = S.base(),
-    nodes = S.map();
+    nodes = S.map(),
+    height = 0;
   c.tree = new Node(0);
 
   function Node(value) {
@@ -13,6 +14,7 @@ S.component('tree', function (tree, view) {
   c.init = function() {
     console.log('init tree');
     c.tree = copyTree(tree);
+    height = determineHeight(c.tree);
   }
 
   function copyTree(node) {
@@ -22,6 +24,16 @@ S.component('tree', function (tree, view) {
     n.left = copyTree(node.left);
     n.right = copyTree(node.right);
     return n;
+  }
+  
+  function determineHeight(root) {
+    if(!root)
+      return -1;
+    return 1 + Math.max(determineHeight(root.left), determineHeight(root.right));
+  }
+      
+  c.height = function() {
+    return height;
   }
 
   c.live.add = function(parent, left, value) {
