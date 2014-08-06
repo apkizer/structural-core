@@ -58,7 +58,7 @@ S.deferred = function() {
                           if(wrappable.noCopy)
                             ret = wrappable.live[property].apply({}, args);
                           else {
-                            console.log('calling clone');
+                            //console.log('calling clone');
                             ret = clone.getSync()[property].apply({}, args);
                           }
                       }
