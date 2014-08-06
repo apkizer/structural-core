@@ -18,6 +18,6 @@ QUnit.test('array.setItem', function(assert) {
       assert.ok(this.getItem(i) === 0, '0 is ' + this.getItem(i));
     }
   }
-  
+  //
   checkAll.call(array.deferredContext);
 });
