@@ -9,6 +9,9 @@
       .structural_view {
         border: 1px dashed black;
       }
+      body {
+        background-color: #fff;
+      }
     </style>
     <script type="text/javascript">
         $(document).ready(function() {
@@ -52,6 +55,9 @@
           $(document).click(function(event){
             scaling = false;
           });
+          
+          window.def = treeOne.def;
+          window.tree1 = treeOne.deferredContext;
           
         });
     </script>

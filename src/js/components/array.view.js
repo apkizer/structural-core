@@ -41,8 +41,8 @@ S.view('array',
       $indices = $();
       $e = $('<div class="array"></div>');
       $table = $('<table></table>');
-      $topRow = $('<tr></tr>');
-      $bottomRow = $('<tr class="indices"></tr>');
+      $topRow = $('<tr></tr>').addClass('array-top');
+      $bottomRow = $('<tr></tr>').addClass('array-bottom');
       $e.append($table);
       $table.append($topRow).append($bottomRow); 
       
@@ -61,6 +61,8 @@ S.view('array',
         $th.data('index', i);
         $td.width(computedCellWidth);
         $th.width(computedCellWidth);
+        $td.addClass('array-cell');
+        $th.addClass('array-index');
         $topRow.append($td);
         $bottomRow.append($th);
         $cells = $cells.add($td);

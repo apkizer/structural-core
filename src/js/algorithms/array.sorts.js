@@ -1,3 +1,4 @@
+console.log('creating insertionSort');
 S.method('array', 'insertionSort', function(){
 	for(var i = 0; i < this.getLength(); i++) {
 	    this('j', i);  

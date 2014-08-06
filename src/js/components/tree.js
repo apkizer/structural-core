@@ -54,6 +54,12 @@ S.component('tree', function (tree, view) {
   c.live.traverse = null;
 
   c.live.focusNode = null;
+  
+  c.getMethods = function() {
+    return S.getComponentMethods('tree');
+  }
+  
+  c.noCopy = true;
 
   return c;
 });

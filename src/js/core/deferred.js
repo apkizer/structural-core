@@ -96,11 +96,12 @@ S.deferred = function() {
               })(prop, clone);
       }
       /* now, add in defined methods */
-      //console.log('now adding defined methods');
+      console.log('now adding defined methods');
       if(wrappable.getMethods) {
+        console.log('component has getMethods');
         var methods = wrappable.getMethods();
         for(var method in methods) {
-          //console.log('adding ' + method);
+          console.log('deferred adding ' + method);
           deferred.add(method, methods[method]);
         }
       } else {
@@ -136,7 +137,7 @@ S.deferred = function() {
   deferred.exec = function() {
     executing = true;
     var i = last;
-    console.log('statements: ' + deferred.getLength());
+    //console.log('statements: ' + deferred.getLength());
 
     function doNext() {
       if (i >= fns.length) {

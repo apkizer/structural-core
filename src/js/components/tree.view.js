@@ -92,8 +92,8 @@ S.view('tree', function () {
   }
   
 
-  view.focusNode = function(node, fn) {
-      console.log('treeview.focus');
+  view.live.focusNode = function(node, fn) {
+    console.log('treeview.focus');
     focus(elems(node), fn);
   }
 
