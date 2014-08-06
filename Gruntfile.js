@@ -51,13 +51,20 @@ module.exports = function(grunt) {
                     'build/structural.min.js': ['build/structural.js']
                 }
             }
+        },
+        qunit: {
+          files: ['test/index.html']
         }
     });
     
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.loadNpmTasks('grunt-jsbeautifier');
+  
 
-    grunt.registerTask('default', ['clean', 'concat', 'jsbeautifier', 'uglify',]);
+    grunt.registerTask('default', ['clean', 'concat', 'jsbeautifier', 'uglify']);
+    grunt.registerTask('test', 'qunit');                                   
+                                   
 };
