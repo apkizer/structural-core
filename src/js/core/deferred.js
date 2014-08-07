@@ -77,6 +77,7 @@ S.deferred = function() {
       last++;
       fns[i++].call({}, function() {
         //setTimeout(doNext, 50);
+        console.log('doing next...');
         S.wait(doNext, stepTime);
       });
     }
@@ -86,7 +87,7 @@ S.deferred = function() {
 
   deferred.on('push', function(event) {
       if (open && !executing) {
-          console.log('mode is open; executing...');
+          //console.log('mode is open; executing...');
           deferred.exec();
       }
   });
@@ -112,6 +113,7 @@ S.deferred = function() {
       }
 
       for (var prop in wrappable.getSync()) {
+        console.log('wrapping ' + prop);
           context[prop] =
               // inject property; otherwise, pushed functions will all reference last iterated property
               (function(property, clone) {

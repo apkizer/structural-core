@@ -1,22 +1,28 @@
 S.method('tree', 'traversal', function traversal() {
-                //c.focus(c.root());
-                //preorder(c.root());
-                inorder(this.root());
-                
-                /*function preorder(node) {
-                    if(node) {
-                        this.focusNode(node);
-                        preorder(node.left);
-                        preorder(node.right);
-                    }
-                }*/
-                
-                function inorder(node) {
-                    if(node) {
-                        inorder(node.left);
-                        this.focusNode(node);
-                        //c.push(node.value);//array
-                        inorder(node.right);
-                    }
-                }
-            });
+  //c.focus(c.root());
+  //preorder.bind(this);
+  preorder.call(this, this.root());
+  console.log('commencing traversal');
+  //inorder(this.root());
+
+  function preorder(node) {
+     if(node) {
+       this.focusOn(node);
+       this.clearfocus();
+       //console.log('printing ' + node);
+       preorder.call(this, node.left);
+       preorder.call(this, node.right);
+     }
+   }
+
+  function inorder(node) {
+    console.log('inorder');
+    if (node) {
+      inorder(node.left);
+      console.log('focusing on ' + node);
+      this.focusOn(node);
+      inorder(node.right);
+    }
+  }
+  console.log('finishing traversal');
+});

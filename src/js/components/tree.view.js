@@ -1,133 +1,175 @@
 S.view('tree', function () {
   var view = S.baseView(),
-    elems = S.map(),
-    positions = S.map(),
+    data = S.map(), // stores data about nodes
     $e,
-    svg,
-    $svg,
-    data = S.map(),
+    dom_svg,
+    s_svg, // snap svg object
+    $svg, // jQuery svg object
     width,
     height,
     nodeRadius,
-    mh,
-    mv,
-    x0,
-    y0;
+    mh, // horizontal margin between nodes
+    mv, // vertical margin between nodes
+    x0, // x offset
+    y0; // y offset
+
+  /*
+  example node data:
+  {
+    x: 100,
+    y: 100,
+    element: [svg element]
+  }
+   */
 
   view.init = function() {
     
   }
 
-  function drawNode(node, value, x, y) {
-    var circle = svg.circle(x, y, nodeRadius);
-    circle.addClass('tree-node');
-    elems(node, circle);
-  }
-    
-  function drawValues(root) {
-      if(root) {
-          svg.text(positions(root).x + x0 - 10, positions(root).y + y0 + 5, root.value + '')
-              .addClass('tree-node-value');
-          drawValues(root.left);
-          drawValues(root.right);
-      }
-  }
-    
-  function drawLines(root) {
-      if(root.left) {
-          svg.line(positions(root).x + x0, positions(root).y + y0, positions(root.left).x + x0, positions(root.left).y + y0).attr('stroke', 'black');
-          drawLines(root.left);
-      }
-      if(root.right) {
-          svg.line(positions(root).x + x0, positions(root).y + y0, positions(root.right).x + x0, positions(root.right).y + y0).attr('stroke', 'black');
-          drawLines(root.right);
-      }
-  }
-
-  function drawTree(root) {
-    if(!root)
-      return;
-    drawNode(root, root.value, positions(root).x + x0, positions(root).y + y0);
-    drawTree(root.left);
-    drawTree(root.right);
-  };
 
   view.scaleTo = function(dimensions) {
     width = dimensions.width;
     height = dimensions.height;
     mh = height / view.component.height();
     mv = mh;
-    x0 = dimensions.width / 2;
+    x0 = width / 2;
     y0 = 10; // TODO
-    nodeRadius = .05 * height;
-    view.$element.width(dimensions.width);
-    view.$element.height(dimensions.height);
+    nodeRadius = .05 * height; // TODO
+    view.$element.width(width);
+    view.$element.height(height);
     view.render();
   }
 
   view.render = function() {
     if($e) $e.remove();
     $e = $('<div class="tree"></div>');
-    // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
-    var svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    $e.append($(svgElement));
-    $svg = $e.find('svg').first();
-    $svg.width(width);
-    $svg.height(height);
-      
-    $svg.addClass('tree-svg');
-    svg = Snap(svgElement);
-    console.log('typeof elem ' + typeof $e.find('svg').first().get());
-    rg(view.component.tree, positions, {
+    dom_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
+    $svg = $(dom_svg)
+      .width(width)
+      .height(height)
+      .addClass('tree-svg')
+      .appendTo($e);
+    s_svg = Snap(dom_svg);
+    rg(view.component.tree, data, {
       mh: mh,
       mv: mv,
       x0: x0,
       y0: y0
     });
     drawLines(view.component.tree);
-    drawTree(view.component.tree);
+    drawNodes(view.component.tree);
     drawValues(view.component.tree);
     view.$element.append($e);
     return view.$element;
   }
-  
 
-  view.live.focusNode = function(node, fn) {
-    console.log('treeview.focus');
-    focus(elems(node), fn);
+  /**
+   * Draws a single node without the value.
+   * @param node
+   * @param x
+   * @param y
+   */
+  function drawNode(node, x, y) {
+    var circle = s_svg.circle(x + x0, y + y0, nodeRadius)
+      .addClass('tree-node');
+    data(node).element = circle;
   }
 
-  function focus($elem, fn) {
-      console.log('treeview.focus');
-    $elem.addClass('focus');
-    S.wait(function(){
-      $elem.removeClass('focus');
-      console.log('calling fn!');
-      fn();
-    }, 500);
+  /**
+   * Draws the value of a single node.
+   * @param value
+   * @param x
+   * @param y
+   */
+  function drawValue(value, x, y) {
+    s_svg.text(x + x0 - 10, y + y0 + 5, value + '')
+      .addClass('tree-node-value');
+  }
+
+  /**
+   * Draws a single line between a parent node and a child node.
+   * @param xi
+   * @param yi
+   * @param xf
+   * @param yf
+   */
+  function drawLine(xi, yi, xf, yf) {
+    s_svg.line(xi + x0, yi + y0, xf + x0, yf + y0)
+      .addClass('tree-line');//.attr('stroke', 'black');
+  }
+
+  /**
+   * Recursive method to draw values of tree.
+   * @param root
+   */
+  function drawValues(root) {
+      if(root) {
+          drawValue(root.value, data(root).x, data(root).y);
+          drawValues(root.left);
+          drawValues(root.right);
+      }
+  }
+
+  /**
+   * Recursive method to draw connecting lines of tree.
+   * @param root
+   */
+  function drawLines(root) {
+      if(root.left) {
+          drawLine(data(root).x, data(root).y, data(root.left).x, data(root.left).y);
+          drawLines(root.left);
+      }
+      if(root.right) {
+          drawLine(data(root).x, data(root).y, data(root.right).x, data(root.right).y);
+          drawLines(root.right);
+      }
+  }
+
+  /**
+   * Recursive method to draw nodes.
+   * @param root
+   */
+  function drawNodes(root) {
+    if(root) {
+      drawNode(root, data(root).x, data(root).y);
+      drawNodes(root.left);
+      drawNodes(root.right);
+    }
+  };
+
+  view.live.focusOn = function(node, fn) {
+    //console.log('focusOn, data(node) = ' + data(node).element);
+    if(!node) return;
+    var circle = data(node).element
+      .addClass('focus');
+    console.log('fn is ' + fn);
+    fn();
+  }
+
+  view.live.clearfocus = function(fn) {
+    data.forEach(function(pair){
+      pair[1].element.removeClass('focus');
+    });
+    fn();
   }
 
   view.add = function(parent_s, left, value, fn) {
-    elems(parent_s, getNodeElement(value));
-    rg(view.component.tree, positions, view.config());
-    elems.forEach(function(pair){
-      move(elems(pair[0]), pair[1].x, pair[1].y, function(){
-        $e.append(elems(parent_s));
+    /*nodes(parent_s, getNodeElement(value));
+    rg(view.component.tree, data, view.config());
+    nodes.forEach(function(pair){
+      move(nodes(pair[0]), pair[1].x, pair[1].y, function(){
+        $e.append(nodes(parent_s));
       });
-    });
+    });*/
   }
 
   function move($elem, x, y, fn) {
-    $elem.animate({
+    /*$elem.animate({
       left: x,
       top: y
     }, 250, function(){
       fn();
-    });
-  }
-
-  function getNodeElement(value) {
-    return $('<span class="node">' + value + '</span>')
+    });*/
   }
 
   function rg(root, store, options) {

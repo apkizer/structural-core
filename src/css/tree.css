@@ -24,3 +24,11 @@
     stroke: orange;
 }
 
+.tree-line {
+    stroke: black;
+}
+
+.tree-node.focus {
+    fill: orange;
+}
+

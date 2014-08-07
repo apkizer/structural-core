@@ -4,6 +4,8 @@ S.component('tree', function (tree, view) {
     height = 0;
   c.tree = new Node(0);
 
+  c.live.clearfocus = null;
+
   function Node(value) {
     this.value = value;
     this.left = null;
@@ -53,7 +55,7 @@ S.component('tree', function (tree, view) {
   
   c.live.traverse = null;
 
-  c.live.focusNode = null;
+  c.live.focusOn = null;
   
   c.getMethods = function() {
     return S.getComponentMethods('tree');
