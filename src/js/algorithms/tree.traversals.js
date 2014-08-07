@@ -8,7 +8,7 @@ S.method('tree', 'traversal', function traversal() {
   function preorder(node) {
      if(node) {
        this.focusOn(node);
-       this.clearfocus();
+       //this.clearfocus();
        //console.log('printing ' + node);
        preorder.call(this, node.left);
        preorder.call(this, node.right);

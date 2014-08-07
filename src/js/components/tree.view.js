@@ -144,7 +144,7 @@ S.view('tree', function () {
     if(!node) return;
     var circle = data(node).element
       .addClass('focus');
-    console.log('fn is ' + fn);
+    //console.log('fn is ' + fn);
     fn();
   }
 
@@ -187,14 +187,14 @@ S.view('tree', function () {
 
     $.extend(config, options);
     var _root = copyTree(root);
-    console.log('printing _root');
-    printTree(_root);
+    //console.log('printing _root');
+    //printTree(_root);
     setup(_root, 0, null, null);
     assign(_root, 0, false);
     copyToStore(_root, store);
 
     function RNode(node) {
-      console.log('R ' + node.value);
+      //console.log('R ' + node.value);
       this.value = node.value;
       this.left = null;//node.left;
       this.right = null;//node.right;
@@ -258,7 +258,7 @@ S.view('tree', function () {
 
       node.y = level * config.mv;
       left = node.left;
-      console.log('left is ' + left);
+      //console.log('left is ' + left);
       right = node.right;
       setup(left, level + 1, lRightMost, lLeftMost);
       setup(right, level + 1, rRightMost, rLeftMost);
