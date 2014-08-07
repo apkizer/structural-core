@@ -16,6 +16,14 @@ S.base = function(name, view) {
   base.copy = function(other) {
     //c.setState(other.getState());
   };
+  
+  base.serialize = function() {
+    
+  }
+  
+  base.deserialize = function(data) {
+    
+  }
     
   base.getState = function() {
     console.log('getState not implemented!');
