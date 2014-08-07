@@ -7,7 +7,6 @@ S.nextId = function() {
 S.map = function() {
   var _map = {},
     map = function(key, value) {
-      console.log('attempting to store ' + key.sid);
       if(!key.sid)
         throw new Error('S.map() requires sid property. Use S.nextId().');
       if(typeof value === 'undefined') {

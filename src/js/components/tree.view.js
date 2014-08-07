@@ -30,11 +30,11 @@ S.view('tree', function () {
   view.scaleTo = function(dimensions) {
     width = dimensions.width;
     height = dimensions.height;
-    mh = height / view.component.height();
-    mv = mh;
     x0 = width / 2;
-    y0 = 10; // TODO
     nodeRadius = .05 * height; // TODO
+    y0 = nodeRadius;
+    mh = (height / view.component.height()) - nodeRadius;
+    mv = mh;
     view.$element.width(width);
     view.$element.height(height);
     view.render();
@@ -82,8 +82,10 @@ S.view('tree', function () {
    * @param y
    */
   function drawValue(value, x, y) {
-    s_svg.text(x + x0 - 10, y + y0 + 5, value + '')
-      .addClass('tree-node-value');
+    s_svg.text(x + x0 /*- 10*/, y + y0 + nodeRadius * .5, value + '')
+      .addClass('tree-node-value')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', nodeRadius * 1.25);
   }
 
   /**
@@ -401,7 +403,7 @@ S.view('tree', function () {
 
       if(!root)
         return;
-      console.log('STORING ' + root.sid);
+      //console.log('STORING ' + root.sid);
       store(root, {
         x: root.x,
         y: root.y
