@@ -5,8 +5,8 @@ S.view('tree', function () {
     dom_svg,
     s_svg, // snap svg object
     $svg, // jQuery svg object
-    width,
-    height,
+    width = 100,
+    height = 100,
     nodeRadius,
     mh, // horizontal margin between nodes
     mv, // vertical margin between nodes
@@ -28,6 +28,7 @@ S.view('tree', function () {
 
 
   view.scaleTo = function(dimensions) {
+    console.log('scaling tree');
     width = dimensions.width;
     height = dimensions.height;
     x0 = width / 2;
@@ -59,6 +60,7 @@ S.view('tree', function () {
     drawLines(view.component.tree);
     drawNodes(view.component.tree);
     drawValues(view.component.tree);
+    drawHeights(view.component.tree);
     view.$element.append($e);
     return view.$element;
   }
@@ -72,6 +74,8 @@ S.view('tree', function () {
   function drawNode(node, x, y) {
     var circle = s_svg.circle(x + x0, y + y0, nodeRadius)
       .addClass('tree-node');
+    /*if(data(node).doNotDraw) 
+      circle.addClass('tree-node-hidden');*/
     data(node).element = circle;
   }
 
@@ -98,6 +102,11 @@ S.view('tree', function () {
   function drawLine(xi, yi, xf, yf) {
     s_svg.line(xi + x0, yi + y0, xf + x0, yf + y0)
       .addClass('tree-line');//.attr('stroke', 'black');
+  }
+  
+  function drawHeight(node) {
+    s_svg.text(data(node).x + x0 - nodeRadius - 15, data(node).y + y0 + 5, node.height + '')
+      .addClass('tree-height');
   }
 
   /**
@@ -138,7 +147,25 @@ S.view('tree', function () {
       drawNodes(root.right);
     }
   };
-
+  
+  function drawHeights(root) {
+    if(root) {
+      drawHeight(root);
+      drawHeights(root.left);
+      drawHeights(root.right);
+    }
+  }
+  
+  // TODO, make all recursive methods use this utility:
+  function allNodes(root, func) {
+    if(root) {
+      func(root)
+      allNodes(root.left);
+      allNodes(root.right);
+    }
+  }
+  
+  
   view.live.focusOn = function(node, fn) {
     //console.log('focusOn, data(node) = ' + data(node).element);
     if(!node) return;
@@ -152,6 +179,21 @@ S.view('tree', function () {
     data.forEach(function(pair){
       pair[1].element.removeClass('focus');
     });
+    fn();
+  }
+  
+  view.live.add = function(parent, direction, value, fn) {
+    if(direction) {
+      data(parent.right).doNotDraw = true;
+    } else {
+      data(parent.left).doNotDraw = true;
+    }
+    // TODO animate addition of node
+    view.scaleTo({
+      width: width,
+      height: height
+    });
+    view.render();
     fn();
   }
 

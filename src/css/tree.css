@@ -12,6 +12,10 @@
     box-shadow: 0x 0px 10px white;
 }
 
+.tree-node-hidden {
+  display: none;
+}
+
 /*.tree-node:hover {
     fill: #0099cc;
 }*/
@@ -45,3 +49,7 @@
     transition-duration: .25s;
 }
 
+.tree-height {
+    font-family: arial;
+    fill: #fff;
+}

@@ -37,12 +37,13 @@
 
           var treeOne = S.components.tree(root);
           
-          $('body').append(treeOne.view.render());
-          
           treeOne.view.scaleTo({
             width: 500,
             height: 600
           });
+          
+          $('body').append(treeOne.view.render());
+        
           
           $(document).mousemove(function(event) {
             if(!scaling) return;

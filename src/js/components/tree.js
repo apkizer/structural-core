@@ -17,6 +17,7 @@ S.component('tree', function (tree, view) {
     console.log('init tree');
     c.tree = copyTree(tree);
     height = determineHeight(c.tree);
+    computeHeight(c.tree);
   }
 
   function copyTree(node) {
@@ -28,29 +29,40 @@ S.component('tree', function (tree, view) {
     return n;
   }
   
+  function computeHeight(root) {
+    console.log('computing height');
+    if(root) {
+      console.log('height is ' +  (1 + Math.max(computeHeight(root.left), computeHeight(root.right))));
+      root.height = 1 + Math.max(computeHeight(root.left), computeHeight(root.right));
+      return root.height;
+    } else {
+      return -1;
+    }
+  }
+  
   function determineHeight(root) {
     if(!root)
       return -1;
     return 1 + Math.max(determineHeight(root.left), determineHeight(root.right));
+    
   }
       
   c.height = function() {
     return height;
   }
 
-  c.live.add = function(parent, left, value) {
-    if(!nodes.has(parent))
-      return;
-    if(left) {
-      nodes(parent).left = new Node(value);
-    } else {
-      nodes(parent).right = new Node(value);
-    }
-  }
-
   c.live.root = function() {
     if(c.tree)
       return c.tree;//.sid;
+  }
+  
+  c.live.add = function(parent, direction, value) {
+    if(direction) {
+      parent.right = new Node(value);
+    } else {
+      parent.left = new Node(value);
+    }
+    computeHeight(c.tree);
   }
   
   c.live.traverse = null;

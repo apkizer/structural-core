@@ -10,6 +10,8 @@ S.map = function() {
       if(!key.sid)
         throw new Error('S.map() requires sid property. Use S.nextId().');
       if(typeof value === 'undefined') {
+        if(!_map[key.sid])
+          _map[key.sid] = {};
         return _map[key.sid];
       }
       _map[key.sid] = value;
