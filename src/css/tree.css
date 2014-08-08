@@ -13,6 +13,11 @@
     z-index: 100;
 }
 
+.tree-node-label {
+  fill: #999;
+  font-family: monospace;
+}
+
 .tree-node-hidden {
   display: none;
 }
@@ -45,7 +50,7 @@
 .tree-node.focus {
     fill: orange;
     transition-property: fill;
-    transition-duration: 1s;
+    transition-duration: .25s;
 }
 
 .tree-node:hover {
@@ -62,3 +67,4 @@
 .tree-travelorb {
   fill: #fff;
 }
+

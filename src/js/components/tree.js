@@ -68,6 +68,8 @@ S.component('tree', function (tree, view) {
   c.live.traverse = null;
   
   c.live.travel = null;
+  
+  c.live.label = null;
 
   c.live.focusOn = null;
   

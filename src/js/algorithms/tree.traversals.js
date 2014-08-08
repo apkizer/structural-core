@@ -1,15 +1,24 @@
-S.method('tree', 'traversal', function traversal() {
-  //c.focus(c.root());
-  //preorder.bind(this);
-  preorder.call(this, this.root());
-  console.log('commencing traversal');
-  //inorder(this.root());
+S.method('tree', 'traversal', function traversal(kind) {
+  var count = 0;
+  if(kind)
+    kind = kind.trim().toLowerCase();
+  
+  if(kind === 'pre' || kind === 'preorder') {
+    preorder.call(this, this.root());
+  } else if(kind === 'in' || kind === 'inorder') {
+    inorder.call(this, this.root());
+  } else if(kind === 'post' || kind === 'postorder') {
+    postorder.call(this, this.root());
+  } else {
+    inorder.call(this, this.root());
+  }
+  
+  this.finish();
 
   function preorder(node) {
      if(node) {
+       label.call(this, node);
        this.focusOn(node);
-       //this.clearfocus();
-       //console.log('printing ' + node);
        this.travel(node, false);
        preorder.call(this, node.left);
        this.travel(node, true);
@@ -18,13 +27,30 @@ S.method('tree', 'traversal', function traversal() {
    }
 
   function inorder(node) {
-    console.log('inorder');
     if (node) {
-      inorder(node.left);
-      console.log('focusing on ' + node);
+      this.travel(node, false);
+      inorder.call(this, node.left);
       this.focusOn(node);
-      inorder(node.right);
+      this.travel(node, true);
+      inorder.call(this, node.right);
     }
   }
-  console.log('finishing traversal');
+  
+  function postorder(node) {
+    if(node) {
+      this.travel(node, false);
+      postorder.call(this, node.left);
+      this.travel(node, true);
+      postorder.call(this, node.right);
+      this.focusOn(node);
+    }
+  }
+  
+  function label(node) {
+    this.label(node, count);
+    count++;
+  }
+  
+  
+    
 });

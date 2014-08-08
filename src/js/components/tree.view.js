@@ -20,7 +20,8 @@ S.view('tree', function () {
     y: 100,
     element: [svg element],
     leftLine: [svg element],
-    rightLine: [svg element]
+    rightLine: [svg element],
+    label: 'some text'
   }
    */
 
@@ -40,7 +41,7 @@ S.view('tree', function () {
     mv = mh;
     view.$element.width(width);
     view.$element.height(height);
-    view.render();
+    view.render(); 
   }
 
   view.render = function() {
@@ -75,6 +76,12 @@ S.view('tree', function () {
     /*if(data(node).doNotDraw) 
       circle.addClass('tree-node-hidden');*/
     data(node).element = circle;
+  }
+  
+  function drawLabel(node, label) {
+    s_svg.text(data(node).x + x0 + nodeRadius + 10, data(node).y + y0, '// ' + label)
+      .addClass('tree-node-label')
+      .attr('text-anchor', 'left');
   }
 
   function drawValue(value, x, y) {
@@ -181,6 +188,16 @@ S.view('tree', function () {
       } else {
         fn();
       }
+    }
+  };
+  
+  view.live.label = function(node, label, fn) {
+    if(node && data(node)) {
+      data(node).label = label;
+      drawLabel(node, label);
+      fn();
+    } else {
+      fn();
     }
   }
 
