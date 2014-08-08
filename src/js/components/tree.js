@@ -73,6 +73,10 @@ S.component('tree', function (tree, view) {
 
   c.live.focusOn = null;
   
+  c.live.setNode = function(node, value) {
+    node.value = value;
+  }
+  
   c.getMethods = function() {
     return S.getComponentMethods('tree');
   }

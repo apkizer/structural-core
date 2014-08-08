@@ -21,7 +21,9 @@ S.view('tree', function () {
     element: [svg element],
     leftLine: [svg element],
     rightLine: [svg element],
-    label: 'some text'
+    label: 'some text',
+    s_value: [svg element],
+    s_height: [svg element]
   }
    */
 
@@ -62,20 +64,19 @@ S.view('tree', function () {
     });
     drawLines(view.component.tree);
     allNodes(view.component.tree, function(node) {
-      drawNode(node, data(node).x, data(node).y);
-      drawValue(node.value, data(node).x, data(node).y);
-      drawHeight(node);
+      data(node).element = drawNode(node, data(node).x, data(node).y);
+      data(node).s_value = drawValue(node.value, data(node).x, data(node).y);
+      data(node).s_height = drawHeight(node);   
     });
     view.$element.append($e);
     return view.$element;
   }
 
   function drawNode(node, x, y) {
-    var circle = s_svg.circle(x + x0, y + y0, nodeRadius)
+    return circle = s_svg.circle(x + x0, y + y0, nodeRadius)
       .addClass('tree-node');
     /*if(data(node).doNotDraw) 
       circle.addClass('tree-node-hidden');*/
-    data(node).element = circle;
   }
   
   function drawLabel(node, label) {
@@ -85,7 +86,7 @@ S.view('tree', function () {
   }
 
   function drawValue(value, x, y) {
-    s_svg.text(x + x0 /*- 10*/, y + y0 + nodeRadius * .5, value + '')
+    return s_svg.text(x + x0 /*- 10*/, y + y0 + nodeRadius * .5, value + '')
       .addClass('tree-node-value')
       .attr('text-anchor', 'middle')
       .attr('font-size', nodeRadius * 1.25);
@@ -97,7 +98,7 @@ S.view('tree', function () {
   }
   
   function drawHeight(node) {
-    s_svg.text(data(node).x + x0 - nodeRadius - 15, data(node).y + y0 + 5, node.height + '')
+    return s_svg.text(data(node).x + x0 - nodeRadius - 15, data(node).y + y0 + 5, node.height + '')
       .addClass('tree-height');
   }
 
@@ -199,6 +200,22 @@ S.view('tree', function () {
     } else {
       fn();
     }
+  }
+  
+  view.live.setNode = function(node, value, fn) {
+    var s_node = data(node).element,
+        s_value = data(node).s_value; 
+    
+    S.wait(function() {
+      s_node.addClass('tree-remove');
+      s_value.addClass('tree-remove');
+      S.wait(function() {
+        s_node.removeClass('tree-remove');
+        s_value.removeClass('tree-remove')
+          .attr('text', value);
+        fn();
+      }, 300);
+    }, 200); 
   }
 
   view.add = function(parent_s, left, value, fn) {

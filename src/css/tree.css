@@ -68,3 +68,8 @@
   fill: #fff;
 }
 
+text.tree-remove {
+    fill: red !important;
+    text-decoration: line-through;
+}
+
