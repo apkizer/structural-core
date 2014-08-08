@@ -18,7 +18,9 @@ S.view('tree', function () {
   {
     x: 100,
     y: 100,
-    element: [svg element]
+    element: [svg element],
+    leftLine: [svg element],
+    rightLine: [svg element]
   }
    */
 
@@ -58,19 +60,15 @@ S.view('tree', function () {
       y0: y0
     });
     drawLines(view.component.tree);
-    drawNodes(view.component.tree);
-    drawValues(view.component.tree);
-    drawHeights(view.component.tree);
+    allNodes(view.component.tree, function(node) {
+      drawNode(node, data(node).x, data(node).y);
+      drawValue(node.value, data(node).x, data(node).y);
+      drawHeight(node);
+    });
     view.$element.append($e);
     return view.$element;
   }
 
-  /**
-   * Draws a single node without the value.
-   * @param node
-   * @param x
-   * @param y
-   */
   function drawNode(node, x, y) {
     var circle = s_svg.circle(x + x0, y + y0, nodeRadius)
       .addClass('tree-node');
@@ -79,12 +77,6 @@ S.view('tree', function () {
     data(node).element = circle;
   }
 
-  /**
-   * Draws the value of a single node.
-   * @param value
-   * @param x
-   * @param y
-   */
   function drawValue(value, x, y) {
     s_svg.text(x + x0 /*- 10*/, y + y0 + nodeRadius * .5, value + '')
       .addClass('tree-node-value')
@@ -92,15 +84,8 @@ S.view('tree', function () {
       .attr('font-size', nodeRadius * 1.25);
   }
 
-  /**
-   * Draws a single line between a parent node and a child node.
-   * @param xi
-   * @param yi
-   * @param xf
-   * @param yf
-   */
   function drawLine(xi, yi, xf, yf) {
-    s_svg.line(xi + x0, yi + y0, xf + x0, yf + y0)
+    return s_svg.line(xi + x0, yi + y0, xf + x0, yf + y0)
       .addClass('tree-line');//.attr('stroke', 'black');
   }
   
@@ -109,17 +94,6 @@ S.view('tree', function () {
       .addClass('tree-height');
   }
 
-  /**
-   * Recursive method to draw values of tree.
-   * @param root
-   */
-  function drawValues(root) {
-      if(root) {
-          drawValue(root.value, data(root).x, data(root).y);
-          drawValues(root.left);
-          drawValues(root.right);
-      }
-  }
 
   /**
    * Recursive method to draw connecting lines of tree.
@@ -127,51 +101,28 @@ S.view('tree', function () {
    */
   function drawLines(root) {
       if(root.left) {
-          drawLine(data(root).x, data(root).y, data(root.left).x, data(root.left).y);
+          data(root).leftLine = drawLine(data(root).x, data(root).y, data(root.left).x, data(root.left).y);
           drawLines(root.left);
       }
       if(root.right) {
-          drawLine(data(root).x, data(root).y, data(root.right).x, data(root.right).y);
+          data(root).rightLine = drawLine(data(root).x, data(root).y, data(root.right).x, data(root.right).y);
           drawLines(root.right);
       }
   }
 
-  /**
-   * Recursive method to draw nodes.
-   * @param root
-   */
-  function drawNodes(root) {
-    if(root) {
-      drawNode(root, data(root).x, data(root).y);
-      drawNodes(root.left);
-      drawNodes(root.right);
-    }
-  };
-  
-  function drawHeights(root) {
-    if(root) {
-      drawHeight(root);
-      drawHeights(root.left);
-      drawHeights(root.right);
-    }
-  }
-  
-  // TODO, make all recursive methods use this utility:
   function allNodes(root, func) {
     if(root) {
       func(root)
-      allNodes(root.left);
-      allNodes(root.right);
+      allNodes(root.left, func);
+      allNodes(root.right, func);
     }
   }
   
   
   view.live.focusOn = function(node, fn) {
-    //console.log('focusOn, data(node) = ' + data(node).element);
     if(!node) return;
     var circle = data(node).element
       .addClass('focus');
-    //console.log('fn is ' + fn);
     fn();
   }
 
@@ -195,6 +146,42 @@ S.view('tree', function () {
     });
     view.render();
     fn();
+  }
+  
+  view.live.travel = function(parent, direction, fn) {
+    if(direction) {
+      if(data(parent).rightLine) {
+        var rightLine = data(parent).rightLine;
+        rightLine.addClass('tree-line-active');
+        var s_circle = s_svg.circle(rightLine.attr('x1'), rightLine.attr('y1'), 5)
+          .addClass('tree-travelorb');
+        s_circle.insertAfter(rightLine);
+        s_circle.animate({
+          cx: rightLine.attr('x2'),
+          cy: rightLine.attr('y2')
+        }, 500, null, function() {
+          fn();
+        });
+      } else {
+        fn();
+      }
+    } else {
+      if(data(parent).leftLine) {
+        var leftLine = data(parent).leftLine;
+        leftLine.addClass('tree-line-active');
+        var s_circle = s_svg.circle(leftLine.attr('x1'), leftLine.attr('y1'), 5)
+          .addClass('tree-travelorb');
+        s_circle.insertAfter(leftLine);
+        s_circle.animate({
+          cx: leftLine.attr('x2'),
+          cy: leftLine.attr('y2')
+        }, 500, null, function() {
+          fn();
+        });
+      } else {
+        fn();
+      }
+    }
   }
 
   view.add = function(parent_s, left, value, fn) {

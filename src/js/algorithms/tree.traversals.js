@@ -10,7 +10,9 @@ S.method('tree', 'traversal', function traversal() {
        this.focusOn(node);
        //this.clearfocus();
        //console.log('printing ' + node);
+       this.travel(node, false);
        preorder.call(this, node.left);
+       this.travel(node, true);
        preorder.call(this, node.right);
      }
    }

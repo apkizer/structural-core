@@ -10,6 +10,7 @@
     stroke: #aaa;
     stroke-width: 2;
     box-shadow: 0x 0px 10px white;
+    z-index: 100;
 }
 
 .tree-node-hidden {
@@ -37,6 +38,10 @@
     stroke-width: 2;
 }
 
+.tree-line-active {
+    stroke: #aaa;
+}
+
 .tree-node.focus {
     fill: orange;
     transition-property: fill;
@@ -52,4 +57,8 @@
 .tree-height {
     font-family: arial;
     fill: #fff;
+}
+
+.tree-travelorb {
+  fill: #fff;
 }
