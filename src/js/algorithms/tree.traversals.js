@@ -1,4 +1,5 @@
 S.method('tree', 'traversal', function traversal(kind) {
+  
   var count = 0;
   if(kind)
     kind = kind.trim().toLowerCase();

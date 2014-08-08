@@ -77,6 +77,26 @@ S.component('tree', function (tree, view) {
     node.value = value;
   }
   
+  c.live.isBinary = function() {
+    return checkBST(c.tree);
+  }
+  
+  function checkBST(root) {
+    if(root) {
+      var ret = true;
+      if(root.left) {
+        ret = root.left.value <= root.value;
+      }
+      if(root.right && ret) {
+        ret = root.right.value >= root.value;
+      }
+      return ret && checkBST(root.left) && checkBST(root.right);
+    } else {
+      // null tree is vacuously BST
+      return true; 
+    }
+  }
+  
   c.getMethods = function() {
     return S.getComponentMethods('tree');
   }

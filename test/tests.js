@@ -29,7 +29,7 @@ QUnit.test('vitals', function(assert) {
   assert.ok(typeof window.S == 'object', 'Structural is defined.');
 });
 
-QUnit.test('array.setItem', function(assert) {
+QUnit.test('array.live.setItem', function(assert) {
   var array = window.S.components.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   function setAll() {
     for(var i = 0; i < this.getLength(); i++) {
@@ -48,3 +48,42 @@ QUnit.test('array.setItem', function(assert) {
   
   checkAll.call(array.deferredContext);
 });
+
+QUnit.test('tree.live.isBinary', function(assert) {
+  var node = function(value) {
+    return {
+      value: value,
+      left: null,
+      right: null
+    }
+  },
+      root = node(20);
+  
+  root.left = node(14);
+  root.right = node(25);
+  root.left.left = node(6);
+  root.left.right = node(16);
+  root.right.left = node(23);
+  root.right.right = node(26);
+  
+  var tree = S.components.tree(root);
+  
+  assert.ok(tree.deferredContext.isBinary(), 'tree is bst');
+  
+  tree.deferredContext.root().value = 0;
+  
+  assert.ok(!tree.deferredContext.isBinary(), 'tree is not bst');
+  
+  root = node(5);
+  root.left = node(5);
+  root.right = node(5);
+  root.left.left = node(5);
+  root.left.right = node(5);
+  root.right.left = node(5);
+  root.right.right = node(5);
+  
+  tree = S.components.tree(root);
+  
+  assert.ok(tree.deferredContext.isBinary(), 'equivalence tree is bst');
+});
+
