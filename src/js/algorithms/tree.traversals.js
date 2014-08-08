@@ -17,8 +17,9 @@ S.method('tree', 'traversal', function traversal(kind) {
 
   function preorder(node) {
      if(node) {
-       label.call(this, node);
-       this.focusOn(node);
+       //label.call(this, node);
+       //this.focusOn(node);
+       visit.call(this, node);
        this.travel(node, false);
        preorder.call(this, node.left);
        this.travel(node, true);
@@ -30,7 +31,7 @@ S.method('tree', 'traversal', function traversal(kind) {
     if (node) {
       this.travel(node, false);
       inorder.call(this, node.left);
-      this.focusOn(node);
+      visit.call(this, node);
       this.travel(node, true);
       inorder.call(this, node.right);
     }
@@ -42,15 +43,18 @@ S.method('tree', 'traversal', function traversal(kind) {
       postorder.call(this, node.left);
       this.travel(node, true);
       postorder.call(this, node.right);
-      this.focusOn(node);
+      visit.call(this, node);
     }
+  }
+  
+  function visit(node) {
+    this.focusOn(node);
+    label.call(this, node);
   }
   
   function label(node) {
     this.label(node, count);
     count++;
   }
-  
-  
-    
+ 
 });
