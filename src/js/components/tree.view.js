@@ -79,10 +79,10 @@ S.view('tree', function () {
   }
   
   function drawLabel(node, label) {
-    return s_svg.text(data(node).x + x0 + nodeRadius + 5, data(node).y + y0 + nodeRadius / 2, '//' + label)
+    return s_svg.text(data(node).x + x0 + nodeRadius + 5, data(node).y + y0 + nodeRadius / 2 - 3, '/' + label)
       .addClass('tree-node-label')
-      .attr('text-anchor', 'left')
-      .attr('font-size', nodeRadius * .75);
+      .attr('text-anchor', 'right')
+      .attr('font-size', nodeRadius);
   }
 
   function drawValue(value, x, y) {
@@ -98,7 +98,8 @@ S.view('tree', function () {
   }
   
   function drawHeight(node) {
-    return s_svg.text(data(node).x + x0 - nodeRadius - 15, data(node).y + y0 + 5, node.height + '')
+    return s_svg.text(data(node).x + x0 - nodeRadius - nodeRadius * .85, data(node).y + y0 + nodeRadius / 2 - 3, node.height + '')
+      .attr('font-size', nodeRadius)
       .addClass('tree-height');
   }
 
