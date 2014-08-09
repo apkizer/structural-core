@@ -67,7 +67,8 @@ S.view('tree', function () {
     allNodes(view.component.tree, function(node) {
       data(node).element = drawNode(node, data(node).x, data(node).y);
       data(node).s_value = drawValue(node.value, data(node).x, data(node).y);
-      data(node).s_height = drawHeight(node);   
+      data(node).s_height = drawHeight(node);
+      drawHeightIcon(node);
     });
     view.$element.append($e);
     return view.$element;
@@ -101,6 +102,10 @@ S.view('tree', function () {
     return s_svg.text(data(node).x + x0 - nodeRadius - nodeRadius * .85, data(node).y + y0 + nodeRadius / 2 - 3, node.height + '')
       .attr('font-size', nodeRadius)
       .addClass('tree-height');
+  }
+
+  function drawHeightIcon(node) {
+    //s_svg.image('height.png', data(node).x + x0 - nodeRadius - nodeRadius * 1.1, data(node).y + y0 - nodeRadius * .3, 5, nodeRadius * .75);
   }
 
 
@@ -154,7 +159,29 @@ S.view('tree', function () {
       height: height
     });
     view.render();
+    /*rg(view.component.tree, data, {
+      xProperty: 'newX',
+      yProperty: 'newY'
+    }); */
+    //moveToNewPositions(view.component.tree);
     fn();
+  }
+
+  function moveToNewPositions(root) {
+    if(root) {
+      var _data = data(root),
+          circle = data.element;
+      if(circle) {
+        circle.animate({
+          x: _data.newX,
+          y: _data.newY
+        }, 1000, null, function() {
+
+        });
+      }
+      moveToNewPositions(root.left);
+      moveToNewPositions(root.right);
+    }
   }
   
   view.live.travel = function(parent, direction, fn) {
@@ -287,7 +314,7 @@ S.view('tree', function () {
       if(element.attr('cy')) {
         element.animate({
           cy: 1000
-        }, 500, null, function() {
+        }, 500, mina.easeinout, function() {
           count++;
           checkIfAllRemoved();
         });
@@ -295,14 +322,14 @@ S.view('tree', function () {
         element.animate({
           y1: 1000,
           y2: 1000
-        }, 500, null, function() {
+        }, 500, mina.easeinout, function() {
           count++;
           checkIfAllRemoved();
         });
       } else {
         element.animate({
           y: 1000
-        }, 500, null, function() {
+        }, 500, mina.easeinout, function() {
           count++;
           checkIfAllRemoved();
         });
@@ -318,6 +345,7 @@ S.view('tree', function () {
             element.remove();
           }
         });
+        view.component.computeHeights();
         view.render();
         fn();
       }
@@ -399,7 +427,9 @@ S.view('tree', function () {
 
     var config = {
       mh: 10,
-      mv: 10
+      mv: 10,
+      xProperty: 'x',
+      yProperty: 'y'
     };
 
     $.extend(config, options);
@@ -620,10 +650,12 @@ S.view('tree', function () {
 
       if(!root)
         return;
-      store(root, {
+      store(root)[config.xProperty] = root.x;
+      store(root)[config.yProperty] = root.y;
+      /*store(root, {
         x: root.x,
         y: root.y
-      });
+      });*/
       copyToStore(root.left, store);
       copyToStore(root.right, store);
     }

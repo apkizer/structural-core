@@ -36,6 +36,10 @@ S.component('tree', function (tree, view) {
     return -1;
   }
 
+  c.computeHeights = function() {
+    computeHeights(c.tree);
+  }
+
   c.live.root = function() {
     if(c.tree)
       return c.tree;

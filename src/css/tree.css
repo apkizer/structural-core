@@ -1,4 +1,4 @@
-/* @namespace svg url(http://www.w3.org/2000/svg); ? */
+@namespace svg url(http://www.w3.org/2000/svg);
 .tree-svg {
     width: 100%;
     height: 100%;
@@ -55,7 +55,11 @@
 
 .tree-height {
     font-family: arial;
-    fill: #fff;
+    fill: #ccc;
+}
+
+.tree-height:before {
+    content: "*"
 }
 
 .tree-travelorb {
