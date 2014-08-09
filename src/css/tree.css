@@ -2,7 +2,6 @@
 .tree-svg {
     width: 100%;
     height: 100%;
-    cursor: pointer;
 }
 
 .tree-node {
@@ -31,11 +30,6 @@
     fill: white;
     pointer-events: none;
     text-shadow: -1px -1px black;
-}
-
-.tree-svg .focus {
-    stroke-width: 2px;
-    stroke: orange;
 }
 
 .tree-line {
@@ -73,8 +67,10 @@ text.tree-remove {
     text-decoration: line-through;
 }
 
-
 .tree-svg .range1 {
     fill: green !important;
+}
 
+.tree-svg .pathrange1 {
+    stroke: green;
 }

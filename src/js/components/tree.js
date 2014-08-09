@@ -73,6 +73,10 @@ S.component('tree', function (tree, view) {
 
   c.live.mark = null;
 
+  c.live.markPath = null;
+
+  c.live.clearPath = null;
+
   c.live.showHeights = null;
 
   c.live.hideHeights = null;

@@ -346,6 +346,24 @@ S.view('tree', function () {
     }
   }
 
+  view.live.markPath = function(node, dir, num, fn) {
+    if(dir && data(node).rightLine) {
+      data(node).rightLine.addClass('pathrange' + num);
+    } else if(data(node).leftLine) {
+      data(node).leftLine.addClass('pathrange' + num);
+    }
+    fn();
+  }
+
+  view.live.clearPath = function(node, dir, num, fn) {
+    if(dir && data(node).rightLine) {
+      data(node).rightLine.removeClass('pathrange' + num);
+    } else if(data(node).leftLine) {
+      data(node).leftLine.removeClass('pathrange' + num);
+    }
+    fn();
+  }
+
   view.add = function(parent_s, left, value, fn) {
     /*nodes(parent_s, getNodeElement(value));
     rg(view.component.tree, data, view.config());
