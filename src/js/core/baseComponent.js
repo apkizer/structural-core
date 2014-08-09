@@ -16,15 +16,36 @@ S.base = function(name, view) {
   base.copy = function(other) {
     //c.setState(other.getState());
   };
-  
+
+  /**
+   * Serializes state to an object.
+   */
   base.serialize = function() {
-    
+
   }
-  
+
+  /**
+   * Data is an object representing saved object's state.
+   * @param data
+   */
   base.deserialize = function(data) {
     
   }
-    
+
+  /**
+   * Returns the template for configuration for this component.
+   * E.g.
+   * {
+   *  foo: 'boolean',
+   *  bar: 'integer',
+   *  abc: 'string',
+   *  def: 'number'
+   * }
+   */
+  base.getConfigTemplate = function() {
+
+  }
+
   base.getState = function() {
     console.log('getState not implemented!');
   };

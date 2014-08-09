@@ -47,6 +47,7 @@ S.view('tree', function () {
   }
 
   view.render = function() {
+    console.log('rendering');
     if($e) $e.remove();
     $e = $('<div class="tree"></div>');
     dom_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
@@ -80,7 +81,7 @@ S.view('tree', function () {
   }
   
   function drawLabel(node, label) {
-    s_svg.text(data(node).x + x0 + nodeRadius + 10, data(node).y + y0, '// ' + label)
+    return s_svg.text(data(node).x + x0 + nodeRadius + 10, data(node).y + y0, '// ' + label)
       .addClass('tree-node-label')
       .attr('text-anchor', 'left');
   }
@@ -195,7 +196,7 @@ S.view('tree', function () {
   view.live.label = function(node, label, fn) {
     if(node && data(node)) {
       data(node).label = label;
-      drawLabel(node, label);
+      data(node).s_label = drawLabel(node, label);
       fn();
     } else {
       fn();
@@ -204,8 +205,7 @@ S.view('tree', function () {
   
   view.live.setNode = function(node, value, fn) {
     var s_node = data(node).element,
-        s_value = data(node).s_value; 
-    
+        s_value = data(node).s_value;
     S.wait(function() {
       s_node.addClass('tree-remove');
       s_value.addClass('tree-remove');
@@ -216,6 +216,27 @@ S.view('tree', function () {
         fn();
       }, 300);
     }, 200); 
+  }
+
+  view.live.clear = function(fn) {
+    view.render();
+    fn();
+  }
+
+  view.live.clearlabels = function(fn) {
+    data.forEach(function(pair) {
+      view.live.clearlabel(pair[0]);
+    });
+    fn();
+  }
+
+  view.live.clearlabel = function(node, fn) {
+    if(data(node).s_label) {
+      data(node).s_label.remove();
+      data(node).label = undefined;
+      data(node).s_label = undefined;
+    }
+    if(fn) fn();
   }
 
   view.add = function(parent_s, left, value, fn) {

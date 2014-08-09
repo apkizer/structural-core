@@ -45,14 +45,22 @@ S.component('tree', function (tree, view) {
   }
   
   c.live.add = function(parent, direction, value) {
+    var ret;
     if(direction) {
-      parent.right = node(value);
+      ret = parent.right = node(value);
     } else {
-      parent.left = node(value);
+      ret = parent.left = node(value);
     }
     computeHeights(c.tree);
-    // TODO if avl, avl stuff here  
-  } 
+    // TODO if avl, avl stuff here
+    return ret;
+  }
+
+  c.live.clear = function() {
+    c.tree = node('__');
+  }
+
+  c.live.clearlabels = null;
   
   c.live.clearfocus = null;
   

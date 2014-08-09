@@ -52,6 +52,15 @@ module.exports = function(grunt) {
                 }
             }
         },
+        comments: {
+            strip_comments: {
+              options: {
+                singleline: true,
+                multiline: true
+              },
+              src: ['build/structural.js']
+            }
+        },
         qunit: {
           files: ['test/index.html']
         }
@@ -62,6 +71,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-qunit');
     grunt.loadNpmTasks('grunt-jsbeautifier');
+    grunt.loadNpmTasks('grunt-stripcomments');
   
 
     grunt.registerTask('default', ['clean', 'concat', 'jsbeautifier', 'uglify']);

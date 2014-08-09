@@ -6,6 +6,7 @@ S.nextId = function() {
 
 S.map = function() {
   var _map = {},
+    originals = {},
     map = function(key, value) {
       if(!key.sid)
         throw new Error('S.map() requires sid property. Use S.nextId().');
@@ -15,6 +16,7 @@ S.map = function() {
         return _map[key.sid];
       }
       _map[key.sid] = value;
+      originals[key.sid] = key;
     };
 
   map.clear = function() {
@@ -36,8 +38,8 @@ S.map = function() {
   map.forEach = function(fn, thisArg) {
     if(!thisArg)
       thisArg = {};
-    for(var key in _map) {
-      fn.call(thisArg, [key, _map[key]]);
+    for(var sid in _map) {
+      fn.call(thisArg, [originals[sid], _map[sid]]);
     }
   }
 
