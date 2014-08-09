@@ -39,8 +39,8 @@ S.view('tree', function () {
     x0 = width / 2;
     nodeRadius = .05 * height; // TODO
     y0 = nodeRadius;
-    mh = (height / view.component.height()) - nodeRadius;
-    mv = mh;
+    mv = (height / view.component.height()) - nodeRadius;
+    mh = mv + nodeRadius / 2;
     view.$element.width(width);
     view.$element.height(height);
     view.render(); 
@@ -81,9 +81,10 @@ S.view('tree', function () {
   }
   
   function drawLabel(node, label) {
-    return s_svg.text(data(node).x + x0 + nodeRadius + 10, data(node).y + y0, '// ' + label)
+    return s_svg.text(data(node).x + x0 + nodeRadius + 5, data(node).y + y0 + nodeRadius / 2, '//' + label)
       .addClass('tree-node-label')
-      .attr('text-anchor', 'left');
+      .attr('text-anchor', 'left')
+      .attr('font-size', nodeRadius * .75);
   }
 
   function drawValue(value, x, y) {
@@ -236,6 +237,30 @@ S.view('tree', function () {
       data(node).label = undefined;
       data(node).s_label = undefined;
     }
+    if(fn) fn();
+  }
+
+  view.live.showHeights = function(fn) {
+    data.forEach(function(pair) {
+      view.live.height(pair[0], true);
+    });
+    fn();
+  }
+
+  view.live.hideHeights = function(fn) {
+    data.forEach(function(pair) {
+      view.live.height(pair[0], false);
+    });
+    fn();
+  }
+
+  view.live.height = function(node, show, fn) {
+    if(!data(node).s_height) return;
+    console.log('s_height = ' + data(node).s_height);
+    if(show)
+      data(node).s_height.attr('visibility', 'visible');
+    else
+      data(node).s_height.attr('visibility', 'hidden');
     if(fn) fn();
   }
 

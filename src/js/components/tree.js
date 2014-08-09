@@ -60,6 +60,12 @@ S.component('tree', function (tree, view) {
     c.tree = node('__');
   }
 
+  c.live.showHeights = null;
+
+  c.live.hideHeights = null;
+
+  c.live.height = null;
+
   c.live.clearlabels = null;
   
   c.live.clearfocus = null;
