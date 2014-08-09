@@ -73,3 +73,8 @@ text.tree-remove {
     text-decoration: line-through;
 }
 
+
+.tree-svg .range1 {
+    fill: green !important;
+
+}

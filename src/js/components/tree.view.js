@@ -54,9 +54,9 @@ S.view('tree', function () {
     $svg = $(dom_svg)
       .width(width)
       .height(height)
-      .addClass('tree-svg')
       .appendTo($e);
     s_svg = Snap(dom_svg);
+    s_svg.addClass('tree-svg');
     rg(view.component.tree, data, {
       mh: mh,
       mv: mv,
@@ -168,6 +168,7 @@ S.view('tree', function () {
           cx: rightLine.attr('x2'),
           cy: rightLine.attr('y2')
         }, 500, null, function() {
+          s_circle.remove();
           fn();
         });
       } else {
@@ -184,6 +185,7 @@ S.view('tree', function () {
           cx: leftLine.attr('x2'),
           cy: leftLine.attr('y2')
         }, 500, null, function() {
+          s_circle.remove();
           fn();
         });
       } else {
@@ -335,6 +337,13 @@ S.view('tree', function () {
       return ret.concat( getTreeElements(root.left).concat(getTreeElements(root.right)) );
     }
     return ret;
+  }
+
+  view.live.mark = function(node, num, fn) {
+    if(data(node).element) {
+      data(node).element.addClass('range' + num);
+      fn();
+    }
   }
 
   view.add = function(parent_s, left, value, fn) {

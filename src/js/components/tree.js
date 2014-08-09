@@ -71,6 +71,8 @@ S.component('tree', function (tree, view) {
     }
   }
 
+  c.live.mark = null;
+
   c.live.showHeights = null;
 
   c.live.hideHeights = null;
