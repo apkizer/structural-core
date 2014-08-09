@@ -18,8 +18,6 @@ S.method('tree', 'traversal', function traversal(kind) {
 
   function preorder(node) {
      if(node) {
-       //label.call(this, node);
-       //this.focusOn(node);
        visit.call(this, node);
        this.travel(node, false);
        preorder.call(this, node.left);

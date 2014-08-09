@@ -7,9 +7,9 @@ S.view('tree', function () {
     $svg, // jQuery svg object
     width = 100,
     height = 100,
-    nodeRadius,
-    mh, // horizontal margin between nodes
-    mv, // vertical margin between nodes
+    nodeRadius = 8,
+    mh = 32, // horizontal margin between nodes
+    mv = 32, // vertical margin between nodes
     x0, // x offset
     y0; // y offset
 
@@ -37,10 +37,10 @@ S.view('tree', function () {
     width = dimensions.width;
     height = dimensions.height;
     x0 = width / 2;
-    nodeRadius = .05 * height; // TODO
+    nodeRadius = view.config().nodeRadius || .05 * height ; // TODO
     y0 = nodeRadius;
-    mv = (height / view.component.height()) - nodeRadius;
-    mh = mv + nodeRadius / 2;
+    mv = view.config().mv || height / 5; //(height / view.component.height()) - nodeRadius;
+    mh = view.config().mh || mv + nodeRadius / 2;
     view.$element.width(width);
     view.$element.height(height);
     view.render(); 
@@ -76,8 +76,6 @@ S.view('tree', function () {
   function drawNode(node, x, y) {
     return circle = s_svg.circle(x + x0, y + y0, nodeRadius)
       .addClass('tree-node');
-    /*if(data(node).doNotDraw) 
-      circle.addClass('tree-node-hidden');*/
   }
   
   function drawLabel(node, label) {
@@ -264,6 +262,81 @@ S.view('tree', function () {
     if(fn) fn();
   }
 
+  view.live.remove = function(node, fn) {
+    var elements = getTreeElements(node),
+        parent = node.parent,
+        count = 0,
+        max;
+
+    if(parent.left == null) {
+      elements.push(data(parent).leftLine);
+    } else {
+      elements.push(data(parent).rightLine);
+    }
+
+    max = elements.length;
+
+    elements.forEach(function(element) {
+      if(!element) {
+        count++;
+        return;
+      }
+      if(element.attr('cy')) {
+        element.animate({
+          cy: 1000
+        }, 500, null, function() {
+          count++;
+          checkIfAllRemoved();
+        });
+      } else if(element.attr('y1')) {
+        element.animate({
+          y1: 1000,
+          y2: 1000
+        }, 500, null, function() {
+          count++;
+          checkIfAllRemoved();
+        });
+      } else {
+        element.animate({
+          y: 1000
+        }, 500, null, function() {
+          count++;
+          checkIfAllRemoved();
+        });
+      }
+    });
+
+    function checkIfAllRemoved() {
+      console.log('allremoved, count max ' + count + ' ' + max);
+      if(count >= max) {
+        console.log('all removed!');
+        elements.forEach(function(element) {
+          if(element) {
+            element.remove();
+          }
+        });
+        view.render();
+        fn();
+      }
+    }
+  }
+
+  function getTreeElements(root) {
+    var ret = [];
+    if(root) {
+      console.log('element is ' + data(root).element);
+      ret.push(data(root).element);
+      ret.push(data(root).s_height);
+      ret.push(data(root).s_value);
+      ret.push(data(root).s_label);
+      ret.push(data(root).leftLine);
+      ret.push(data(root).rightLine);
+      console.log('returning ' + ret.concat( getTreeElements(root.left).concat(getTreeElements(root.right)) ));
+      return ret.concat( getTreeElements(root.left).concat(getTreeElements(root.right)) );
+    }
+    return ret;
+  }
+
   view.add = function(parent_s, left, value, fn) {
     /*nodes(parent_s, getNodeElement(value));
     rg(view.component.tree, data, view.config());
@@ -283,6 +356,13 @@ S.view('tree', function () {
     });*/
   }
 
+  /**
+   * My (Alex Kizer's) crappy implementation of the Reingold-Tilford algorithm.
+   * http://emr.cs.iit.edu/~reingold/tidier-drawings.pdf
+   * @param root Root of the tree to draw.
+   * @param store A map where position data will be deposited.
+   * @param options Options to specify the minimum vertical and horizontal spacing between nodes.
+   */
   function rg(root, store, options) {
     //1. copy tree
     //2. run rg
@@ -512,7 +592,6 @@ S.view('tree', function () {
 
       if(!root)
         return;
-      //console.log('STORING ' + root.sid);
       store(root, {
         x: root.x,
         y: root.y

@@ -12,7 +12,7 @@ S.component('tree', function (tree, view) {
   }
 
   c.init = function() {
-    c.tree = copyTree(tree);
+    c.tree = copyTree(tree, null);
     height = computeHeights(c.tree);
     computeHeights(c.tree);
   }
@@ -21,11 +21,12 @@ S.component('tree', function (tree, view) {
     return height;
   }
   
-  function copyTree(_node) {
+  function copyTree(_node, parent) {
     if(!_node) return null;
     var n = node(_node.value);
-    n.left = copyTree(_node.left);
-    n.right = copyTree(_node.right);
+    n.parent = parent;
+    n.left = copyTree(_node.left, n);
+    n.right = copyTree(_node.right, n);
     return n;
   }
   
@@ -58,6 +59,16 @@ S.component('tree', function (tree, view) {
 
   c.live.clear = function() {
     c.tree = node('__');
+  }
+
+  c.live.remove = function(node) {
+    if(node.parent) {
+      if(node.parent.left == node) {
+        node.parent.left = null;
+      } else {
+        node.parent.right = null;
+      }
+    }
   }
 
   c.live.showHeights = null;
