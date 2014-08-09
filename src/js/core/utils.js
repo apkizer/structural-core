@@ -5,41 +5,42 @@ S.nextId = function() {
 }
 
 S.map = function() {
-  var _map = {},
-    originals = {},
+  var values = {},
+    keys = {},
     map = function(key, value) {
       if(!key.sid)
         throw new Error('S.map() requires sid property. Use S.nextId().');
       if(typeof value === 'undefined') {
-        if(!_map[key.sid])
-          _map[key.sid] = {};
-        return _map[key.sid];
+        if(!values[key.sid])
+          values[key.sid] = {};
+        return values[key.sid];
       }
-      _map[key.sid] = value;
-      originals[key.sid] = key;
+      values[key.sid] = value;
+      keys[key.sid] = key;
     };
 
   map.clear = function() {
-    _map = {};
+    values = {};
+    keys = {};
   };
 
   map.delete = function(key) {
     if(!key.sid)
       throw new Error('S.map() requires sid property. Use S.nextId().');
-    delete _map[key.sid];
+    delete values[key.sid];
   };
 
   map.has = function(key) {
     if(!key.sid)
       throw new Error('S.map() requires sid property. Use S.nextId().');
-    return typeof _map[key.sid] !== 'undefined';
+    return typeof values[key.sid] !== 'undefined';
   }
 
   map.forEach = function(fn, thisArg) {
     if(!thisArg)
       thisArg = {};
-    for(var sid in _map) {
-      fn.call(thisArg, [originals[sid], _map[sid]]);
+    for(var sid in values) {
+      fn.call(thisArg, [keys[sid], values[sid]]);
     }
   }
 
