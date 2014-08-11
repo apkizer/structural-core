@@ -12,7 +12,7 @@ S.deferred = function() {
       executing = false,
       stepTime = 50;
 
-  $.extend(deferred, S.ee());
+  $.extend(deferred, new S.EventEmitter()/*S.ee()*/);
   
   deferred.close = function() {
       open = false;

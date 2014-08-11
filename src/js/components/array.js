@@ -1,7 +1,7 @@
 (function(S){
   
     function array(arr) {
-      var c = S.base(),
+      var c = new S.Component(), //S.base(),
         flags = [];
       if(arr) 
         c.array = arr;

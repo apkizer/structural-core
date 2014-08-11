@@ -1,7 +1,7 @@
 
 S.view('array', 
   function (options) {
-    var view = S.baseView(),
+    var view = new S.View(), //S.baseView(),
         $e,
         $table,
         $topRow,
@@ -15,15 +15,15 @@ S.view('array',
         height;
         
     view.init = function() {
-      view.config({
+      view.config = {
         hiddenDelimiter: ',', 
         numElements: 5, 
         pageTime: 300, 
         stepTime: 50, 
         scrollTime: 500, 
-        maxScrollTime: 1000, 
-      });
-      view.config(options);
+        maxScrollTime: 1000
+      };
+      view.config = options;
       view.leftBound = 0;
       view.rightBound = view.config.numElements - 1;
     }

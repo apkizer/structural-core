@@ -1,5 +1,5 @@
 S.view('tree', function () {
-  var view = S.baseView(),
+  var view = new S.View(), //S.baseView(),
     data = S.map(), // stores data about nodes
     $e,
     dom_svg,
@@ -37,10 +37,10 @@ S.view('tree', function () {
     width = dimensions.width;
     height = dimensions.height;
     x0 = width / 2;
-    nodeRadius = view.config().nodeRadius || .05 * height ; // TODO
+    nodeRadius = view.config.nodeRadius || .05 * height ; // TODO
     y0 = nodeRadius;
-    mv = view.config().mv || height / 5; //(height / view.component.height()) - nodeRadius;
-    mh = view.config().mh || mv + nodeRadius / 2;
+    mv = view.config.mv || height / 5; //(height / view.component.height()) - nodeRadius;
+    mh = view.config.mh || mv + nodeRadius / 2;
     view.$element.width(width);
     view.$element.height(height);
     view.render(); 
@@ -395,7 +395,7 @@ S.view('tree', function () {
 
   view.add = function(parent_s, left, value, fn) {
     /*nodes(parent_s, getNodeElement(value));
-    rg(view.component.tree, data, view.config());
+    rg(view.component.tree, data, view.config);
     nodes.forEach(function(pair){
       move(nodes(pair[0]), pair[1].x, pair[1].y, function(){
         $e.append(nodes(parent_s));

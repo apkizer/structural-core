@@ -1,5 +1,5 @@
 S.component('tree', function (tree, view) {
-  var c = S.base(),
+  var c = new S.Component(), //S.base(),
       height = 0;
 
   function node(value) {
