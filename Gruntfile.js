@@ -20,7 +20,7 @@ module.exports = function(grunt) {
                     'src/js/core/Component.js',
                     'src/js/core/View.js',
                     'src/js/core/standardComponent.js',
-                    'src/js/core/deferred.js',
+                    'src/js/core/Deferred.js',
                     'src/js/core/api.js',
                     'src/js/core/footer.js',
                     'src/js/components/*.js',
