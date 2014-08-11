@@ -2,3 +2,4 @@ node_modules
 build
 .brackets.json
 .DS_STORE
+src/img
