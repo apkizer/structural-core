@@ -28,7 +28,7 @@ S.view('tree', function () {
    */
 
   view.init = function() {
-    
+
   }
 
 
@@ -283,7 +283,7 @@ S.view('tree', function () {
   }
 
   view.live.height = function(node, show, fn) {
-    if(!data(node).s_height) return;
+    if(!node || !data(node).s_height) return;
     console.log('s_height = ' + data(node).s_height);
     if(show)
       data(node).s_height.attr('visibility', 'visible');
