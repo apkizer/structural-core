@@ -5,13 +5,13 @@ S.EventEmitter = (function(){
   }
 
   EventEmitter.prototype.on = function(eventName, fn) {
-    if(typeof this.registeredEvents[eventName] === 'undefined')
+    if(!this.registeredEvents[eventName])//typeof this.registeredEvents[eventName] === 'undefined')
       this.registeredEvents[eventName] = [];
     this.registeredEvents[eventName].push(fn);
   };
 
   EventEmitter.prototype.fire = function(eventName, event) {
-    if(typeof this.registeredEvents[eventName] === 'undefined')
+    if(!this.registeredEvents[eventName])//typeof this.registeredEvents[eventName] === 'undefined')
       return;
     for(var i = 0; i < this.registeredEvents[eventName].length; i++) {
       this.registeredEvents[eventName][i].call(event, event);
