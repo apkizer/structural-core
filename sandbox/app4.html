@@ -36,6 +36,8 @@
           root.left.left.right.right = node(3);
 
           var treeOne = S.components.tree(root);
+
+          console.log('treeOne is ' + treeOne);
           
           treeOne.view.scaleTo({
             width: 500,
@@ -57,8 +59,13 @@
             scaling = false;
           });
 
-          treeOne.def.setStepTime(250);
+
+          console.log('now, treeOne is ' + treeOne);
+          treeOne.def.stepTime = 250;
           window.def = treeOne.def;
+          window.actual = treeOne;
+          console.log('window.actual is ' + window.actual);
+          console.log('treeOne.def is ' + treeOne.def);
           window.tree1 = treeOne.deferredContext;
           
           //tree1.traversal('in');

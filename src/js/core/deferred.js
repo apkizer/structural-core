@@ -1,181 +1,180 @@
-S.deferred = function() {
-  var deferred = {},
-      context = function(key, value) {
-        // expects std component
-          if (typeof value === 'undefined')
-              return context.get(key);
-          context.set(key, value);
-      },
-      fns = [],
-      last = 0,
-      open = true,
-      executing = false,
-      stepTime = 50;
+S.Deferred = (function(){
 
-  $.extend(deferred, new S.EventEmitter()/*S.ee()*/);
-  
-  deferred.close = function() {
-      open = false;
-      executing = false;
-  }
+  function Deferred() {
+    this.context = function(key, value) {
+      // expects std component
+      if (typeof value === 'undefined')
+        return this.context.get(key);
+      this.context.set(key, value);
+    };
+    this.fns = [];
+    this.last = 0;
+    this.open = true;
+    this.executing = false;
+    this.stepTime = 50;
 
-  deferred.open = function() {
-      open = true;
-      if (fns.length > 0) {
-          deferred.exec();
+    $.extend(this, new S.EventEmitter());
+
+    this.on('push', function(event) {
+      if (open && !this.executing) {
+        console.log('mode is open; executing...');
+        this.exec();
       }
-  }
+    });
 
-  deferred.wrap = function(wrappables) {
-      wrap(S.components.std());
-      if (Array.isArray(wrappables)) {
-          wrappables.forEach(wrap);
-      } else {
-          wrap(wrappables);
-      }
   };
 
-  deferred.pause = function() {
-    context.paused = true;
-  }
+  Deferred.prototype.close = function() {
+    this.open = false;
+    this.executing = false;
+  };
 
-  deferred.play = function() {
-    context.paused = false;
-    context.exec();
-  }
+  Deferred.prototype.open = function() {
+    this.open = true;
+    if (this.fns.length > 0)
+      this.exec();
+  };
 
-  deferred.getIndex = function() {
-    return last;
-  }
+  Object.defineProperty(Deferred.prototype, 'length', {
+    get: function() {
+      console.log('length get')
+      return this.fns.length;
+    }
+  });
 
-  deferred.getLength = function() {
-    return fns.length;
-  }
+  Object.defineProperty(Deferred.prototype, 'completion', {
+    get: function() {
+      return this.last / this.length;
+    }
+  });
 
-  deferred.getCompletion = function() {
-    return last / deferred.getLength();
-  }
-
-  deferred.setStepTime = function(time) {
-    stepTime = time;
-  }
-
-  deferred.exec = function() {
-    executing = true;
-    var i = last;
+  Deferred.prototype.exec = function() {
+    this.executing = true;
+    var i = this.last,
+        self = this;
     //console.log('statements: ' + deferred.getLength());
 
     function doNext() {
-      if (i >= fns.length) {
+      if (i >= self.fns.length) {
         //context.fire('end', {}); // remove? todo create event obj
-        executing = false;
+        self.executing = false;
         return;
-      } else if (!executing) {
+      }
+      if (!self.executing) {
         return;
       }
       // context.fire('update', {}); TODO !!!!!!!
-      last++;
-      fns[i++].call({}, function() {
+      self.last++;
+      self.fns[i++].call({}, function() {
         //setTimeout(doNext, 50);
         console.log('doing next...');
-        S.wait(doNext, stepTime);
+        S.wait(doNext, self.stepTime);
       });
     }
 
     doNext();
+  };
+
+  Deferred.prototype.getContext = function() {
+    console.log('returning Deferred.context');
+    return this.context;
   }
 
-  deferred.on('push', function(event) {
-      if (open && !executing) {
-          //console.log('mode is open; executing...');
-          deferred.exec();
-      }
-  });
 
-  deferred.getContext = function() {
-      return context;
-  }
-  
-  
-  deferred.add = function(name, func) {
-      func.bind(context);
-      context[name] = func;
-  }
-  
-  function wrap(wrappable) {
-      if (typeof wrappable.getSync === 'undefined' || typeof wrappable.getAsync === 'undefined') {
-          return console.log('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
-      }
-      
-      if (!wrappable.noCopy) {
-          console.log('deferred copying ' + wrappable);
-          var clone = wrappable.copy();
-      }
-
-      for (var prop in wrappable.getSync()) {
-        console.log('wrapping ' + prop);
-          context[prop] =
-              // inject property; otherwise, pushed functions will all reference last iterated property
-              (function(property, clone) {
-                  var deferredMethod = function() {
-                      var args = Array.prototype.slice.call(arguments), // convert arguments to an array
-                          ret; // = null; // proxy return of sync portion
-                      //null indicates that the method is async only (superficial)
-                      if (wrappable.getSync()[property] !== null) {
-                          //do now
-                          if(wrappable.noCopy)
-                            ret = wrappable.live[property].apply({}, args);
-                          else {
-                            //console.log('calling clone');
-                            ret = clone.getSync()[property].apply({}, args);
-                          }
-                      }
-                      //push async & sync if found on view:
-                      var pushFn;
-                      if (wrappable.getAsync().hasOwnProperty(property) && wrappable.getSync()[property] !== null) {
-                          // both
-                          pushFn = function(fn) {
-                              wrappable.getSync()[property].apply(wrappable.getSync(), args);
-                              wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn)); // concat callback
-                          }
-                      } else if (wrappable.getSync()[property] !== null) {
-                          // sync only
-                          pushFn = function(fn) {
-                              wrappable.getSync()[property].apply(wrappable.getSync(), args);
-                              fn();
-                          }
-                      } else if (wrappable.getAsync().hasOwnProperty(property)) {
-                          // async only
-                          pushFn = function(fn) {
-                              wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn)); // concat callback
-                          }
-                      } else {
-                          // declared as async only, but method not found on view.
-                          console.log('method ' + property.toString() + ' was declared as async only (null), but no corresponding view method was found.');
-                          pushFn = false;
-                      }
-                      if (pushFn)
-                          fns.push(pushFn);
-                      deferred.fire('push', {});
-                      if (ret !== null)
-                          return ret;
-                  };
-                  return deferredMethod;
-              })(prop, clone);
-      }
-      /* now, add in defined methods */
-      console.log('now adding defined methods');
-      if(wrappable.getMethods) {
-        console.log('component has getMethods');
-        var methods = wrappable.getMethods();
-        for(var method in methods) {
-          console.log('deferred adding ' + method);
-          deferred.add(method, methods[method]);
-        }
-      } else {
-        //console.log('no getMethods found');
-      }
+  Deferred.prototype.add = function(name, func) {
+    func.bind(this.context);
+    this.context[name] = func;
   }
 
-  return deferred;
-}
+
+  Deferred.prototype.wrap = function(wrappables) {
+    this.include(S.components.std());
+    if (Array.isArray(wrappables)) {
+      wrappables.forEach(this.include);
+    } else {
+      this.include(wrappables);
+    }
+  }
+
+
+  Deferred.prototype.include = function wrap(wrappable) {
+    var self = this;
+
+    if (typeof wrappable.getSync === 'undefined' || typeof wrappable.getAsync === 'undefined') {
+      return console.log('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
+    }
+
+    if (!wrappable.noCopy) {
+      console.log('deferred copying ' + wrappable);
+      var clone = wrappable.copy();
+    }
+
+    for (var prop in wrappable.getSync()) {
+      console.log('wrapping ' + prop);
+      this.context[prop] =
+        // inject property; otherwise, pushed functions will all reference last iterated property
+        (function(property, clone) {
+          var deferredMethod = function() {
+            var args = Array.prototype.slice.call(arguments), // convert arguments to an array
+              ret; // = null; // proxy return of sync portion
+            //null indicates that the method is async only (superficial)
+            if (wrappable.getSync()[property] !== null) {
+              //do now
+              if(wrappable.noCopy)
+                ret = wrappable.live[property].apply({}, args);
+              else {
+                //console.log('calling clone');
+                ret = clone.getSync()[property].apply({}, args);
+              }
+            }
+            //push async & sync if found on view:
+            var pushFn;
+            if (wrappable.getAsync().hasOwnProperty(property) && wrappable.getSync()[property] !== null) {
+              // both
+              pushFn = function(fn) {
+                wrappable.getSync()[property].apply(wrappable.getSync(), args);
+                wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn)); // concat callback
+              }
+            } else if (wrappable.getSync()[property] !== null) {
+              // sync only
+              pushFn = function(fn) {
+                wrappable.getSync()[property].apply(wrappable.getSync(), args);
+                fn();
+              }
+            } else if (wrappable.getAsync().hasOwnProperty(property)) {
+              // async only
+              pushFn = function(fn) {
+                wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn)); // concat callback
+              }
+            } else {
+              // declared as async only, but method not found on view.
+              console.log('method ' + property.toString() + ' was declared as async only (null), but no corresponding view method was found.');
+              pushFn = false;
+            }
+            if (pushFn)
+              self.fns.push(pushFn);
+            self.fire('push', self);
+            if (ret !== null)
+              return ret;
+          };
+          return deferredMethod;
+        })(prop, clone);
+    }
+    /* now, add in defined methods */
+    console.log('now adding defined methods');
+    if(wrappable.getMethods) {
+      console.log('component has getMethods');
+      var methods = wrappable.getMethods();
+      for(var method in methods) {
+        console.log('deferred adding ' + method);
+        this.add(method, methods[method]);
+      }
+    } else {
+      //console.log('no getMethods found');
+    }
+  }
+
+
+  return Deferred;
+})();
+
