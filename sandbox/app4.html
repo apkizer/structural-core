@@ -12,6 +12,15 @@
       body {
         background-color: #002b36;
       }
+        .console{
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background-color: black;
+
+        }
     </style>
     <script type="text/javascript">
         $(document).ready(function() {
@@ -29,11 +38,11 @@
           root.right = node(18);
           root.left.left = node(12);
           root.left.left.right = node(13);
-          root.right.left = node(12);
+          /*root.right.left = node(12);
           root.right.left.left = node(15);
           root.left.left.left = node(0);
           root.right.left.left.left = node(23);
-          root.left.left.right.right = node(3);
+          root.left.left.right.right = node(3);*/
 
           var treeOne = S.components.tree(root);
 
@@ -76,5 +85,6 @@
 <div class="wrap" style="text-align: center;">
 
 </div>
+<div class="console"></div>
 </body>
 </html>
