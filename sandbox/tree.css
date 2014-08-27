@@ -1,0 +1,76 @@
+/*@namespace svg url(http://www.w3.org/2000/svg);
+.tree-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.tree-node {
+    fill: #0066cc;
+    stroke: #aaa;
+    stroke-width: 2;
+    box-shadow: 0x 0px 10px white;
+    z-index: 100;
+}
+
+.tree-node-label {
+  fill: #999;
+  font-family: monospace;
+}
+
+.tree-node-hidden {
+  display: none;
+}
+
+.tree-node-value {
+    font-family: arial;
+    fill: white;
+    pointer-events: none;
+    text-shadow: -1px -1px black;
+}
+
+.tree-line {
+    stroke: #aaa;
+    stroke-width: 2;
+}
+
+.tree-line-active {
+    stroke: #aaa;
+}
+
+.tree-node.focus {
+    fill: orange;
+    transition-property: fill;
+    transition-duration: .25s;
+}
+
+.tree-node:hover {
+    fill: orange;
+    transition-property: fill;
+    transition-duration: .25s;
+}
+
+.tree-height {
+    font-family: arial;
+    fill: #666;
+}
+
+.tree-height:before {
+    content: "*"
+}
+
+.tree-travelorb {
+  fill: #fff;
+}
+
+text.tree-remove {
+    fill: red !important;
+    text-decoration: line-through;
+}
+
+.tree-svg .range1 {
+    fill: green !important;
+}
+
+.tree-svg .pathrange1 {
+    stroke: green;
+}*/

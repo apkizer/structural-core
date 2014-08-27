@@ -1,6 +1,7 @@
 S.component('tree', function (tree, view) {
   var c = new S.Component(), //S.base(),
       height = 0;
+  c.alias = 'tree';
 
   function node(value) {
     return {

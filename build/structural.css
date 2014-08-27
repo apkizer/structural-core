@@ -1,0 +1,154 @@
+/* Structural, by Alex Kizer */
+.array {
+    overflow: hidden;
+    -webkit-user-select: none;
+}
+
+.array table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.array-cell, .array-index {
+    text-align: center;
+    border-bottom: none;
+    border-top: none;
+    padding: 0;
+    cursor: default;
+    overflow: hidden;
+}
+
+.array-cell {
+  position: relative;
+  font-family: arial;
+}
+
+.array-cell:hover {
+    text-decoration: underline;
+}
+
+.array-cell:nth-child(odd) {
+    background-color: #eee;
+}
+
+.array-index {
+    height: 10px;
+    font-size: 10px;
+    font-family: monospace;
+    background-color: #0033CC;
+    color: white;
+}
+
+.array-cell.focus {
+    background-color: #333 !important;
+    color: white;
+}
+
+.array-index.focus {
+    background-color: black !important;
+}
+
+.array .flagged:before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    float: left;
+    border: 3px solid blue;
+    border-radius: 50%;
+}
+
+.array .range1 {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAE0lEQVQIW2OUvuLwnwENMNJAEACP4QrsdsC6NQAAAABJRU5ErkJggg==');
+    background-repeat: repeat-x;
+}
+
+.array .range2 {
+    background-color: #ffcc00 !important;
+}
+
+.array .range3 {
+    background-color: #0066cc !important;
+}
+
+.array .array-remove {
+    color: red !important;
+    text-decoration: line-through;
+}
+
+
+@namespace svg url(http://www.w3.org/2000/svg);
+.tree-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.tree-node {
+    fill: #fff;
+    stroke: #000;
+    stroke-width: 2;
+    z-index: 100;
+}
+
+.tree-node-label {
+  fill: #333;
+  font-family: monospace;
+}
+
+.tree-node-hidden {
+  display: none;
+}
+
+.tree-node-value {
+    font-family: arial;
+    fill: #000;
+    pointer-events: none;
+}
+
+.tree-line {
+    stroke: #000;
+    stroke-width: 2;
+}
+
+.tree-line-active {
+    stroke: #666;
+}
+
+.tree-node.focus {
+    fill: #ffff99;
+    transition-property: fill;
+    transition-duration: .25s;
+}
+
+.tree-node:hover {
+    fill: #ffff99;
+    transition-property: fill;
+    transition-duration: .25s;
+}
+
+.tree-height {
+    font-family: arial;
+    fill: #333;
+}
+
+.tree-height:before {
+    content: "*"
+}
+
+.tree-travelorb {
+  fill: #666;
+}
+
+text.tree-remove {
+    fill: red !important;
+    text-decoration: line-through;
+}
+
+.tree-svg .range1 {
+    fill: green !important;
+}
+
+.tree-svg .pathrange1 {
+    stroke: green;
+}
