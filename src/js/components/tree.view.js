@@ -33,7 +33,7 @@ S.view('tree', function () {
 
 
   view.scaleTo = function(dimensions) {
-    console.log('scaling tree');
+    //console.log('scaling tree');
     width = dimensions.width;
     height = dimensions.height;
     x0 = width / 2;
@@ -47,7 +47,7 @@ S.view('tree', function () {
   }
 
   view.render = function() {
-    console.log('rendering');
+    //console.log('rendering');
     if($e) $e.remove();
     $e = $('<div class="tree"></div>');
     dom_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu

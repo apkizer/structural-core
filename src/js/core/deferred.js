@@ -80,12 +80,10 @@ S.Deferred = (function(){
     return this.context;
   }
 
-
   Deferred.prototype.add = function(name, func) {
     func.bind(this.context);
     this.context[name] = func;
   }
-
 
   Deferred.prototype.wrap = function(wrappables) {
     this.include(S.components.std());
@@ -96,21 +94,20 @@ S.Deferred = (function(){
     }
   }
 
-
-  Deferred.prototype.include = function wrap(wrappable) {
+  Deferred.prototype.include = function (wrappable) {
     var self = this;
 
     if (typeof wrappable.getSync === 'undefined' || typeof wrappable.getAsync === 'undefined') {
-      return console.log('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
+      return console.warn('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
     }
 
     if (!wrappable.noCopy) {
-      console.log('deferred copying ' + wrappable);
+      console.info('Deferred copying ' + wrappable);
       var clone = wrappable.copy();
     }
-
+    console.groupCollapsed('Wrapping methods of \'%s\'', wrappable.alias || wrappable);
     for (var prop in wrappable.getSync()) {
-      console.log('wrapping ' + prop);
+      console.log('Wrapping \'%s\'', prop);
       this.context[prop] =
         // inject property; otherwise, pushed functions will all reference last iterated property
         (function(property, clone) {
@@ -160,18 +157,20 @@ S.Deferred = (function(){
           return deferredMethod;
         })(prop, clone);
     }
+    console.groupEnd();
     /* now, add in defined methods */
-    console.log('now adding defined methods');
+    
     if(wrappable.getMethods) {
-      console.log('component has getMethods');
       var methods = wrappable.getMethods();
+      console.groupCollapsed('Adding defined methods of \'%s\'', wrappable.alias || wrappable); 
       for(var method in methods) {
-        console.log('deferred adding ' + method);
+        console.log('Adding ' + method);
         this.add(method, methods[method]);
       }
     } else {
       //console.log('no getMethods found');
     }
+    console.groupEnd();
   }
 
 

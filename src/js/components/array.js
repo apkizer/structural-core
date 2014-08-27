@@ -5,6 +5,7 @@
         flags = [];
       if(arr) 
         c.array = arr;
+      c.alias = 'array';
 
       c.copy = function() {
           return array(c.array.slice(0)); // by value copy

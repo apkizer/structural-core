@@ -1,8 +1,9 @@
 S.Component = (function() {
 
-  function Component(name, view) {
+  function Component(name, view, state) {
     this.name = name;
     this.live = {};
+    this.state = state;
     if(view)
       this.setView(view);
   }
@@ -13,6 +14,10 @@ S.Component = (function() {
     this.view = view;
     view.component = this;
     view.init();
+  }
+  
+  Component.prototype.getState = function() {
+    return this.state;
   }
 
   Component.prototype.copy = function() {
