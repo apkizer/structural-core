@@ -61,8 +61,8 @@
 }
 
 text.tree-remove {
-    fill: red !important;
-    text-decoration: line-through;
+  fill: red !important;
+  transition: .25s;
 }
 
 .tree-svg .range1 {

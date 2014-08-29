@@ -32,6 +32,7 @@ window.S = (function ($) {
             if (S.views[name]) {
                 console.log('setting view ' + name);
                 component.setView(S.views[name]());
+
             }
             // initialize component
             if (component.init) component.init();
@@ -190,14 +191,17 @@ window.S = (function ($) {
     S.Component = (function () {
 
         function Component(name, view, state) {
+            console.info('Component being created. name is %s. view is %s. state is %s', name, view, state);
             this.name = name;
-            this.live = {};
+            //this.live = {};
             this.state = state;
             if (view)
                 this.setView(view);
         }
 
         Component.prototype = Object.create(S.EventEmitter.prototype);
+
+        Component.prototype.live = {};
 
         Component.prototype.setView = function (view) {
             this.view = view;
@@ -240,6 +244,7 @@ window.S = (function ($) {
         }
 
         return Component;
+
     })();
 
 
@@ -927,9 +932,21 @@ S.view('array',
         return view;
     });
 S.component('tree', function (tree, view) {
-    var c = new S.Component(), //S.base(),
+    var c = new S.Component(),
         height = 0;
     c.alias = 'tree';
+
+
+    c.init = function () {
+        c.tree = copyTree(tree, null);
+        c.state = tree;
+        height = computeHeights(c.tree);
+        computeHeights(c.tree);
+    }
+
+    c.height = function () {
+        return height;
+    }
 
     function node(value) {
         return {
@@ -938,16 +955,6 @@ S.component('tree', function (tree, view) {
             right: null,
             sid: S.nextId()
         };
-    }
-
-    c.init = function () {
-        c.tree = copyTree(tree, null);
-        height = computeHeights(c.tree);
-        computeHeights(c.tree);
-    }
-
-    c.height = function () {
-        return height;
     }
 
     function copyTree(_node, parent) {
@@ -995,13 +1002,27 @@ S.component('tree', function (tree, view) {
     }
 
     c.live.remove = function (node) {
-        if (node.parent) {
-            if (node.parent.left == node) {
-                node.parent.left = null;
-            } else {
-                node.parent.right = null;
-            }
+        /*if(node.parent) {
+      if(node.parent.left == node) {
+        console.info('Setting parent.left to null');
+        node.parent.left = null;
+      } else {
+        console.info('Setting parent.right to null');
+        node.parent.right = null;
+      }
+    }*/
+
+        if (node.parent && node.parent.left == node) {
+            console.info('Setting parent.left to null');
+            node.parent.left = null;
+        } else if (node.parent && node.parent.right == node) {
+            console.info('Setting parent.right to null');
+            node.parent.right = null;
+        } else {
+            console.info('node.parent doesn\'t exist.');
         }
+
+        c.computeHeights();
     }
 
     c.live.mark = null;
@@ -1059,7 +1080,7 @@ S.component('tree', function (tree, view) {
     return c;
 });
 S.view('tree', function () {
-    var view = new S.View(), //S.baseView(),
+    var view = new S.View(), //new S.View(), //S.baseView(),
         data = S.map(), // stores data about nodes
         $e,
         dom_svg,
@@ -1135,7 +1156,7 @@ S.view('tree', function () {
     }
 
     function drawNode(node, x, y) {
-        return circle = s_svg.circle(x + x0, y + y0, nodeRadius)
+        return circle = s_svg.circle(x + x0, y + y0 + 2, nodeRadius)
             .addClass('tree-node');
     }
 
@@ -1405,7 +1426,6 @@ S.view('tree', function () {
                         element.remove();
                     }
                 });
-                view.component.computeHeights();
                 view.render();
                 fn();
             }

@@ -1,14 +1,17 @@
 S.Component = (function() {
 
   function Component(name, view, state) {
+    console.info('Component being created. name is %s. view is %s. state is %s', name, view, state);
     this.name = name;
-    this.live = {};
+    //this.live = {};
     this.state = state;
     if(view)
       this.setView(view);
   }
 
   Component.prototype = Object.create(S.EventEmitter.prototype);
+  
+  Component.prototype.live = {};
 
   Component.prototype.setView = function(view) {
     this.view = view;
@@ -33,7 +36,7 @@ S.Component = (function() {
   }
 
   Component.prototype.getConfigTemplate = function() {
-
+  
   }
 
   // wrappable:
@@ -51,6 +54,7 @@ S.Component = (function() {
   }
 
   return Component;
+  
 })();
 
 

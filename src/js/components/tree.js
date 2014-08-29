@@ -1,8 +1,20 @@
 S.component('tree', function (tree, view) {
-  var c = new S.Component(), //S.base(),
+  var c = new S.Component(),
       height = 0;
   c.alias = 'tree';
 
+
+  c.init = function() {
+    c.tree = copyTree(tree, null);
+    c.state = tree;
+    height = computeHeights(c.tree);
+    computeHeights(c.tree);
+  }
+      
+  c.height = function() {
+    return height;
+  }
+  
   function node(value) {
     return {
       value: value,
@@ -10,16 +22,6 @@ S.component('tree', function (tree, view) {
       right: null,
       sid: S.nextId()
     };
-  }
-
-  c.init = function() {
-    c.tree = copyTree(tree, null);
-    height = computeHeights(c.tree);
-    computeHeights(c.tree);
-  }
-      
-  c.height = function() {
-    return height;
   }
   
   function copyTree(_node, parent) {
@@ -67,13 +69,27 @@ S.component('tree', function (tree, view) {
   }
 
   c.live.remove = function(node) {
-    if(node.parent) {
+    /*if(node.parent) {
       if(node.parent.left == node) {
+        console.info('Setting parent.left to null');
         node.parent.left = null;
       } else {
+        console.info('Setting parent.right to null');
         node.parent.right = null;
       }
+    }*/
+    
+    if(node.parent && node.parent.left == node) {
+        console.info('Setting parent.left to null');
+        node.parent.left = null;
+    } else if(node.parent && node.parent.right == node) {
+        console.info('Setting parent.right to null');
+        node.parent.right = null;
+    } else {
+        console.info('node.parent doesn\'t exist.');
     }
+    
+    c.computeHeights();
   }
 
   c.live.mark = null;

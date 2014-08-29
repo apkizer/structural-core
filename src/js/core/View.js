@@ -7,7 +7,7 @@ S.View = (function($){
     this.$element = $('<div></div>').addClass(S.config.viewClass);
   }
 
-  View.prototype = Object.create(S.EventEmitter.prototype);
+  View.prototype = Object.create(S.EventEmitter.prototype); 
 
   View.prototype.init = function() {
     //

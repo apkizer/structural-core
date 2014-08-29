@@ -87,3 +87,27 @@ QUnit.test('tree.live.isBinary', function(assert) {
   assert.ok(tree.deferredContext.isBinary(), 'equivalence tree is bst');
 });
 
+
+// tree tests
+
+QUnit.test('tree (creation)', function(assert) {
+  var node = function(value) {
+    return {
+      value: value,
+      left: null,
+      right: null
+    }
+  },
+      root = node(8);
+  
+  root.left = node(10);
+  root.right = node(5);
+  root.left.left = node(45);
+  root.left.right = node(63);
+  root.right.left = node(3);
+  root.right.right = node(24);
+  
+  var tree = S.components.tree(root);
+  
+  assert.equal(tree.getState(), root, 'tree.getState() is root');
+});

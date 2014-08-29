@@ -1,5 +1,5 @@
 S.view('tree', function () {
-  var view = new S.View(), //S.baseView(),
+  var view = new S.View(),//new S.View(), //S.baseView(),
     data = S.map(), // stores data about nodes
     $e,
     dom_svg,
@@ -28,7 +28,7 @@ S.view('tree', function () {
    */
 
   view.init = function() {
-
+    
   }
 
 
@@ -75,7 +75,7 @@ S.view('tree', function () {
   }
 
   function drawNode(node, x, y) {
-    return circle = s_svg.circle(x + x0, y + y0, nodeRadius)
+    return circle = s_svg.circle(x + x0, y + y0 + 2, nodeRadius)
       .addClass('tree-node');
   }
   
@@ -345,7 +345,6 @@ S.view('tree', function () {
             element.remove();
           }
         });
-        view.component.computeHeights();
         view.render();
         fn();
       }
