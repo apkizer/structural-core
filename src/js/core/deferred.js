@@ -95,7 +95,8 @@ S.Deferred = (function(){
   }
 
   Deferred.prototype.include = function (wrappable) {
-    var self = this;
+    var self = this,
+        clone;
 
     if (typeof wrappable.getSync === 'undefined' || typeof wrappable.getAsync === 'undefined') {
       return console.warn('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
@@ -103,7 +104,8 @@ S.Deferred = (function(){
 
     if (!wrappable.noCopy) {
       console.info('Deferred copying ' + wrappable);
-      var clone = wrappable.copy();
+      //var clone = wrappable.copy();
+      clone = new wrappable.constructor(wrappable.state);
     }
     console.groupCollapsed('Wrapping methods of \'%s\'', wrappable.alias || wrappable);
     for (var prop in wrappable.getSync()) {

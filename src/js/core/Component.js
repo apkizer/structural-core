@@ -1,43 +1,33 @@
 S.Component = (function() {
 
-  function Component(name, view, state) {
-    console.info('Component being created. name is %s. view is %s. state is %s', name, view, state);
-    this.name = name;
-    //this.live = {};
-    this.state = state;
+  function Component(state, view) {
+    if(state)
+      this.state = state;
     if(view)
-      this.setView(view);
+      this.view = view;
   }
 
   Component.prototype = Object.create(S.EventEmitter.prototype);
-  
-  Component.prototype.live = {};
 
-  Component.prototype.setView = function(view) {
-    this.view = view;
-    view.component = this;
-    view.init();
-  }
-  
-  Component.prototype.getState = function() {
-    return this.state;
-  }
+  Object.defineProperty(Component.prototype, 'view', {
+    get: function() {
+      return this._view;
+    },
+    set: function(view) {
+      this._view = view;
+      view.component = this;
+      view.init();
+    }
+  });
 
-  Component.prototype.copy = function() {
-    //
-  }
-
-  Component.prototype.serialize = function() {
-    //
-  }
-
-  Component.prototype.deserialize = function() {
-    //
-  }
-
-  Component.prototype.getConfigTemplate = function() {
-  
-  }
+  Object.defineProperty(Component.prototype, 'state', {
+    get: function() {
+      return this._state;
+    },
+    set: function(state) {
+      this._state = state;
+    }
+  });
 
   // wrappable:
 

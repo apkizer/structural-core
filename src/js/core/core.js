@@ -24,13 +24,31 @@ S.defineComponent = function(name, factoryFunction, noDefault) {
       // give default view
       if(S.views[name]) {
         console.log('setting view ' + name);
-        component.setView(S.views[name]());
-        
+        component.view = S.views[name]();
       }
       // initialize component
       if(component.init) component.init();
       return component;
     }
+}
+
+S.defineComponent2 = function(name, ctor, noDefault) {
+  components[name] = ctor;
+  S.components[name] = function(state, view) {
+    var component = new components[name](state, view);
+
+    if(S.config.provideDefaultDeferredContext && !noDefault) {
+      provideDefaultDeferredContext(component);
+    }
+
+    if(S.views[name]) {
+      component.view = S.views[name]();
+    }
+
+    //if(component.init) component.init();
+
+    return component;
+  }
 }
 
 S.defineMethodOn = function(name, methodName, func) {

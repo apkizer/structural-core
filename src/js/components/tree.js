@@ -1,7 +1,10 @@
+
+
 S.component('tree', function (tree, view) {
   var c = new S.Component(),
       height = 0;
   c.alias = 'tree';
+  c.live = {};
 
 
   c.init = function() {
@@ -10,7 +13,7 @@ S.component('tree', function (tree, view) {
     height = computeHeights(c.tree);
     computeHeights(c.tree);
   }
-      
+
   c.height = function() {
     return height;
   }
