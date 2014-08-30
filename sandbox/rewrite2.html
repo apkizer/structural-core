@@ -1,0 +1,62 @@
+<html>
+<head>
+    <title>structural-core 4</title>
+    <script type="text/javascript" src="../lib/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
+    <script type="text/javascript" src="../build/structural.js"></script>
+    <link rel="stylesheet" type="text/css" href="../build/structural.css"></link>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var node = function(value) {
+                return {
+                    value: value,
+                    left: null,
+                    right: null
+                };
+            };
+            var scaling = true;
+
+            var root = node(17);
+            root.left = node(16);
+            root.right = node(18);
+            root.left.left = node(12);
+            root.left.left.right = node(13);
+
+            var treeOne = S.components.tree(root);
+
+            var scope = new S.Scope(treeOne);
+
+            window.scope = scope;
+            window.tree = scope.interface.handle();
+            window.queue = scope.queue;
+
+            scope.queue.open();
+
+            treeOne.view.scaleTo({
+                width: 500,
+                height: 600
+            });
+
+            $('body').append(treeOne.view.render());
+            $(document).mousemove(function(event) {
+                if(!scaling) return;
+                treeOne.view.scaleTo({
+                    width: event.pageX,
+                    height: event.pageY
+                });
+            });
+
+            $(document).click(function(event){
+                scaling = false;
+            });
+
+        });
+    </script>
+</head>
+<body>
+<div class="wrap" style="text-align: center;">
+
+</div>
+<div class="console"></div>
+</body>
+</html>

@@ -583,6 +583,295 @@ window.S = (function ($) {
     })();
 
 
+    S.AsyncFunctionQueue = (function () {
+
+        function AsyncFunctionQueue() {
+            this.functionList = []; // the array of functions.
+            this.position = 0; // the last function executed. -1 if no functions have been executed.
+            this.sleep = 100; // the time to wait between executing functions after `exec` is called.
+            this.states = []; //
+            this._open = false; // If true, auto execution is enabled.
+            this.executing = false; // True while executing.
+        }
+
+        /**
+         * Pushes a function to the queue. If auto execution is enabled, the function is called.
+         * @param fn This should accept a callback as its last parameter.
+         */
+        AsyncFunctionQueue.prototype.push = function (fn) {
+            this.functionList.push(fn);
+            console.log('length is now ' + this.functionList.length);
+            if (this._open && !this.executing) {
+                console.log('Mode is open, executing...');
+                this.exec();
+            }
+            console.dir(this.functionList);
+
+        }
+
+        /**
+         * Stops execution, clears all functions, and sets `position` to 0.
+         */
+        AsyncFunctionQueue.prototype.clear = function () {
+            /*this.executing = false;
+    this.functionList = [];
+    this.last = -1;*/
+        }
+
+        /**
+         * Executes the next function and increments `position` on its completion.
+         */
+        AsyncFunctionQueue.prototype.next = function (fn) {
+            var self = this;
+            // TODO bind self as this?
+            this.functionList[this.position].call(self, function () {
+                self.position++;
+                fn();
+            });
+        }
+
+        /**
+         * Begins executing all functions starting with the next function.
+         */
+        AsyncFunctionQueue.prototype.exec = function () {
+            console.groupCollapsed('AsyncFunctionQueue executing');
+            this.executing = true;
+            var self = this;
+
+            function iteration() {
+                if (self.position >= self.functionList.length || !self.executing || !self.functionList[self.position]) {
+                    self.executing = false;
+                    console.groupEnd();
+                    return;
+                }
+                self.next(function () {
+                    setTimeout(iteration, self.sleep);
+                });
+            }
+
+            iteration();
+        }
+
+        /**
+         * Pauses execution.
+         */
+        AsyncFunctionQueue.prototype.pause = function () {
+            this.executing = false;
+        }
+
+        /**
+         * Enables auto execution. Functions are run as they are pushed.
+         */
+        AsyncFunctionQueue.prototype.open = function () {
+            this._open = true;
+            this.exec();
+        }
+
+        /**
+         * Disables auto execution and stops current execution. Function "pile up".
+         */
+        AsyncFunctionQueue.prototype.close = function () {
+            this._open = false;
+            this.executing = false;
+        }
+
+        Object.defineProperty(AsyncFunctionQueue.prototype, 'length', {
+            get: function () {
+                return this.functionList.length;
+            }
+        });
+
+        Object.defineProperty(AsyncFunctionQueue.prototype, 'completion', {
+            get: function () {
+                return this.position / this.functionList.length;
+            }
+        });
+
+        return AsyncFunctionQueue;
+
+    })();
+
+
+
+
+
+    S.DeferredInterface = (function () {
+
+        function DeferredInterface(queue) {
+            S.EventEmitter.call(this); // TODO phase out?
+            this.queue = queue;
+            this.interface = function (key, value) {
+                if (typeof value === 'undefined')
+                    return this.interface.get(key);
+                this.interface.set(key, value);
+            };
+            this.include(getStandardWrappable());
+        };
+
+        DeferredInterface.prototype = Object.create(S.EventEmitter.prototype);
+
+        DeferredInterface.prototype.handle = function () {
+            return this.interface;
+        }
+
+        DeferredInterface.prototype.add = function (name, func) {
+            func.bind(this.interface);
+            this.interface[name] = func;
+        }
+
+        DeferredInterface.prototype.include = function (wrappable) {
+
+            console.info('Including ' + wrappable);
+
+            var self = this,
+                clone;
+
+            console.assert(wrappable.getSync && wrappable.getAsync, 'wrappable satisfies interface.');
+
+            if (!wrappable.noCopy) {
+                console.info('Deferred copying ' + wrappable);
+                //var clone = wrappable.copy();
+                clone = new wrappable.constructor(wrappable.state);
+            }
+
+            console.groupCollapsed('Wrapping methods of \'%s\'', wrappable.alias || wrappable);
+
+            for (var prop in wrappable.getSync()) {
+                console.log('Wrapping \'%s\'', prop);
+                this.interface[prop] =
+                // inject property; otherwise, pushed functions will all reference last iterated property
+                (function (property, clone) {
+
+                    var deferredMethod = function () {
+                        var args = Array.prototype.slice.call(arguments), // convert arguments to an array
+                            ret; // = null; // proxy return of sync portion
+                        //null indicates that the method is async only (superficial)
+                        if (wrappable.getSync()[property] !== null) {
+                            //do now
+                            if (wrappable.noCopy)
+                                ret = wrappable.live[property].apply({}, args);
+                            else {
+                                //console.log('calling clone');
+                                ret = clone.getSync()[property].apply({}, args);
+                            }
+                        }
+                        //push async & sync if found on view:
+                        var pushFn;
+                        if (wrappable.getAsync().hasOwnProperty(property) && wrappable.getSync()[property] !== null) {
+                            // both
+                            pushFn = function (fn) {
+                                wrappable.getSync()[property].apply(wrappable.getSync(), args);
+                                wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn)); // concat callback
+                            }
+                        } else if (wrappable.getSync()[property] !== null) {
+                            // sync only
+                            pushFn = function (fn) {
+                                wrappable.getSync()[property].apply(wrappable.getSync(), args);
+                                fn();
+                            }
+                        } else if (wrappable.getAsync().hasOwnProperty(property)) {
+                            // async only
+                            pushFn = function (fn) {
+                                wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn)); // concat callback
+                            }
+                        } else {
+                            // declared as async only, but method not found on view.
+                            console.log('method ' + property.toString() + ' was declared as async only (null), but no corresponding view method was found.');
+                            pushFn = false;
+                        }
+                        if (pushFn)
+                            self.queue.push.call(self.queue, pushFn);
+                        self.fire('push', self);
+                        if (ret !== null)
+                            return ret;
+                    };
+
+
+                    return deferredMethod;
+                })(prop, clone);
+            }
+            console.groupEnd();
+            /* now, add in defined methods */
+
+            if (wrappable.getMethods) {
+                var methods = wrappable.getMethods();
+                console.groupCollapsed('Adding defined methods of \'%s\'', wrappable.alias || wrappable);
+                for (var method in methods) {
+                    console.log('Adding ' + method);
+                    this.add(method, methods[method]);
+                }
+            } else {
+                //console.log('no getMethods found');
+            }
+            console.groupEnd();
+        }
+
+        function getStandardWrappable() {
+            var standard = S.simpleWrappable(),
+                vars = {};
+
+            standard.live.log = function (str) {
+                console.log(str);
+            }
+
+            standard.live.warn = function (msg) {
+                console.warn(msg);
+            }
+
+            standard.live.set = function (key, value) {
+                vars[key] = value;
+            }
+
+            standard.live.get = function (key) {
+                return vars[key];
+            }
+
+            standard.live.is = function (key, value) {
+                return vars[key] === value;
+            }
+
+            standard.live.flog = null;
+
+            standard.async.flog = function (str, fn) {
+                console.log(str);
+                fn();
+            };
+
+            standard.live.fwarn = null;
+
+            standard.async.fwarn = function (str, fn) {
+                console.warn(str);
+                fn();
+            };
+
+            return standard;
+        }
+
+
+        return DeferredInterface;
+    })();
+
+
+    S.Scope = (function () {
+
+        function Scope(items) {
+            this.queue = new S.AsyncFunctionQueue();
+            this.interface = new S.DeferredInterface(this.queue);
+            this.include(items);
+        }
+
+        Scope.prototype.include = function (items) {
+            if (Array.isArray(items)) {
+                items.forEach(this.interface.include);
+            } else {
+                this.interface.include(items);
+            }
+        };
+
+        return Scope;
+
+    })();
+
     S.component = function (name, factory, meta) {
         S.defineComponent(name, factory, false);
         if (meta)
