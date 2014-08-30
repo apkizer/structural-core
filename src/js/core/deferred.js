@@ -1,6 +1,7 @@
 S.Deferred = (function(){
 
   function Deferred() {
+    S.EventEmitter.call(this);
     this.context = function(key, value) {
       // expects std component
       if (typeof value === 'undefined')
@@ -13,7 +14,7 @@ S.Deferred = (function(){
     this.executing = false;
     this.stepTime = 50;
 
-    $.extend(this, new S.EventEmitter());
+    //$.extend(this, new S.EventEmitter());
 
     this.on('push', function(event) {
       if (open && !this.executing) {
@@ -23,6 +24,8 @@ S.Deferred = (function(){
     });
 
   };
+
+  Deferred.prototype = Object.create(S.EventEmitter.prototype);
 
   Deferred.prototype.close = function() {
     this.open = false;

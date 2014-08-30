@@ -1,4 +1,4 @@
-S.EventEmitter = (function(){
+/*S.EventEmitter = (function(){
 
   function EventEmitter() {
     this.registeredEvents = {};
@@ -20,7 +20,26 @@ S.EventEmitter = (function(){
 
   return EventEmitter;
 
-})();
+})();*/
+
+S.EventEmitter = function () {
+  this.registeredEvents = {};
+}
+
+S.EventEmitter.prototype.on = function(eventName, fn) {
+  if(!this.registeredEvents[eventName])//typeof this.registeredEvents[eventName] === 'undefined')
+    this.registeredEvents[eventName] = [];
+  this.registeredEvents[eventName].push(fn);
+};
+
+S.EventEmitter.prototype.fire = function(eventName, event) {
+  if(!this.registeredEvents[eventName])//typeof this.registeredEvents[eventName] === 'undefined')
+    return;
+  for(var i = 0; i < this.registeredEvents[eventName].length; i++) {
+    this.registeredEvents[eventName][i].call(event, event);
+  }
+};
+
 
 S.ee = function() {
   var ee = {};

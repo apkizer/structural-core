@@ -86,7 +86,7 @@ S.view('tree2', function () {
   }
 
   function drawValue(value, x, y) {
-    return s_svg.text(x + x0 /*- 10*/, y + y0 + nodeRadius * .5, value + '')
+    return s_svg.text(x + x0 /*- 10*/, y + y0 + nodeRadius * .5 + 2, value + '')
       .addClass('tree-node-value')
       .attr('text-anchor', 'middle')
       .attr('font-size', nodeRadius * 1.25);

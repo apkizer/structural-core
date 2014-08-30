@@ -1,6 +1,4 @@
 /* Structural, by Alex Kizer */
-
-
 window.S = (function ($) {
     "use strict";
     var S = {};
@@ -162,29 +160,48 @@ window.S = (function ($) {
     S.wait = function (func, time) {
         setTimeout(func, time);
     }
-    S.EventEmitter = (function () {
+    /*S.EventEmitter = (function(){
 
-        function EventEmitter() {
-            this.registeredEvents = {};
+  function EventEmitter() {
+    this.registeredEvents = {};
+  }
+
+  EventEmitter.prototype.on = function(eventName, fn) {
+    if(!this.registeredEvents[eventName])//typeof this.registeredEvents[eventName] === 'undefined')
+      this.registeredEvents[eventName] = [];
+    this.registeredEvents[eventName].push(fn);
+  };
+
+  EventEmitter.prototype.fire = function(eventName, event) {
+    if(!this.registeredEvents[eventName])//typeof this.registeredEvents[eventName] === 'undefined')
+      return;
+    for(var i = 0; i < this.registeredEvents[eventName].length; i++) {
+      this.registeredEvents[eventName][i].call(event, event);
+    }
+  };
+
+  return EventEmitter;
+
+})();*/
+
+    S.EventEmitter = function () {
+        this.registeredEvents = {};
+    }
+
+    S.EventEmitter.prototype.on = function (eventName, fn) {
+        if (!this.registeredEvents[eventName]) //typeof this.registeredEvents[eventName] === 'undefined')
+            this.registeredEvents[eventName] = [];
+        this.registeredEvents[eventName].push(fn);
+    };
+
+    S.EventEmitter.prototype.fire = function (eventName, event) {
+        if (!this.registeredEvents[eventName]) //typeof this.registeredEvents[eventName] === 'undefined')
+            return;
+        for (var i = 0; i < this.registeredEvents[eventName].length; i++) {
+            this.registeredEvents[eventName][i].call(event, event);
         }
+    };
 
-        EventEmitter.prototype.on = function (eventName, fn) {
-            if (!this.registeredEvents[eventName]) //typeof this.registeredEvents[eventName] === 'undefined')
-                this.registeredEvents[eventName] = [];
-            this.registeredEvents[eventName].push(fn);
-        };
-
-        EventEmitter.prototype.fire = function (eventName, event) {
-            if (!this.registeredEvents[eventName]) //typeof this.registeredEvents[eventName] === 'undefined')
-                return;
-            for (var i = 0; i < this.registeredEvents[eventName].length; i++) {
-                this.registeredEvents[eventName][i].call(event, event);
-            }
-        };
-
-        return EventEmitter;
-
-    })();
 
     S.ee = function () {
         var ee = {};
@@ -384,6 +401,7 @@ window.S = (function ($) {
     S.Deferred = (function () {
 
         function Deferred() {
+            S.EventEmitter.call(this);
             this.context = function (key, value) {
                 // expects std component
                 if (typeof value === 'undefined')
@@ -396,7 +414,7 @@ window.S = (function ($) {
             this.executing = false;
             this.stepTime = 50;
 
-            $.extend(this, new S.EventEmitter());
+            //$.extend(this, new S.EventEmitter());
 
             this.on('push', function (event) {
                 if (open && !this.executing) {
@@ -406,6 +424,8 @@ window.S = (function ($) {
             });
 
         };
+
+        Deferred.prototype = Object.create(S.EventEmitter.prototype);
 
         Deferred.prototype.close = function () {
             this.open = false;
@@ -1998,7 +2018,7 @@ S.view('tree2', function () {
     }
 
     function drawValue(value, x, y) {
-        return s_svg.text(x + x0 /*- 10*/ , y + y0 + nodeRadius * .5, value + '')
+        return s_svg.text(x + x0 /*- 10*/ , y + y0 + nodeRadius * .5 + 2, value + '')
             .addClass('tree-node-value')
             .attr('text-anchor', 'middle')
             .attr('font-size', nodeRadius * 1.25);

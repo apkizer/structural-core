@@ -2,6 +2,8 @@
 .tree-svg {
     width: 100%;
     height: 100%;
+    -webkit-user-select: none;
+    cursor: default;
 }
 
 .tree-node {
@@ -9,6 +11,7 @@
     stroke: #000;
     stroke-width: 2;
     z-index: 100;
+    transition: .25s;
 }
 
 .tree-node-label {
