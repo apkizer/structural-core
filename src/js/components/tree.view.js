@@ -13,24 +13,28 @@ S.view('tree', function () {
     x0, // x offset
     y0; // y offset
 
+  view.scaleTo({
+    width: 500,
+    height: 300
+  });
+
   /*
-  example node data:
-  {
-    x: 100,
-    y: 100,
-    element: [svg element],
-    leftLine: [svg element],
-    rightLine: [svg element],
-    label: 'some text',
-    s_value: [svg element],
-    s_height: [svg element]
-  }
+   example node data:
+   {
+   x: 100,
+   y: 100,
+   element: [svg element],
+   leftLine: [svg element],
+   rightLine: [svg element],
+   label: 'some text',
+   s_value: [svg element],
+   s_height: [svg element]
+   }
    */
 
   view.init = function() {
-    
-  }
 
+  }
 
   view.scaleTo = function(dimensions) {
     //console.log('scaling tree');
@@ -43,7 +47,7 @@ S.view('tree', function () {
     mh = view.config.mh || mv + nodeRadius / 2;
     view.$element.width(width);
     view.$element.height(height);
-    view.render(); 
+    view.render();
   }
 
   view.render = function() {
@@ -57,14 +61,14 @@ S.view('tree', function () {
       .appendTo($e);
     s_svg = Snap(dom_svg);
     s_svg.addClass('tree-svg');
-    rg(view.component.tree, data, {
+    rg(view.component.getState(), data, {
       mh: mh,
       mv: mv,
       x0: x0,
       y0: y0
     });
-    drawLines(view.component.tree);
-    allNodes(view.component.tree, function(node) {
+    drawLines(view.component.getState());
+    allNodes(view.component.getState(), function(node) {
       data(node).element = drawNode(node, data(node).x, data(node).y);
       data(node).s_value = drawValue(node.value, data(node).x, data(node).y);
       data(node).s_height = drawHeight(node);
@@ -78,7 +82,7 @@ S.view('tree', function () {
     return circle = s_svg.circle(x + x0, y + y0 + 2, nodeRadius)
       .addClass('tree-node');
   }
-  
+
   function drawLabel(node, label) {
     return s_svg.text(data(node).x + x0 + nodeRadius + 5, data(node).y + y0 + nodeRadius / 2 - 3, '/' + label)
       .addClass('tree-node-label')
@@ -87,7 +91,7 @@ S.view('tree', function () {
   }
 
   function drawValue(value, x, y) {
-    return s_svg.text(x + x0 /*- 10*/, y + y0 + nodeRadius * .5, value + '')
+    return s_svg.text(x + x0 /*- 10*/, y + y0 + nodeRadius * .5 + 2, value + '')
       .addClass('tree-node-value')
       .attr('text-anchor', 'middle')
       .attr('font-size', nodeRadius * 1.25);
@@ -97,7 +101,7 @@ S.view('tree', function () {
     return s_svg.line(xi + x0, yi + y0, xf + x0, yf + y0)
       .addClass('tree-line');//.attr('stroke', 'black');
   }
-  
+
   function drawHeight(node) {
     return s_svg.text(data(node).x + x0 - nodeRadius - nodeRadius * .85, data(node).y + y0 + nodeRadius / 2 - 3, node.height + '')
       .attr('font-size', nodeRadius)
@@ -114,14 +118,14 @@ S.view('tree', function () {
    * @param root
    */
   function drawLines(root) {
-      if(root.left) {
-          data(root).leftLine = drawLine(data(root).x, data(root).y, data(root.left).x, data(root.left).y);
-          drawLines(root.left);
-      }
-      if(root.right) {
-          data(root).rightLine = drawLine(data(root).x, data(root).y, data(root.right).x, data(root.right).y);
-          drawLines(root.right);
-      }
+    if(root.left) {
+      data(root).leftLine = drawLine(data(root).x, data(root).y, data(root.left).x, data(root.left).y);
+      drawLines(root.left);
+    }
+    if(root.right) {
+      data(root).rightLine = drawLine(data(root).x, data(root).y, data(root.right).x, data(root.right).y);
+      drawLines(root.right);
+    }
   }
 
   function allNodes(root, func) {
@@ -131,8 +135,8 @@ S.view('tree', function () {
       allNodes(root.right, func);
     }
   }
-  
-  
+
+
   view.live.focusOn = function(node, fn) {
     if(!node) return;
     var circle = data(node).element
@@ -146,7 +150,7 @@ S.view('tree', function () {
     });
     fn();
   }
-  
+
   view.live.add = function(parent, direction, value, fn) {
     if(direction) {
       data(parent.right).doNotDraw = true;
@@ -159,18 +163,18 @@ S.view('tree', function () {
       height: height
     });
     view.render();
-    /*rg(view.component.tree, data, {
-      xProperty: 'newX',
-      yProperty: 'newY'
-    }); */
-    //moveToNewPositions(view.component.tree);
+    /*rg(view.component.getState(), data, {
+     xProperty: 'newX',
+     yProperty: 'newY'
+     }); */
+    //moveToNewPositions(view.component.getState());
     fn();
   }
 
   function moveToNewPositions(root) {
     if(root) {
       var _data = data(root),
-          circle = data.element;
+        circle = data.element;
       if(circle) {
         circle.animate({
           x: _data.newX,
@@ -183,7 +187,7 @@ S.view('tree', function () {
       moveToNewPositions(root.right);
     }
   }
-  
+
   view.live.travel = function(parent, direction, fn) {
     if(direction) {
       if(data(parent).rightLine) {
@@ -221,7 +225,7 @@ S.view('tree', function () {
       }
     }
   };
-  
+
   view.live.label = function(node, label, fn) {
     if(node && data(node)) {
       data(node).label = label;
@@ -231,10 +235,10 @@ S.view('tree', function () {
       fn();
     }
   }
-  
+
   view.live.setNode = function(node, value, fn) {
     var s_node = data(node).element,
-        s_value = data(node).s_value;
+      s_value = data(node).s_value;
     S.wait(function() {
       s_node.addClass('tree-remove');
       s_value.addClass('tree-remove');
@@ -244,7 +248,7 @@ S.view('tree', function () {
           .attr('text', value);
         fn();
       }, 300);
-    }, 200); 
+    }, 200);
   }
 
   view.live.clear = function(fn) {
@@ -284,7 +288,6 @@ S.view('tree', function () {
 
   view.live.height = function(node, show, fn) {
     if(!node || !data(node).s_height) return;
-    console.log('s_height = ' + data(node).s_height);
     if(show)
       data(node).s_height.attr('visibility', 'visible');
     else
@@ -294,9 +297,9 @@ S.view('tree', function () {
 
   view.live.remove = function(node, fn) {
     var elements = getTreeElements(node),
-        parent = node.parent,
-        count = 0,
-        max;
+      parent = node.parent,
+      count = 0,
+      max;
 
     if(parent.left == null) {
       elements.push(data(parent).leftLine);
@@ -337,9 +340,7 @@ S.view('tree', function () {
     });
 
     function checkIfAllRemoved() {
-      console.log('allremoved, count max ' + count + ' ' + max);
       if(count >= max) {
-        console.log('all removed!');
         elements.forEach(function(element) {
           if(element) {
             element.remove();
@@ -354,14 +355,12 @@ S.view('tree', function () {
   function getTreeElements(root) {
     var ret = [];
     if(root) {
-      console.log('element is ' + data(root).element);
       ret.push(data(root).element);
       ret.push(data(root).s_height);
       ret.push(data(root).s_value);
       ret.push(data(root).s_label);
       ret.push(data(root).leftLine);
       ret.push(data(root).rightLine);
-      console.log('returning ' + ret.concat( getTreeElements(root.left).concat(getTreeElements(root.right)) ));
       return ret.concat( getTreeElements(root.left).concat(getTreeElements(root.right)) );
     }
     return ret;
@@ -394,21 +393,21 @@ S.view('tree', function () {
 
   view.add = function(parent_s, left, value, fn) {
     /*nodes(parent_s, getNodeElement(value));
-    rg(view.component.tree, data, view.config);
-    nodes.forEach(function(pair){
-      move(nodes(pair[0]), pair[1].x, pair[1].y, function(){
-        $e.append(nodes(parent_s));
-      });
-    });*/
+     rg(view.component.getState(), data, view.config);
+     nodes.forEach(function(pair){
+     move(nodes(pair[0]), pair[1].x, pair[1].y, function(){
+     $e.append(nodes(parent_s));
+     });
+     });*/
   }
 
   function move($elem, x, y, fn) {
     /*$elem.animate({
-      left: x,
-      top: y
-    }, 250, function(){
-      fn();
-    });*/
+     left: x,
+     top: y
+     }, 250, function(){
+     fn();
+     });*/
   }
 
   /**
@@ -652,9 +651,9 @@ S.view('tree', function () {
       store(root)[config.xProperty] = root.x;
       store(root)[config.yProperty] = root.y;
       /*store(root, {
-        x: root.x,
-        y: root.y
-      });*/
+       x: root.x,
+       y: root.y
+       });*/
       copyToStore(root.left, store);
       copyToStore(root.right, store);
     }

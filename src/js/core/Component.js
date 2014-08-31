@@ -2,12 +2,16 @@ S.Component = (function() {
 
   function Component(state, view) {
     if(state)
-      this.state = state;
+      this.setState(state);
     if(view)
       this.view = view;
   }
 
   Component.prototype = Object.create(S.EventEmitter.prototype);
+
+  Component.prototype.getState = function() {
+    return this.state;
+  }
 
   Object.defineProperty(Component.prototype, 'view', {
     get: function() {
@@ -20,14 +24,14 @@ S.Component = (function() {
     }
   });
 
-  Object.defineProperty(Component.prototype, 'state', {
+  /*Object.defineProperty(Component.prototype, 'state', {
     get: function() {
       return this._state;
     },
     set: function(state) {
       this._state = state;
     }
-  });
+  });*/
 
   // wrappable:
 
@@ -40,7 +44,7 @@ S.Component = (function() {
   }
 
   Component.prototype.getMethods = function() {
-    return S.getComponentMethods(this.name);
+    return S.getComponentMethods(this.alias);
   }
 
   return Component;

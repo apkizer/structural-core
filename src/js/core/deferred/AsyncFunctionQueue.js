@@ -1,5 +1,11 @@
 S.AsyncFunctionQueue = (function(){
 
+  /**
+   * Constructs a new Asynchronous Function Queue. This is a list of functions that run asynchronous code,
+   * such as animating elements on the page or making ajax requests. Each function should accept the callback
+   * parameter as its final parameter, and call this callback to signal the completion of the function.
+   * @constructor
+   */
   function AsyncFunctionQueue() {
     this.functionList = []; // the array of functions.
     this.position = 0; // the current function to be executed.
@@ -87,12 +93,18 @@ S.AsyncFunctionQueue = (function(){
     this.executing = false;
   }
 
+  /**
+   * Returns the number of functions on the queue.
+   */
   Object.defineProperty(AsyncFunctionQueue.prototype, 'length', {
     get: function() {
       return this.functionList.length;
     }
   });
 
+  /**
+   * Returns the number of current position / the number of functions on the queue.
+   */
   Object.defineProperty(AsyncFunctionQueue.prototype, 'completion', {
     get: function() {
       return this.position / this.functionList.length;

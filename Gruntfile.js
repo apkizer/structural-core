@@ -22,9 +22,9 @@ module.exports = function(grunt) {
                     'src/js/core/standardComponent.js',
                     'src/js/core/Deferred.js',
 
-                    'src/js/core/AsyncFunctionQueue.js',
-                    'src/js/core/DeferredInterface.js',
-                    'src/js/core/Scope.js',
+                    'src/js/core/deferred/AsyncFunctionQueue.js',
+                    'src/js/core/deferred/DeferredInterface.js',
+                    'src/js/core/deferred/Scope.js',
 
                     'src/js/core/api.js',
                     'src/js/core/footer.js',

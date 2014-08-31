@@ -75,9 +75,9 @@ window.S = (function ($) {
     }
 
     function provideDefaultDeferredContext(component) {
-        component.def = new S.Deferred(); //S.deferred();
-        component.def.wrap(component);
-        component.deferredContext = component.def.getContext();
+        /*component.def = new S.Deferred(); //S.deferred();
+  component.def.wrap(component);
+  component.deferredContext = component.def.getContext();       */
     }
 
     S.setDefaultView = function (name, factory) {
@@ -227,12 +227,16 @@ window.S = (function ($) {
 
         function Component(state, view) {
             if (state)
-                this.state = state;
+                this.setState(state);
             if (view)
                 this.view = view;
         }
 
         Component.prototype = Object.create(S.EventEmitter.prototype);
+
+        Component.prototype.getState = function () {
+            return this.state;
+        }
 
         Object.defineProperty(Component.prototype, 'view', {
             get: function () {
@@ -245,14 +249,14 @@ window.S = (function ($) {
             }
         });
 
-        Object.defineProperty(Component.prototype, 'state', {
-            get: function () {
-                return this._state;
-            },
-            set: function (state) {
-                this._state = state;
-            }
-        });
+        /*Object.defineProperty(Component.prototype, 'state', {
+    get: function() {
+      return this._state;
+    },
+    set: function(state) {
+      this._state = state;
+    }
+  });*/
 
         // wrappable:
 
@@ -265,7 +269,7 @@ window.S = (function ($) {
         }
 
         Component.prototype.getMethods = function () {
-            return S.getComponentMethods(this.name);
+            return S.getComponentMethods(this.alias);
         }
 
         return Component;
@@ -324,270 +328,17 @@ window.S = (function ($) {
     })(jQuery);
 
 
-    S.simpleWrappable = function () {
-        var wrappable = {
-            live: {},
-            async: {}
-        };
-
-        wrappable.noCopy = true;
-
-        wrappable.getSync = function () {
-            return wrappable.live;
-        }
-
-        wrappable.getAsync = function () {
-            return wrappable.async;
-        }
-
-        return wrappable;
-    }
-
-    S.defineComponent('std', function () {
-        var std = S.simpleWrappable(),
-            vars = {},
-            errors = [],
-            warnings = [];
-
-        std.live.errors = function () {
-            return errors;
-        }
-
-        std.live.throwError = function (err) {
-            errors.push(err);
-        }
-
-        std.live.warnings = function () {
-            return warnings;
-        }
-
-        std.live.warn = function (msg) {
-            console.log('warning: ' + msg);
-            warnings.push(msg);
-        }
-
-        std.live.set = function (key, value) {
-            vars[key] = value;
-        }
-
-        std.live.get = function (key) {
-            return vars[key];
-        }
-
-        std.live.is = function (key, value) {
-            return vars[key] === value;
-        }
-
-        std.live.log = function (str) {
-            console.log(str);
-        }
-
-        std.live.flog = null;
-
-        std.live.falert = null;
-
-        std.async.falert = function (str, fn) {
-            window.alert(str);
-            fn();
-        }
-
-        std.async.flog = function (str, fn) {
-            console.log(str);
-            fn();
-        }
-
-        return std;
-    }, true);
-    S.Deferred = (function () {
-
-        function Deferred() {
-            S.EventEmitter.call(this);
-            this.context = function (key, value) {
-                // expects std component
-                if (typeof value === 'undefined')
-                    return this.context.get(key);
-                this.context.set(key, value);
-            };
-            this.fns = [];
-            this.last = 0;
-            this.open = true;
-            this.executing = false;
-            this.stepTime = 50;
-
-            //$.extend(this, new S.EventEmitter());
-
-            this.on('push', function (event) {
-                if (open && !this.executing) {
-                    console.log('mode is open; executing...');
-                    this.exec();
-                }
-            });
-
-        };
-
-        Deferred.prototype = Object.create(S.EventEmitter.prototype);
-
-        Deferred.prototype.close = function () {
-            this.open = false;
-            this.executing = false;
-        };
-
-        Deferred.prototype.open = function () {
-            this.open = true;
-            if (this.fns.length > 0)
-                this.exec();
-        };
-
-        Object.defineProperty(Deferred.prototype, 'length', {
-            get: function () {
-                console.log('length get')
-                return this.fns.length;
-            }
-        });
-
-        Object.defineProperty(Deferred.prototype, 'completion', {
-            get: function () {
-                return this.last / this.length;
-            }
-        });
-
-        Deferred.prototype.exec = function () {
-            this.executing = true;
-            var i = this.last,
-                self = this;
-            //console.log('statements: ' + deferred.getLength());
-
-            function doNext() {
-                if (i >= self.fns.length) {
-                    //context.fire('end', {}); // remove? todo create event obj
-                    self.executing = false;
-                    return;
-                }
-                if (!self.executing) {
-                    return;
-                }
-                // context.fire('update', {}); TODO !!!!!!!
-                self.last++;
-                self.fns[i++].call({}, function () {
-                    //setTimeout(doNext, 50);
-                    console.log('doing next...');
-                    S.wait(doNext, self.stepTime);
-                });
-            }
-
-            doNext();
-        };
-
-        Deferred.prototype.getContext = function () {
-            console.log('returning Deferred.context');
-            return this.context;
-        }
-
-        Deferred.prototype.add = function (name, func) {
-            func.bind(this.context);
-            this.context[name] = func;
-        }
-
-        Deferred.prototype.wrap = function (wrappables) {
-            this.include(S.components.std());
-            if (Array.isArray(wrappables)) {
-                wrappables.forEach(this.include);
-            } else {
-                this.include(wrappables);
-            }
-        }
-
-        Deferred.prototype.include = function (wrappable) {
-            var self = this,
-                clone;
-
-            if (typeof wrappable.getSync === 'undefined' || typeof wrappable.getAsync === 'undefined') {
-                return console.warn('cannot wrap ' + wrappable + '. no getSync() and/or getAsync() not found.');
-            }
-
-            if (!wrappable.noCopy) {
-                console.info('Deferred copying ' + wrappable);
-                //var clone = wrappable.copy();
-                clone = new wrappable.constructor(wrappable.state);
-            }
-            console.groupCollapsed('Wrapping methods of \'%s\'', wrappable.alias || wrappable);
-            for (var prop in wrappable.getSync()) {
-                console.log('Wrapping \'%s\'', prop);
-                this.context[prop] =
-                // inject property; otherwise, pushed functions will all reference last iterated property
-                (function (property, clone) {
-                    var deferredMethod = function () {
-                        var args = Array.prototype.slice.call(arguments), // convert arguments to an array
-                            ret; // = null; // proxy return of sync portion
-                        //null indicates that the method is async only (superficial)
-                        if (wrappable.getSync()[property] !== null) {
-                            //do now
-                            if (wrappable.noCopy)
-                                ret = wrappable.live[property].apply({}, args);
-                            else {
-                                //console.log('calling clone');
-                                ret = clone.getSync()[property].apply({}, args);
-                            }
-                        }
-                        //push async & sync if found on view:
-                        var pushFn;
-                        if (wrappable.getAsync().hasOwnProperty(property) && wrappable.getSync()[property] !== null) {
-                            // both
-                            pushFn = function (fn) {
-                                wrappable.getSync()[property].apply(wrappable.getSync(), args);
-                                wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn)); // concat callback
-                            }
-                        } else if (wrappable.getSync()[property] !== null) {
-                            // sync only
-                            pushFn = function (fn) {
-                                wrappable.getSync()[property].apply(wrappable.getSync(), args);
-                                fn();
-                            }
-                        } else if (wrappable.getAsync().hasOwnProperty(property)) {
-                            // async only
-                            pushFn = function (fn) {
-                                wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn)); // concat callback
-                            }
-                        } else {
-                            // declared as async only, but method not found on view.
-                            console.log('method ' + property.toString() + ' was declared as async only (null), but no corresponding view method was found.');
-                            pushFn = false;
-                        }
-                        if (pushFn)
-                            self.fns.push(pushFn);
-                        self.fire('push', self);
-                        if (ret !== null)
-                            return ret;
-                    };
-                    return deferredMethod;
-                })(prop, clone);
-            }
-            console.groupEnd();
-            /* now, add in defined methods */
-
-            if (wrappable.getMethods) {
-                var methods = wrappable.getMethods();
-                console.groupCollapsed('Adding defined methods of \'%s\'', wrappable.alias || wrappable);
-                for (var method in methods) {
-                    console.log('Adding ' + method);
-                    this.add(method, methods[method]);
-                }
-            } else {
-                //console.log('no getMethods found');
-            }
-            console.groupEnd();
-        }
-
-
-        return Deferred;
-    })();
-
-
     S.AsyncFunctionQueue = (function () {
 
+        /**
+         * Constructs a new Asynchronous Function Queue. This is a list of functions that run asynchronous code,
+         * such as animating elements on the page or making ajax requests. Each function should accept the callback
+         * parameter as its final parameter, and call this callback to signal the completion of the function.
+         * @constructor
+         */
         function AsyncFunctionQueue() {
             this.functionList = []; // the array of functions.
-            this.position = 0; // the last function executed. -1 if no functions have been executed.
+            this.position = 0; // the current function to be executed.
             this.sleep = 100; // the time to wait between executing functions after `exec` is called.
             this.states = []; //
             this._open = false; // If true, auto execution is enabled.
@@ -600,22 +351,19 @@ window.S = (function ($) {
          */
         AsyncFunctionQueue.prototype.push = function (fn) {
             this.functionList.push(fn);
-            console.log('length is now ' + this.functionList.length);
             if (this._open && !this.executing) {
-                console.log('Mode is open, executing...');
                 this.exec();
             }
-            console.dir(this.functionList);
-
         }
 
         /**
          * Stops execution, clears all functions, and sets `position` to 0.
          */
         AsyncFunctionQueue.prototype.clear = function () {
-            /*this.executing = false;
-    this.functionList = [];
-    this.last = -1;*/
+            this.executing = false;
+            this.functionList = [];
+            this.position = 0;
+
         }
 
         /**
@@ -675,12 +423,18 @@ window.S = (function ($) {
             this.executing = false;
         }
 
+        /**
+         * Returns the number of functions on the queue.
+         */
         Object.defineProperty(AsyncFunctionQueue.prototype, 'length', {
             get: function () {
                 return this.functionList.length;
             }
         });
 
+        /**
+         * Returns the number of current position / the number of functions on the queue.
+         */
         Object.defineProperty(AsyncFunctionQueue.prototype, 'completion', {
             get: function () {
                 return this.position / this.functionList.length;
@@ -700,6 +454,7 @@ window.S = (function ($) {
         function DeferredInterface(queue) {
             S.EventEmitter.call(this); // TODO phase out?
             this.queue = queue;
+            this.clones = {}; // TODO store wrappable clones here
             this.interface = function (key, value) {
                 if (typeof value === 'undefined')
                     return this.interface.get(key);
@@ -710,6 +465,11 @@ window.S = (function ($) {
 
         DeferredInterface.prototype = Object.create(S.EventEmitter.prototype);
 
+        /**
+         * Returns the actual interface. After wrappables are included, they can be used from this interface.
+         *
+         * @returns {Function}
+         */
         DeferredInterface.prototype.handle = function () {
             return this.interface;
         }
@@ -719,75 +479,56 @@ window.S = (function ($) {
             this.interface[name] = func;
         }
 
+        /**
+         * Include a wrappable in this interface. Operations are pushed to this DeferredInterface's queue, and also executed
+         * on a stateful copy of the wrappable. The result is that objects with asynchronous behavior can be coded synchronously.
+         * @param wrappable An object which satisfies the `wrappable` interface.
+         */
         DeferredInterface.prototype.include = function (wrappable) {
-
-            console.info('Including ' + wrappable);
-
+            // console.info('Including ' + wrappable);
             var self = this,
                 clone;
-
-            console.assert(wrappable.getSync && wrappable.getAsync, 'wrappable satisfies interface.');
-
+            console.assert(wrappable.getSync && wrappable.getAsync, '`wrappable` satisfies interface.');
             if (!wrappable.noCopy) {
-                console.info('Deferred copying ' + wrappable);
-                //var clone = wrappable.copy();
-                clone = new wrappable.constructor(wrappable.state);
+                clone = new wrappable.constructor(wrappable.getState());
             }
 
             console.groupCollapsed('Wrapping methods of \'%s\'', wrappable.alias || wrappable);
 
             for (var prop in wrappable.getSync()) {
                 console.log('Wrapping \'%s\'', prop);
+                // add the method to this interface
                 this.interface[prop] =
                 // inject property; otherwise, pushed functions will all reference last iterated property
                 (function (property, clone) {
 
-                    var deferredMethod = function () {
-                        var args = Array.prototype.slice.call(arguments), // convert arguments to an array
-                            ret; // = null; // proxy return of sync portion
-                        //null indicates that the method is async only (superficial)
-                        if (wrappable.getSync()[property] !== null) {
-                            //do now
-                            if (wrappable.noCopy)
-                                ret = wrappable.live[property].apply({}, args);
-                            else {
-                                //console.log('calling clone');
-                                ret = clone.getSync()[property].apply({}, args);
-                            }
-                        }
-                        //push async & sync if found on view:
-                        var pushFn;
-                        if (wrappable.getAsync().hasOwnProperty(property) && wrappable.getSync()[property] !== null) {
-                            // both
-                            pushFn = function (fn) {
-                                wrappable.getSync()[property].apply(wrappable.getSync(), args);
-                                wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn)); // concat callback
-                            }
+                    var interfaceMethod = function () {
+                        var args = Array.prototype.slice.call(arguments),
+                            ret,
+                            pushFn;
+                        if (wrappable.getSync()[property] !== null && wrappable.noCopy) {
+                            ret = wrappable.getSync()[property].apply(wrappable, args);
                         } else if (wrappable.getSync()[property] !== null) {
-                            // sync only
-                            pushFn = function (fn) {
-                                wrappable.getSync()[property].apply(wrappable.getSync(), args);
-                                fn();
-                            }
-                        } else if (wrappable.getAsync().hasOwnProperty(property)) {
-                            // async only
-                            pushFn = function (fn) {
-                                wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn)); // concat callback
-                            }
-                        } else {
-                            // declared as async only, but method not found on view.
-                            console.log('method ' + property.toString() + ' was declared as async only (null), but no corresponding view method was found.');
-                            pushFn = false;
+                            ret = clone.getSync()[property].apply(clone, args);
                         }
-                        if (pushFn)
-                            self.queue.push.call(self.queue, pushFn);
-                        self.fire('push', self);
-                        if (ret !== null)
-                            return ret;
+                        // push async & sync  if found on view:
+
+                        pushFn = function (fn) {
+                            if (wrappable.getSync()[property])
+                                wrappable.getSync()[property].apply(wrappable, args);
+                            if (wrappable.getAsync()[property])
+                                wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn));
+                            else
+                                fn();
+                        }
+
+                        self.queue.push.call(self.queue, pushFn);
+
+                        //if (ret !== null)
+                        return ret;
                     };
 
-
-                    return deferredMethod;
+                    return interfaceMethod;
                 })(prop, clone);
             }
             console.groupEnd();
@@ -807,7 +548,17 @@ window.S = (function ($) {
         }
 
         function getStandardWrappable() {
-            var standard = S.simpleWrappable(),
+            var standard = {
+                    getAsync: function () {
+                        return this.async;
+                    },
+                    getSync: function () {
+                        return this.live;
+                    },
+                    live: {},
+                    async: {},
+                    noCopy: true
+                },
                 vars = {};
 
             standard.live.log = function (str) {
@@ -1250,9 +1001,835 @@ S.view('array',
 
         return view;
     });
+(function () {
+
+    function Tree(state, view) {
+        this.live.component = this;
+        this.alias = 'tree';
+        var s = copyTree(state, null);
+        S.Component.call(this, s, view);
+    }
+
+    Tree.prototype = Object.create(S.Component.prototype);
+    Tree.prototype.constructor = Tree;
+    Tree.prototype.live = {};
+
+    // TODO delete
+    // Tree.prototype.noCopy = true;
+
+    Tree.prototype.setState = function (state) {
+        this.state = state;
+        this.height = computeHeights(this.state);
+    }
+
+    Tree.prototype.getState = function () {
+        return this.state;
+    }
+
+    /**
+     * Returns the root of the tree.
+     * @returns {*}
+     */
+    Tree.prototype.live.root = function () {
+        return this.getState();
+    }
+    Tree.prototype.live.root.getter = true;
+
+    /**
+     * Returns the height of the tree.
+     * @returns {*}
+     */
+    Tree.prototype.live.height = function () {
+        this.height = computeHeights(this.getState());
+        return this.height;
+    }
+    Tree.prototype.live.height.getter = true;
+
+    /**
+     * Adds a node to the tree.
+     * @param parent The parent to add the node onto.
+     * @param direction The direction to add the node (false for left, true for right).
+     * @param value The value of the new node.
+     * @returns {*} The added node.
+     */
+    Tree.prototype.live.add = function (parent, direction, value) {
+        var added;
+        if (direction) {
+            added = parent.right = node(value);
+        } else {
+            added = parent.left = node(value);
+        }
+        this.height = computeHeights(this.state);
+        return bindGetters(added);
+    }
+
+    /**
+     * Removes the given node from the tree and all of its children.
+     * @param node The node to remove.
+     */
+    Tree.prototype.live.remove = function (node) {
+        if (node.parent && node.parent.left == node) {
+            node.parent.left = null;
+        } else if (node.parent && node.parent.right == node) {
+            node.parent.right = null;
+        } else {
+
+        }
+        this.height = computeHeights(this.state);
+    }
+
+    /**
+     * Sets the value of the given node.
+     * @param node
+     * @param value
+     */
+    Tree.prototype.live.setNode = function (node, value) {
+        node.value = value;
+        return node;
+    }
+
+    /**
+     * Sets the [direction] child of `parent` to `child`.
+     * @param parent
+     * @param direction false for left, true for right
+     * @param child
+     */
+    Tree.prototype.live.setChild = function (parent, direction, child) {
+        // TODO
+    }
+
+    /*
+  View only methods
+   */
+    Tree.prototype.live.mark = null;
+
+    Tree.prototype.live.markPath = null;
+
+    Tree.prototype.live.clearPath = null;
+
+    Tree.prototype.live.showHeights = null;
+
+    Tree.prototype.live.hideHeights = null;
+
+    Tree.prototype.live.clearlabels = null;
+
+    Tree.prototype.live.clearfocus = null;
+
+    Tree.prototype.live.travel = null;
+
+    Tree.prototype.live.label = null;
+
+    Tree.prototype.live.focusOn = null;
+
+    // utils:
+
+    function bindGetters(node) {
+        return node;
+    }
+
+    function computeHeights(root) {
+        if (root)
+            return root.height = 1 + Math.max(computeHeights(root.left), computeHeights(root.right));
+        return -1;
+    }
+
+    function computeParents(root) {
+
+    }
+
+    function node(value) {
+        return {
+            value: value,
+            left: null,
+            right: null
+        };
+    }
+
+    function copyTree(_node, parent) {
+        // this should use either left or _left to lookup child references
+        if (!_node) return null;
+        var n = node(_node.value);
+        if (_node.sid)
+            n.sid = _node.sid;
+        else
+            n.sid = S.nextId();
+        n.parent = parent;
+        n.left = copyTree(_node.left || node._left, n);
+        n.right = copyTree(_node.right || node._right, n);
+        return n;
+    }
+
+    S.defineComponent2('tree', Tree);
+
+})();
+S.view('tree', function () {
+    var view = new S.View(), //new S.View(), //S.baseView(),
+        data = S.map(), // stores data about nodes
+        $e,
+        dom_svg,
+        s_svg, // snap svg object
+        $svg, // jQuery svg object
+        width = 100,
+        height = 100,
+        nodeRadius = 8,
+        mh = 32, // horizontal margin between nodes
+        mv = 32, // vertical margin between nodes
+        x0, // x offset
+        y0; // y offset
+
+    view.scaleTo({
+        width: 500,
+        height: 300
+    });
+
+    /*
+   example node data:
+   {
+   x: 100,
+   y: 100,
+   element: [svg element],
+   leftLine: [svg element],
+   rightLine: [svg element],
+   label: 'some text',
+   s_value: [svg element],
+   s_height: [svg element]
+   }
+   */
+
+    view.init = function () {
+
+    }
+
+    view.scaleTo = function (dimensions) {
+        //console.log('scaling tree');
+        width = dimensions.width;
+        height = dimensions.height;
+        x0 = width / 2;
+        nodeRadius = view.config.nodeRadius || .05 * height; // TODO
+        y0 = nodeRadius;
+        mv = view.config.mv || height / 5; //(height / view.component.height()) - nodeRadius;
+        mh = view.config.mh || mv + nodeRadius / 2;
+        view.$element.width(width);
+        view.$element.height(height);
+        view.render();
+    }
+
+    view.render = function () {
+        //console.log('rendering');
+        if ($e) $e.remove();
+        $e = $('<div class="tree"></div>');
+        dom_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
+        $svg = $(dom_svg)
+            .width(width)
+            .height(height)
+            .appendTo($e);
+        s_svg = Snap(dom_svg);
+        s_svg.addClass('tree-svg');
+        rg(view.component.getState(), data, {
+            mh: mh,
+            mv: mv,
+            x0: x0,
+            y0: y0
+        });
+        drawLines(view.component.getState());
+        allNodes(view.component.getState(), function (node) {
+            data(node).element = drawNode(node, data(node).x, data(node).y);
+            data(node).s_value = drawValue(node.value, data(node).x, data(node).y);
+            data(node).s_height = drawHeight(node);
+            drawHeightIcon(node);
+        });
+        view.$element.append($e);
+        return view.$element;
+    }
+
+    function drawNode(node, x, y) {
+        return circle = s_svg.circle(x + x0, y + y0 + 2, nodeRadius)
+            .addClass('tree-node');
+    }
+
+    function drawLabel(node, label) {
+        return s_svg.text(data(node).x + x0 + nodeRadius + 5, data(node).y + y0 + nodeRadius / 2 - 3, '/' + label)
+            .addClass('tree-node-label')
+            .attr('text-anchor', 'right')
+            .attr('font-size', nodeRadius);
+    }
+
+    function drawValue(value, x, y) {
+        return s_svg.text(x + x0 /*- 10*/ , y + y0 + nodeRadius * .5 + 2, value + '')
+            .addClass('tree-node-value')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', nodeRadius * 1.25);
+    }
+
+    function drawLine(xi, yi, xf, yf) {
+        return s_svg.line(xi + x0, yi + y0, xf + x0, yf + y0)
+            .addClass('tree-line'); //.attr('stroke', 'black');
+    }
+
+    function drawHeight(node) {
+        return s_svg.text(data(node).x + x0 - nodeRadius - nodeRadius * .85, data(node).y + y0 + nodeRadius / 2 - 3, node.height + '')
+            .attr('font-size', nodeRadius)
+            .addClass('tree-height');
+    }
+
+    function drawHeightIcon(node) {
+        //s_svg.image('height.png', data(node).x + x0 - nodeRadius - nodeRadius * 1.1, data(node).y + y0 - nodeRadius * .3, 5, nodeRadius * .75);
+    }
 
 
-S.component('tree', function (tree, view) {
+    /**
+     * Recursive method to draw connecting lines of tree.
+     * @param root
+     */
+    function drawLines(root) {
+        if (root.left) {
+            data(root).leftLine = drawLine(data(root).x, data(root).y, data(root.left).x, data(root.left).y);
+            drawLines(root.left);
+        }
+        if (root.right) {
+            data(root).rightLine = drawLine(data(root).x, data(root).y, data(root.right).x, data(root.right).y);
+            drawLines(root.right);
+        }
+    }
+
+    function allNodes(root, func) {
+        if (root) {
+            func(root)
+            allNodes(root.left, func);
+            allNodes(root.right, func);
+        }
+    }
+
+
+    view.live.focusOn = function (node, fn) {
+        if (!node) return;
+        var circle = data(node).element
+            .addClass('focus');
+        fn();
+    }
+
+    view.live.clearfocus = function (fn) {
+        data.forEach(function (pair) {
+            pair[1].element.removeClass('focus');
+        });
+        fn();
+    }
+
+    view.live.add = function (parent, direction, value, fn) {
+        if (direction) {
+            data(parent.right).doNotDraw = true;
+        } else {
+            data(parent.left).doNotDraw = true;
+        }
+        // TODO animate addition of node
+        view.scaleTo({
+            width: width,
+            height: height
+        });
+        view.render();
+        /*rg(view.component.getState(), data, {
+     xProperty: 'newX',
+     yProperty: 'newY'
+     }); */
+        //moveToNewPositions(view.component.getState());
+        fn();
+    }
+
+    function moveToNewPositions(root) {
+        if (root) {
+            var _data = data(root),
+                circle = data.element;
+            if (circle) {
+                circle.animate({
+                    x: _data.newX,
+                    y: _data.newY
+                }, 1000, null, function () {
+
+                });
+            }
+            moveToNewPositions(root.left);
+            moveToNewPositions(root.right);
+        }
+    }
+
+    view.live.travel = function (parent, direction, fn) {
+        if (direction) {
+            if (data(parent).rightLine) {
+                var rightLine = data(parent).rightLine;
+                rightLine.addClass('tree-line-active');
+                var s_circle = s_svg.circle(rightLine.attr('x1'), rightLine.attr('y1'), 5)
+                    .addClass('tree-travelorb');
+                s_circle.insertAfter(rightLine);
+                s_circle.animate({
+                    cx: rightLine.attr('x2'),
+                    cy: rightLine.attr('y2')
+                }, 500, null, function () {
+                    s_circle.remove();
+                    fn();
+                });
+            } else {
+                fn();
+            }
+        } else {
+            if (data(parent).leftLine) {
+                var leftLine = data(parent).leftLine;
+                leftLine.addClass('tree-line-active');
+                var s_circle = s_svg.circle(leftLine.attr('x1'), leftLine.attr('y1'), 5)
+                    .addClass('tree-travelorb');
+                s_circle.insertAfter(leftLine);
+                s_circle.animate({
+                    cx: leftLine.attr('x2'),
+                    cy: leftLine.attr('y2')
+                }, 500, null, function () {
+                    s_circle.remove();
+                    fn();
+                });
+            } else {
+                fn();
+            }
+        }
+    };
+
+    view.live.label = function (node, label, fn) {
+        if (node && data(node)) {
+            data(node).label = label;
+            data(node).s_label = drawLabel(node, label);
+            fn();
+        } else {
+            fn();
+        }
+    }
+
+    view.live.setNode = function (node, value, fn) {
+        var s_node = data(node).element,
+            s_value = data(node).s_value;
+        S.wait(function () {
+            s_node.addClass('tree-remove');
+            s_value.addClass('tree-remove');
+            S.wait(function () {
+                s_node.removeClass('tree-remove');
+                s_value.removeClass('tree-remove')
+                    .attr('text', value);
+                fn();
+            }, 300);
+        }, 200);
+    }
+
+    view.live.clear = function (fn) {
+        view.render();
+        fn();
+    }
+
+    view.live.clearlabels = function (fn) {
+        data.forEach(function (pair) {
+            view.live.clearlabel(pair[0]);
+        });
+        fn();
+    }
+
+    view.live.clearlabel = function (node, fn) {
+        if (data(node).s_label) {
+            data(node).s_label.remove();
+            data(node).label = undefined;
+            data(node).s_label = undefined;
+        }
+        if (fn) fn();
+    }
+
+    view.live.showHeights = function (fn) {
+        data.forEach(function (pair) {
+            view.live.height(pair[0], true);
+        });
+        fn();
+    }
+
+    view.live.hideHeights = function (fn) {
+        data.forEach(function (pair) {
+            view.live.height(pair[0], false);
+        });
+        fn();
+    }
+
+    view.live.height = function (node, show, fn) {
+        if (!node || !data(node).s_height) return;
+        if (show)
+            data(node).s_height.attr('visibility', 'visible');
+        else
+            data(node).s_height.attr('visibility', 'hidden');
+        if (fn) fn();
+    }
+
+    view.live.remove = function (node, fn) {
+        var elements = getTreeElements(node),
+            parent = node.parent,
+            count = 0,
+            max;
+
+        if (parent.left == null) {
+            elements.push(data(parent).leftLine);
+        } else {
+            elements.push(data(parent).rightLine);
+        }
+
+        max = elements.length;
+
+        elements.forEach(function (element) {
+            if (!element) {
+                count++;
+                return;
+            }
+            if (element.attr('cy')) {
+                element.animate({
+                    cy: 1000
+                }, 500, mina.easeinout, function () {
+                    count++;
+                    checkIfAllRemoved();
+                });
+            } else if (element.attr('y1')) {
+                element.animate({
+                    y1: 1000,
+                    y2: 1000
+                }, 500, mina.easeinout, function () {
+                    count++;
+                    checkIfAllRemoved();
+                });
+            } else {
+                element.animate({
+                    y: 1000
+                }, 500, mina.easeinout, function () {
+                    count++;
+                    checkIfAllRemoved();
+                });
+            }
+        });
+
+        function checkIfAllRemoved() {
+            if (count >= max) {
+                elements.forEach(function (element) {
+                    if (element) {
+                        element.remove();
+                    }
+                });
+                view.render();
+                fn();
+            }
+        }
+    }
+
+    function getTreeElements(root) {
+        var ret = [];
+        if (root) {
+            ret.push(data(root).element);
+            ret.push(data(root).s_height);
+            ret.push(data(root).s_value);
+            ret.push(data(root).s_label);
+            ret.push(data(root).leftLine);
+            ret.push(data(root).rightLine);
+            return ret.concat(getTreeElements(root.left).concat(getTreeElements(root.right)));
+        }
+        return ret;
+    }
+
+    view.live.mark = function (node, num, fn) {
+        if (data(node).element) {
+            data(node).element.addClass('range' + num);
+            fn();
+        }
+    }
+
+    view.live.markPath = function (node, dir, num, fn) {
+        if (dir && data(node).rightLine) {
+            data(node).rightLine.addClass('pathrange' + num);
+        } else if (data(node).leftLine) {
+            data(node).leftLine.addClass('pathrange' + num);
+        }
+        fn();
+    }
+
+    view.live.clearPath = function (node, dir, num, fn) {
+        if (dir && data(node).rightLine) {
+            data(node).rightLine.removeClass('pathrange' + num);
+        } else if (data(node).leftLine) {
+            data(node).leftLine.removeClass('pathrange' + num);
+        }
+        fn();
+    }
+
+    view.add = function (parent_s, left, value, fn) {
+        /*nodes(parent_s, getNodeElement(value));
+     rg(view.component.getState(), data, view.config);
+     nodes.forEach(function(pair){
+     move(nodes(pair[0]), pair[1].x, pair[1].y, function(){
+     $e.append(nodes(parent_s));
+     });
+     });*/
+    }
+
+    function move($elem, x, y, fn) {
+        /*$elem.animate({
+     left: x,
+     top: y
+     }, 250, function(){
+     fn();
+     });*/
+    }
+
+    /**
+     * My (Alex Kizer's) crappy implementation of the Reingold-Tilford algorithm.
+     * http://emr.cs.iit.edu/~reingold/tidier-drawings.pdf
+     * @param root Root of the tree to draw.
+     * @param store A map where position data will be deposited.
+     * @param options Options to specify the minimum vertical and horizontal spacing between nodes.
+     */
+    function rg(root, store, options) {
+        //1. copy tree
+        //2. run rg
+        //3. copy to store
+
+
+        var config = {
+            mh: 10,
+            mv: 10,
+            xProperty: 'x',
+            yProperty: 'y'
+        };
+
+        $.extend(config, options);
+        var _root = copyTree(root);
+        //console.log('printing _root');
+        //printTree(_root);
+        setup(_root, 0, null, null);
+        assign(_root, 0, false);
+        copyToStore(_root, store);
+
+        function RNode(node) {
+            //console.log('R ' + node.value);
+            this.value = node.value;
+            this.left = null; //node.left;
+            this.right = null; //node.right;
+            this.x = 0;
+            this.y = 0;
+            this.thread = false;
+            this.offset = 0;
+            this.sid = node.sid;
+        }
+
+        function Extreme(node) {
+            this.node = node;
+            this.offset = 0;
+            this.level = 0;
+        }
+
+        function copyTree(node) {
+            var copy;
+            if (!node)
+                copy = null;
+            else {
+                /*copy = {};
+         copy.value = node.value;*/
+                copy = new RNode(node);
+                copy.left = copyTree(node.left);
+                copy.right = copyTree(node.right);
+            }
+            return copy;
+        }
+
+        function printTree(root) {
+            if (!root)
+                return;
+            console.log(root.value)
+            printTree(root.left);
+            printTree(root.right);
+        }
+
+        function setup(node, level, rightMost, leftMost) {
+            var left,
+                right,
+                lRightMost = new Extreme(null),
+                lLeftMost = new Extreme(null),
+                rRightMost = new Extreme(null),
+                rLeftMost = new Extreme(null);
+
+            // while loop variables:
+            var currentSeparation, // The separation between contour nodes on the current level
+                rootSeparation, // ?
+                leftOffsetSum, // offset from root
+                rightOffsetSum; // offset from root
+
+
+            if (!node /*== null*/ ) {
+                // base case ?
+                // ? update leftMost, rightMost
+                leftMost.level = -1;
+                rightMost.level = -1;
+                return;
+            }
+
+            node.y = level * config.mv;
+            left = node.left;
+            //console.log('left is ' + left);
+            right = node.right;
+            setup(left, level + 1, lRightMost, lLeftMost);
+            setup(right, level + 1, rRightMost, rLeftMost);
+            if (left === null && right === null) {
+                // node is a leaf
+                // base case?
+                if (leftMost && rightMost) {
+                    rightMost.node = node;
+                    leftMost.node = node;
+                    rightMost.level = level; // single node is both rightMost and leftMost on lowest level (which is current level)
+                    leftMost.level = level;
+                    rightMost.offset = 0; // ? TODO
+                    leftMost.offset = 0; // ? TODO
+                }
+                node.offset = 0;
+            } else {
+                // node is not a leaf
+
+                currentSeparation = config.mh; // margin = minimum separation between two nodes on a level
+                rootSeparation = config.mh; // ? TODO
+                leftOffsetSum = 0;
+                rightOffsetSum = 0;
+
+                while (left !== null && right !== null) {
+
+                    if (currentSeparation < config.mh) { // nodes are too close together
+
+                        // Increase rootSeparation just enough so that it accounts for difference between
+                        // config.mh and currentSeparation:
+                        rootSeparation += (config.mh - currentSeparation);
+
+                        // Now, increase currentSeparation to the minimumSeparation:
+                        currentSeparation = config.mh;
+
+                    }
+
+                    // left contour:
+                    if (left.right !== null) {
+
+                        // leftOffsetSum is offset of left from root
+                        // left.offset = distance to each son
+                        // increase leftOffsetSum by left's offset from each child:
+                        leftOffsetSum += left.offset;
+
+                        // At this level, now, currentSeparation is decreased by left.offset,
+                        // because that is how far out left's right child is stick out.
+                        currentSeparation -= left.offset;
+
+                        // Go to next level, next on contour:
+                        left = left.right;
+                    } else {
+
+                        //left.right is null.
+
+                        // We can move left in now:
+                        leftOffsetSum -= left.offset; // ? TODO
+
+                        // We've allowed more separation ?
+                        currentSeparation += left.offset;
+
+                        // Go to next level, next on contour:
+                        left = left.left;
+                    }
+
+                    // right contour:
+                    if (right.left !== null) {
+                        rightOffsetSum -= right.offset;
+                        currentSeparation -= right.offset;
+                        right = right.left;
+                    } else {
+                        rightOffsetSum += right.offset;
+                        currentSeparation += right.offset;
+                        right = right.right;
+                    }
+
+                }
+
+                // set root's offset:
+                node.offset = (rootSeparation + 1) / 2;
+                // ? TODO :
+                leftOffsetSum -= node.offset;
+                rightOffsetSum += node.offset;
+
+                // determine 2 extremes from the 4 we have:
+                // pick leftMost:
+                if (rLeftMost.level > lLeftMost.level || node.left == null) {
+                    // rLeftMost wins
+                    leftMost = rLeftMost;
+                    leftMost.offset += node.offset; // ? TODO
+                } else {
+                    // lLeftMost wins
+                    leftMost = lLeftMost;
+                    leftMost.offset -= node.offset;
+                }
+
+
+                // threading:
+                // necessary if uneven heights? TODO
+
+                if (left != null && left != node.left && rRightMost.node) {
+                    rRightMost.node.thread = true;
+                    // no idea what's going on here: TODO
+                    rRightMost.node.offset = Math.abs((rRightMost.offset + node.offset) - leftOffsetSum);
+                    if (leftOffsetSum - node.offset <= rRightMost.offset) {
+                        rRightMost.node.left = left;
+                    } else {
+                        rRightMost.node.right = left;
+                    }
+                } else if (right != null && right != node.right && lLeftMost.node) {
+                    lLeftMost.node.thread = true;
+                    lLeftMost.node.offset = Math.abs((lLeftMost.offset - node.offset) - rightOffsetSum);
+                    if (rightOffsetSum + node.offset >= lLeftMost.offset) {
+                        lLeftMost.node.right = right;
+                    } else {
+                        lLeftMost.node.left = right;
+                    }
+                } else {
+                    // nothing
+                }
+
+            }
+
+
+        }
+
+        function assign(node, x, useNew) {
+            if (node != null) {
+                node.x = x;
+                if (node.thread) {
+                    // clean up threading:
+                    node.thread = false;
+                    node.right = null;
+                    node.left = null;
+                }
+                // ? TODO
+                assign(node.left, x - node.offset, useNew);
+                assign(node.right, x + node.offset, useNew);
+            }
+        }
+
+        function copyToStore(root, store) {
+
+            if (!root)
+                return;
+            store(root)[config.xProperty] = root.x;
+            store(root)[config.yProperty] = root.y;
+            /*store(root, {
+       x: root.x,
+       y: root.y
+       });*/
+            copyToStore(root.left, store);
+            copyToStore(root.right, store);
+        }
+
+
+    }
+
+    return view;
+});
+
+
+S.component('treeOld', function (tree, view) {
     var c = new S.Component(),
         height = 0;
     c.alias = 'tree';
@@ -1401,7 +1978,7 @@ S.component('tree', function (tree, view) {
 
     return c;
 });
-S.view('tree', function () {
+S.view('treeOld', function () {
     var view = new S.View(), //new S.View(), //S.baseView(),
         data = S.map(), // stores data about nodes
         $e,
@@ -2058,819 +2635,6 @@ S.view('tree', function () {
         x: root.x,
         y: root.y
       });*/
-            copyToStore(root.left, store);
-            copyToStore(root.right, store);
-        }
-
-
-    }
-
-    return view;
-});
-(function () {
-
-    function Tree(state, view) {
-        S.Component.call(this, state, view);
-    }
-
-    Tree.prototype = Object.create(S.Component.prototype);
-    Tree.prototype.live = {};
-
-    Object.defineProperty(Tree.prototype, 'state', {
-        get: function () {
-            return this._state;
-        },
-        set: function (tree) {
-            this._state = copyTree(tree, null);
-            this.height = computeHeights(this._state);
-        }
-    });
-
-    /**
-     * Returns the root of the tree.
-     * @returns {*}
-     */
-    Tree.prototype.live.root = function () {
-        return this.state;
-    }
-    Tree.prototype.live.root.getter = true;
-
-    /**
-     * Returns the height of the tree.
-     * @returns {*}
-     */
-    Tree.prototype.live.height = function () {
-        this.height = computeHeights();
-        return this.height;
-    }
-    Tree.prototype.live.height.getter = true;
-
-    /**
-     * Adds a node to the tree.
-     * @param parent The parent to add the node onto.
-     * @param direction The direction to add the node (false for left, true for right).
-     * @param value The value of the new node.
-     * @returns {*} The added node.
-     */
-    Tree.prototype.live.add = function (parent, direction, value) {
-        var added;
-        if (direction) {
-            added = parent.right = node(value);
-        } else {
-            added = parent.left = node(value);
-        }
-        this.height = computeHeights(c.tree);
-        return bindGetters(added);
-    }
-
-    /**
-     * Removes the given node from the tree and all of its children.
-     * @param node The node to remove.
-     */
-    Tree.prototype.live.remove = function (node) {
-        if (node.parent && node.parent.left == node) {
-            node.parent.left = null;
-        } else if (node.parent && node.parent.right == node) {
-            node.parent.right = null;
-        } else {
-
-        }
-        this.height = computeHeights(this.state);
-    }
-
-    /**
-     * Sets the value of the given node.
-     * @param node
-     * @param value
-     */
-    Tree.prototype.live.setNode = function (node, value) {
-        node.value = value;
-    }
-
-    /**
-     * Sets the [direction] child of `parent` to `child`.
-     * @param parent
-     * @param direction false for left, true for right
-     * @param child
-     */
-    Tree.prototype.live.setChild = function (parent, direction, child) {
-        // TODO
-    }
-
-    /*
-  View only methods
-   */
-    Tree.prototype.live.mark = null;
-
-    Tree.prototype.live.markPath = null;
-
-    Tree.prototype.live.clearPath = null;
-
-    Tree.prototype.live.showHeights = null;
-
-    Tree.prototype.live.hideHeights = null;
-
-    Tree.prototype.live.height = null;
-
-    Tree.prototype.live.clearlabels = null;
-
-    Tree.prototype.live.clearfocus = null;
-
-    Tree.prototype.live.travel = null;
-
-    Tree.prototype.live.label = null;
-
-    Tree.prototype.live.focusOn = null;
-
-    // utils:
-
-    function bindGetters(node) {
-        return node;
-    }
-
-    function computeHeights(root) {
-        if (root)
-            return root.height = 1 + Math.max(computeHeights(root.left), computeHeights(root.right));
-        return -1;
-    }
-
-    function computeParents(root) {
-
-    }
-
-    function node(value) {
-        return {
-            value: value,
-            left: null,
-            right: null,
-            sid: S.nextId()
-        };
-    }
-
-    function copyTree(_node, parent) {
-        // this should use either left or _left to lookup child references
-        if (!_node) return null;
-        var n = node(_node.value);
-        n.parent = parent;
-        n.left = copyTree(_node.left || node._left, n);
-        n.right = copyTree(_node.right || node._right, n);
-        return n;
-    }
-
-    S.defineComponent2('tree2', Tree);
-})();
-S.view('tree2', function () {
-    var view = new S.View(), //new S.View(), //S.baseView(),
-        data = S.map(), // stores data about nodes
-        $e,
-        dom_svg,
-        s_svg, // snap svg object
-        $svg, // jQuery svg object
-        width = 100,
-        height = 100,
-        nodeRadius = 8,
-        mh = 32, // horizontal margin between nodes
-        mv = 32, // vertical margin between nodes
-        x0, // x offset
-        y0; // y offset
-
-    /*
-   example node data:
-   {
-   x: 100,
-   y: 100,
-   element: [svg element],
-   leftLine: [svg element],
-   rightLine: [svg element],
-   label: 'some text',
-   s_value: [svg element],
-   s_height: [svg element]
-   }
-   */
-
-    view.init = function () {
-
-    }
-
-    view.scaleTo = function (dimensions) {
-        //console.log('scaling tree');
-        width = dimensions.width;
-        height = dimensions.height;
-        x0 = width / 2;
-        nodeRadius = view.config.nodeRadius || .05 * height; // TODO
-        y0 = nodeRadius;
-        mv = view.config.mv || height / 5; //(height / view.component.height()) - nodeRadius;
-        mh = view.config.mh || mv + nodeRadius / 2;
-        view.$element.width(width);
-        view.$element.height(height);
-        view.render();
-    }
-
-    view.render = function () {
-        //console.log('rendering');
-        if ($e) $e.remove();
-        $e = $('<div class="tree"></div>');
-        dom_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
-        $svg = $(dom_svg)
-            .width(width)
-            .height(height)
-            .appendTo($e);
-        s_svg = Snap(dom_svg);
-        s_svg.addClass('tree-svg');
-        rg(view.component.state, data, {
-            mh: mh,
-            mv: mv,
-            x0: x0,
-            y0: y0
-        });
-        drawLines(view.component.state);
-        allNodes(view.component.state, function (node) {
-            data(node).element = drawNode(node, data(node).x, data(node).y);
-            data(node).s_value = drawValue(node.value, data(node).x, data(node).y);
-            data(node).s_height = drawHeight(node);
-            drawHeightIcon(node);
-        });
-        view.$element.append($e);
-        return view.$element;
-    }
-
-    function drawNode(node, x, y) {
-        return circle = s_svg.circle(x + x0, y + y0 + 2, nodeRadius)
-            .addClass('tree-node');
-    }
-
-    function drawLabel(node, label) {
-        return s_svg.text(data(node).x + x0 + nodeRadius + 5, data(node).y + y0 + nodeRadius / 2 - 3, '/' + label)
-            .addClass('tree-node-label')
-            .attr('text-anchor', 'right')
-            .attr('font-size', nodeRadius);
-    }
-
-    function drawValue(value, x, y) {
-        return s_svg.text(x + x0 /*- 10*/ , y + y0 + nodeRadius * .5 + 2, value + '')
-            .addClass('tree-node-value')
-            .attr('text-anchor', 'middle')
-            .attr('font-size', nodeRadius * 1.25);
-    }
-
-    function drawLine(xi, yi, xf, yf) {
-        return s_svg.line(xi + x0, yi + y0, xf + x0, yf + y0)
-            .addClass('tree-line'); //.attr('stroke', 'black');
-    }
-
-    function drawHeight(node) {
-        return s_svg.text(data(node).x + x0 - nodeRadius - nodeRadius * .85, data(node).y + y0 + nodeRadius / 2 - 3, node.height + '')
-            .attr('font-size', nodeRadius)
-            .addClass('tree-height');
-    }
-
-    function drawHeightIcon(node) {
-        //s_svg.image('height.png', data(node).x + x0 - nodeRadius - nodeRadius * 1.1, data(node).y + y0 - nodeRadius * .3, 5, nodeRadius * .75);
-    }
-
-
-    /**
-     * Recursive method to draw connecting lines of tree.
-     * @param root
-     */
-    function drawLines(root) {
-        if (root.left) {
-            data(root).leftLine = drawLine(data(root).x, data(root).y, data(root.left).x, data(root.left).y);
-            drawLines(root.left);
-        }
-        if (root.right) {
-            data(root).rightLine = drawLine(data(root).x, data(root).y, data(root.right).x, data(root.right).y);
-            drawLines(root.right);
-        }
-    }
-
-    function allNodes(root, func) {
-        if (root) {
-            func(root)
-            allNodes(root.left, func);
-            allNodes(root.right, func);
-        }
-    }
-
-
-    view.live.focusOn = function (node, fn) {
-        if (!node) return;
-        var circle = data(node).element
-            .addClass('focus');
-        fn();
-    }
-
-    view.live.clearfocus = function (fn) {
-        data.forEach(function (pair) {
-            pair[1].element.removeClass('focus');
-        });
-        fn();
-    }
-
-    view.live.add = function (parent, direction, value, fn) {
-        if (direction) {
-            data(parent.right).doNotDraw = true;
-        } else {
-            data(parent.left).doNotDraw = true;
-        }
-        // TODO animate addition of node
-        view.scaleTo({
-            width: width,
-            height: height
-        });
-        view.render();
-        /*rg(view.component.state, data, {
-     xProperty: 'newX',
-     yProperty: 'newY'
-     }); */
-        //moveToNewPositions(view.component.state);
-        fn();
-    }
-
-    function moveToNewPositions(root) {
-        if (root) {
-            var _data = data(root),
-                circle = data.element;
-            if (circle) {
-                circle.animate({
-                    x: _data.newX,
-                    y: _data.newY
-                }, 1000, null, function () {
-
-                });
-            }
-            moveToNewPositions(root.left);
-            moveToNewPositions(root.right);
-        }
-    }
-
-    view.live.travel = function (parent, direction, fn) {
-        if (direction) {
-            if (data(parent).rightLine) {
-                var rightLine = data(parent).rightLine;
-                rightLine.addClass('tree-line-active');
-                var s_circle = s_svg.circle(rightLine.attr('x1'), rightLine.attr('y1'), 5)
-                    .addClass('tree-travelorb');
-                s_circle.insertAfter(rightLine);
-                s_circle.animate({
-                    cx: rightLine.attr('x2'),
-                    cy: rightLine.attr('y2')
-                }, 500, null, function () {
-                    s_circle.remove();
-                    fn();
-                });
-            } else {
-                fn();
-            }
-        } else {
-            if (data(parent).leftLine) {
-                var leftLine = data(parent).leftLine;
-                leftLine.addClass('tree-line-active');
-                var s_circle = s_svg.circle(leftLine.attr('x1'), leftLine.attr('y1'), 5)
-                    .addClass('tree-travelorb');
-                s_circle.insertAfter(leftLine);
-                s_circle.animate({
-                    cx: leftLine.attr('x2'),
-                    cy: leftLine.attr('y2')
-                }, 500, null, function () {
-                    s_circle.remove();
-                    fn();
-                });
-            } else {
-                fn();
-            }
-        }
-    };
-
-    view.live.label = function (node, label, fn) {
-        if (node && data(node)) {
-            data(node).label = label;
-            data(node).s_label = drawLabel(node, label);
-            fn();
-        } else {
-            fn();
-        }
-    }
-
-    view.live.setNode = function (node, value, fn) {
-        var s_node = data(node).element,
-            s_value = data(node).s_value;
-        S.wait(function () {
-            s_node.addClass('tree-remove');
-            s_value.addClass('tree-remove');
-            S.wait(function () {
-                s_node.removeClass('tree-remove');
-                s_value.removeClass('tree-remove')
-                    .attr('text', value);
-                fn();
-            }, 300);
-        }, 200);
-    }
-
-    view.live.clear = function (fn) {
-        view.render();
-        fn();
-    }
-
-    view.live.clearlabels = function (fn) {
-        data.forEach(function (pair) {
-            view.live.clearlabel(pair[0]);
-        });
-        fn();
-    }
-
-    view.live.clearlabel = function (node, fn) {
-        if (data(node).s_label) {
-            data(node).s_label.remove();
-            data(node).label = undefined;
-            data(node).s_label = undefined;
-        }
-        if (fn) fn();
-    }
-
-    view.live.showHeights = function (fn) {
-        data.forEach(function (pair) {
-            view.live.height(pair[0], true);
-        });
-        fn();
-    }
-
-    view.live.hideHeights = function (fn) {
-        data.forEach(function (pair) {
-            view.live.height(pair[0], false);
-        });
-        fn();
-    }
-
-    view.live.height = function (node, show, fn) {
-        if (!node || !data(node).s_height) return;
-        if (show)
-            data(node).s_height.attr('visibility', 'visible');
-        else
-            data(node).s_height.attr('visibility', 'hidden');
-        if (fn) fn();
-    }
-
-    view.live.remove = function (node, fn) {
-        var elements = getTreeElements(node),
-            parent = node.parent,
-            count = 0,
-            max;
-
-        if (parent.left == null) {
-            elements.push(data(parent).leftLine);
-        } else {
-            elements.push(data(parent).rightLine);
-        }
-
-        max = elements.length;
-
-        elements.forEach(function (element) {
-            if (!element) {
-                count++;
-                return;
-            }
-            if (element.attr('cy')) {
-                element.animate({
-                    cy: 1000
-                }, 500, mina.easeinout, function () {
-                    count++;
-                    checkIfAllRemoved();
-                });
-            } else if (element.attr('y1')) {
-                element.animate({
-                    y1: 1000,
-                    y2: 1000
-                }, 500, mina.easeinout, function () {
-                    count++;
-                    checkIfAllRemoved();
-                });
-            } else {
-                element.animate({
-                    y: 1000
-                }, 500, mina.easeinout, function () {
-                    count++;
-                    checkIfAllRemoved();
-                });
-            }
-        });
-
-        function checkIfAllRemoved() {
-            if (count >= max) {
-                console.log('all removed!');
-                elements.forEach(function (element) {
-                    if (element) {
-                        element.remove();
-                    }
-                });
-                view.render();
-                fn();
-            }
-        }
-    }
-
-    function getTreeElements(root) {
-        var ret = [];
-        if (root) {
-            ret.push(data(root).element);
-            ret.push(data(root).s_height);
-            ret.push(data(root).s_value);
-            ret.push(data(root).s_label);
-            ret.push(data(root).leftLine);
-            ret.push(data(root).rightLine);
-            return ret.concat(getTreeElements(root.left).concat(getTreeElements(root.right)));
-        }
-        return ret;
-    }
-
-    view.live.mark = function (node, num, fn) {
-        if (data(node).element) {
-            data(node).element.addClass('range' + num);
-            fn();
-        }
-    }
-
-    view.live.markPath = function (node, dir, num, fn) {
-        if (dir && data(node).rightLine) {
-            data(node).rightLine.addClass('pathrange' + num);
-        } else if (data(node).leftLine) {
-            data(node).leftLine.addClass('pathrange' + num);
-        }
-        fn();
-    }
-
-    view.live.clearPath = function (node, dir, num, fn) {
-        if (dir && data(node).rightLine) {
-            data(node).rightLine.removeClass('pathrange' + num);
-        } else if (data(node).leftLine) {
-            data(node).leftLine.removeClass('pathrange' + num);
-        }
-        fn();
-    }
-
-    view.add = function (parent_s, left, value, fn) {
-        /*nodes(parent_s, getNodeElement(value));
-     rg(view.component.state, data, view.config);
-     nodes.forEach(function(pair){
-     move(nodes(pair[0]), pair[1].x, pair[1].y, function(){
-     $e.append(nodes(parent_s));
-     });
-     });*/
-    }
-
-    function move($elem, x, y, fn) {
-        /*$elem.animate({
-     left: x,
-     top: y
-     }, 250, function(){
-     fn();
-     });*/
-    }
-
-    /**
-     * My (Alex Kizer's) crappy implementation of the Reingold-Tilford algorithm.
-     * http://emr.cs.iit.edu/~reingold/tidier-drawings.pdf
-     * @param root Root of the tree to draw.
-     * @param store A map where position data will be deposited.
-     * @param options Options to specify the minimum vertical and horizontal spacing between nodes.
-     */
-    function rg(root, store, options) {
-        //1. copy tree
-        //2. run rg
-        //3. copy to store
-
-
-        var config = {
-            mh: 10,
-            mv: 10,
-            xProperty: 'x',
-            yProperty: 'y'
-        };
-
-        $.extend(config, options);
-        var _root = copyTree(root);
-        //console.log('printing _root');
-        //printTree(_root);
-        setup(_root, 0, null, null);
-        assign(_root, 0, false);
-        copyToStore(_root, store);
-
-        function RNode(node) {
-            //console.log('R ' + node.value);
-            this.value = node.value;
-            this.left = null; //node.left;
-            this.right = null; //node.right;
-            this.x = 0;
-            this.y = 0;
-            this.thread = false;
-            this.offset = 0;
-            this.sid = node.sid;
-        }
-
-        function Extreme(node) {
-            this.node = node;
-            this.offset = 0;
-            this.level = 0;
-        }
-
-        function copyTree(node) {
-            var copy;
-            if (!node)
-                copy = null;
-            else {
-                /*copy = {};
-         copy.value = node.value;*/
-                copy = new RNode(node);
-                copy.left = copyTree(node.left);
-                copy.right = copyTree(node.right);
-            }
-            return copy;
-        }
-
-        function printTree(root) {
-            if (!root)
-                return;
-            console.log(root.value)
-            printTree(root.left);
-            printTree(root.right);
-        }
-
-        function setup(node, level, rightMost, leftMost) {
-            var left,
-                right,
-                lRightMost = new Extreme(null),
-                lLeftMost = new Extreme(null),
-                rRightMost = new Extreme(null),
-                rLeftMost = new Extreme(null);
-
-            // while loop variables:
-            var currentSeparation, // The separation between contour nodes on the current level
-                rootSeparation, // ?
-                leftOffsetSum, // offset from root
-                rightOffsetSum; // offset from root
-
-
-            if (!node /*== null*/ ) {
-                // base case ?
-                // ? update leftMost, rightMost
-                leftMost.level = -1;
-                rightMost.level = -1;
-                return;
-            }
-
-            node.y = level * config.mv;
-            left = node.left;
-            //console.log('left is ' + left);
-            right = node.right;
-            setup(left, level + 1, lRightMost, lLeftMost);
-            setup(right, level + 1, rRightMost, rLeftMost);
-            if (left === null && right === null) {
-                // node is a leaf
-                // base case?
-                if (leftMost && rightMost) {
-                    rightMost.node = node;
-                    leftMost.node = node;
-                    rightMost.level = level; // single node is both rightMost and leftMost on lowest level (which is current level)
-                    leftMost.level = level;
-                    rightMost.offset = 0; // ? TODO
-                    leftMost.offset = 0; // ? TODO
-                }
-                node.offset = 0;
-            } else {
-                // node is not a leaf
-
-                currentSeparation = config.mh; // margin = minimum separation between two nodes on a level
-                rootSeparation = config.mh; // ? TODO
-                leftOffsetSum = 0;
-                rightOffsetSum = 0;
-
-                while (left !== null && right !== null) {
-
-                    if (currentSeparation < config.mh) { // nodes are too close together
-
-                        // Increase rootSeparation just enough so that it accounts for difference between
-                        // config.mh and currentSeparation:
-                        rootSeparation += (config.mh - currentSeparation);
-
-                        // Now, increase currentSeparation to the minimumSeparation:
-                        currentSeparation = config.mh;
-
-                    }
-
-                    // left contour:
-                    if (left.right !== null) {
-
-                        // leftOffsetSum is offset of left from root
-                        // left.offset = distance to each son
-                        // increase leftOffsetSum by left's offset from each child:
-                        leftOffsetSum += left.offset;
-
-                        // At this level, now, currentSeparation is decreased by left.offset,
-                        // because that is how far out left's right child is stick out.
-                        currentSeparation -= left.offset;
-
-                        // Go to next level, next on contour:
-                        left = left.right;
-                    } else {
-
-                        //left.right is null.
-
-                        // We can move left in now:
-                        leftOffsetSum -= left.offset; // ? TODO
-
-                        // We've allowed more separation ?
-                        currentSeparation += left.offset;
-
-                        // Go to next level, next on contour:
-                        left = left.left;
-                    }
-
-                    // right contour:
-                    if (right.left !== null) {
-                        rightOffsetSum -= right.offset;
-                        currentSeparation -= right.offset;
-                        right = right.left;
-                    } else {
-                        rightOffsetSum += right.offset;
-                        currentSeparation += right.offset;
-                        right = right.right;
-                    }
-
-                }
-
-                // set root's offset:
-                node.offset = (rootSeparation + 1) / 2;
-                // ? TODO :
-                leftOffsetSum -= node.offset;
-                rightOffsetSum += node.offset;
-
-                // determine 2 extremes from the 4 we have:
-                // pick leftMost:
-                if (rLeftMost.level > lLeftMost.level || node.left == null) {
-                    // rLeftMost wins
-                    leftMost = rLeftMost;
-                    leftMost.offset += node.offset; // ? TODO
-                } else {
-                    // lLeftMost wins
-                    leftMost = lLeftMost;
-                    leftMost.offset -= node.offset;
-                }
-
-
-                // threading:
-                // necessary if uneven heights? TODO
-
-                if (left != null && left != node.left && rRightMost.node) {
-                    rRightMost.node.thread = true;
-                    // no idea what's going on here: TODO
-                    rRightMost.node.offset = Math.abs((rRightMost.offset + node.offset) - leftOffsetSum);
-                    if (leftOffsetSum - node.offset <= rRightMost.offset) {
-                        rRightMost.node.left = left;
-                    } else {
-                        rRightMost.node.right = left;
-                    }
-                } else if (right != null && right != node.right && lLeftMost.node) {
-                    lLeftMost.node.thread = true;
-                    lLeftMost.node.offset = Math.abs((lLeftMost.offset - node.offset) - rightOffsetSum);
-                    if (rightOffsetSum + node.offset >= lLeftMost.offset) {
-                        lLeftMost.node.right = right;
-                    } else {
-                        lLeftMost.node.left = right;
-                    }
-                } else {
-                    // nothing
-                }
-
-            }
-
-
-        }
-
-        function assign(node, x, useNew) {
-            if (node != null) {
-                node.x = x;
-                if (node.thread) {
-                    // clean up threading:
-                    node.thread = false;
-                    node.right = null;
-                    node.left = null;
-                }
-                // ? TODO
-                assign(node.left, x - node.offset, useNew);
-                assign(node.right, x + node.offset, useNew);
-            }
-        }
-
-        function copyToStore(root, store) {
-
-            if (!root)
-                return;
-            store(root)[config.xProperty] = root.x;
-            store(root)[config.yProperty] = root.y;
-            /*store(root, {
-       x: root.x,
-       y: root.y
-       });*/
             copyToStore(root.left, store);
             copyToStore(root.right, store);
         }

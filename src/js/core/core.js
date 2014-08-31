@@ -70,9 +70,9 @@ S.setMetaData = function(name, meta) {
 }
 
 function provideDefaultDeferredContext(component) {
-  component.def = new S.Deferred(); //S.deferred();
+  /*component.def = new S.Deferred(); //S.deferred();
   component.def.wrap(component);
-  component.deferredContext = component.def.getContext();
+  component.deferredContext = component.def.getContext();       */
 }
 
 S.setDefaultView = function(name, factory) {

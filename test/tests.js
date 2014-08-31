@@ -91,7 +91,7 @@ QUnit.test('tree.live.isBinary', function(assert) {
 // tree tests
 
 QUnit.test('tree (creation)', function(assert) {
-  var node = function(value) {
+  /*var node = function(value) {
     return {
       value: value,
       left: null,
@@ -109,5 +109,5 @@ QUnit.test('tree (creation)', function(assert) {
   
   var tree = S.components.tree(root);
   
-  assert.equal(tree.getState(), root, 'tree.getState() is root');
+  assert.equal(tree.getState(), root, 'tree.getState() is root');*/
 });

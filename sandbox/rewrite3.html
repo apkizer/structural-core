@@ -27,16 +27,15 @@
             _tree.view.scaleTo({
                 width: 800,
                 height: 600
-            })
+            });
 
             var scope = new S.Scope(_tree);
 
-            window.actual = _tree;
             window.scope = scope;
             window.tree = scope.interface.handle();
             window.queue = scope.queue;
 
-            scope.queue.open();
+            //scope.queue.open();
 
             $('body').append(_tree.view.render());
 
