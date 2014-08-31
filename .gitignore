@@ -2,3 +2,4 @@ node_modules
 .brackets.json
 .DS_STORE
 src/img
+./idea
