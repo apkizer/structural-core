@@ -11,7 +11,13 @@ S.Component = (function() {
 
   Component.prototype.getState = function() {
     return this.state;
-  }
+  };
+
+  Component.prototype.setState = function(state) {
+    console.info('Component setting state:');
+    console.dir(state);
+    this.state = state;
+  };
 
   Object.defineProperty(Component.prototype, 'view', {
     get: function() {

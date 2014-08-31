@@ -236,7 +236,13 @@ window.S = (function ($) {
 
         Component.prototype.getState = function () {
             return this.state;
-        }
+        };
+
+        Component.prototype.setState = function (state) {
+            console.info('Component setting state:');
+            console.dir(state);
+            this.state = state;
+        };
 
         Object.defineProperty(Component.prototype, 'view', {
             get: function () {
@@ -455,12 +461,13 @@ window.S = (function ($) {
             S.EventEmitter.call(this); // TODO phase out?
             this.queue = queue;
             this.clones = {}; // TODO store wrappable clones here
+            var self = this;
             this.interface = function (key, value) {
                 if (typeof value === 'undefined')
-                    return this.interface.get(key);
-                this.interface.set(key, value);
+                    return self.interface.get(key);
+                self.interface.set(key, value);
             };
-            this.include(getStandardWrappable());
+            this.include(std());
         };
 
         DeferredInterface.prototype = Object.create(S.EventEmitter.prototype);
@@ -497,21 +504,18 @@ window.S = (function ($) {
 
             for (var prop in wrappable.getSync()) {
                 console.log('Wrapping \'%s\'', prop);
-                // add the method to this interface
                 this.interface[prop] =
-                // inject property; otherwise, pushed functions will all reference last iterated property
-                (function (property, clone) {
-
+                    (function (property, clone) {
                     var interfaceMethod = function () {
                         var args = Array.prototype.slice.call(arguments),
                             ret,
                             pushFn;
+
                         if (wrappable.getSync()[property] !== null && wrappable.noCopy) {
                             ret = wrappable.getSync()[property].apply(wrappable, args);
                         } else if (wrappable.getSync()[property] !== null) {
                             ret = clone.getSync()[property].apply(clone, args);
                         }
-                        // push async & sync  if found on view:
 
                         pushFn = function (fn) {
                             if (wrappable.getSync()[property])
@@ -520,14 +524,11 @@ window.S = (function ($) {
                                 wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn));
                             else
                                 fn();
-                        }
+                        };
 
                         self.queue.push.call(self.queue, pushFn);
-
-                        //if (ret !== null)
                         return ret;
                     };
-
                     return interfaceMethod;
                 })(prop, clone);
             }
@@ -547,8 +548,8 @@ window.S = (function ($) {
             console.groupEnd();
         }
 
-        function getStandardWrappable() {
-            var standard = {
+        function std() {
+            var std = {
                     getAsync: function () {
                         return this.async;
                     },
@@ -560,44 +561,33 @@ window.S = (function ($) {
                     noCopy: true
                 },
                 vars = {};
-
-            standard.live.log = function (str) {
+            std.live.log = function (str) {
                 console.log(str);
-            }
-
-            standard.live.warn = function (msg) {
+            };
+            std.live.warn = function (msg) {
                 console.warn(msg);
-            }
-
-            standard.live.set = function (key, value) {
+            };
+            std.live.set = function (key, value) {
                 vars[key] = value;
-            }
-
-            standard.live.get = function (key) {
+            };
+            std.live.get = function (key) {
                 return vars[key];
-            }
-
-            standard.live.is = function (key, value) {
+            };
+            std.live.is = function (key, value) {
                 return vars[key] === value;
-            }
-
-            standard.live.flog = null;
-
-            standard.async.flog = function (str, fn) {
+            };
+            std.live.flog = null;
+            std.async.flog = function (str, fn) {
                 console.log(str);
                 fn();
             };
-
-            standard.live.fwarn = null;
-
-            standard.async.fwarn = function (str, fn) {
+            std.live.fwarn = null;
+            std.async.fwarn = function (str, fn) {
                 console.warn(str);
                 fn();
             };
-
-            return standard;
+            return std;
         }
-
 
         return DeferredInterface;
     })();
@@ -640,65 +630,60 @@ window.S = (function ($) {
 
     return S;
 })(jQuery);
-(function (S) {
+(function () {
 
-    function array(arr) {
-        var c = new S.Component(), //S.base(),
-            flags = [];
-        if (arr)
-            c.array = arr;
-        c.alias = 'array';
-
-        c.copy = function () {
-            return array(c.array.slice(0)); // by value copy
-        }
-
-        c.live.focus = null;
-        c.live.range = null;
-        c.live.clearfocus = null;
-        c.live.clearrange = null;
-        c.live.leftTo = null;
-
-        c.live.getLength = function () {
-            return c.array.length;
-        }
-
-        c.live.flag = function (index) {
-            flags[index] = true;
-        }
-
-        c.live.isFlagged = function (index) {
-            return !!flags[index];
-        }
-
-        c.live.setItem = function (index, value) {
-            c.array[index] = value;
-        }
-
-        c.live.getItem = function (index) {
-            return c.array[index];
-        }
-
-        c.live.push = function (item) {
-            console.log('pushing ' + item + ' in array.js');
-            c.array.push(item);
-        }
-
-        c.getMethods = function () {
-            return S.getComponentMethods('array');
-        }
-
-        return c;
+    function Array(state, view) {
+        //this.live.component = this;
+        this.alias = 'array';
+        S.Component.call(this, state, view);
+        this.state.flags = [];
     }
-    S.component('array', array, {
-        name: 'Array',
-        desc: 'A standard array.'
-    });
-})(window.S);
 
+    Array.prototype = Object.create(S.Component.prototype);
+    Array.prototype.constructor = Array;
+    Array.prototype.live = {};
 
+    Array.prototype.live.getLength = function () {
+        return this.state.length;
+    };
 
-S.view('array',
+    Array.prototype.live.flag = function (index) {
+        this.state.flags[index] = true;
+    };
+
+    Array.prototype.live.flagged = function (index) {
+        return this.state.flags[index];
+    };
+
+    Array.prototype.live.setItem = function (index, value) {
+        this.state[index] = value;
+    };
+
+    Array.prototype.live.getItem = function (index) {
+        return this.state[index];
+    };
+
+    Array.prototype.live.push = function (item) {
+        this.state.push(item);
+    }
+
+    Array.prototype.live.focus = null;
+
+    Array.prototype.live.range = null;
+
+    Array.prototype.live.range = null;
+
+    Array.prototype.live.clearfocus = null;
+
+    Array.prototype.live.clearrange = null;
+
+    Array.prototype.live.leftTo = null;
+
+    S.defineComponent2('array2', Array);
+
+})();
+
+S.view('array2',
     function (options) {
         var view = new S.View(), //S.baseView(),
             $e,
@@ -753,8 +738,8 @@ S.view('array',
                 fontSize: Math.round($table.height() * .25)
             });
 
-            for (var i = 0; i < view.component.array.length; i++) {
-                var $td = $('<td>' + view.component.array[i] + '<span style="font-size: 0;">' + view.config.hiddenDelimiter + '</span></td>'),
+            for (var i = 0; i < view.component.getState().length; i++) {
+                var $td = $('<td>' + view.component.getState()[i] + '<span style="font-size: 0;">' + view.config.hiddenDelimiter + '</span></td>'),
                     $th = $('<th>' + i + '</th>');
                 $td.data('index', i);
                 $th.data('index', i);
@@ -821,7 +806,7 @@ S.view('array',
         }
 
         view.live.focus = function (index, fn) {
-            if (index < 0 || index > view.component.array.length - 1)
+            if (index < 0 || index > view.component.getState().length - 1)
                 return;
             $cells.removeClass('focus');
             $indices.removeClass('focus');
@@ -873,12 +858,12 @@ S.view('array',
         }
 
         view.live.push = function (item, fn) {
-            console.log('pushing ' + item + ' in array.view.js');
-            console.log('view.component.array = ' + view.component.array);
-            console.log('view.component.array.length = ' + view.component.array.length);
-            console.log('view.component.array.length - 1 = ' + view.component.array.length - 1);
-            var $added = addItem(item, view.component.array.length - 1);
-            view.live.leftTo(view.component.array.length - 1, function () {
+            console.log('pushing ' + item + ' in arrayOLD.view.js');
+            console.log('view.component.getState() = ' + view.component.getState());
+            console.log('view.component.getState().length = ' + view.component.getState().length);
+            console.log('view.component.getState().length - 1 = ' + view.component.getState().length - 1);
+            var $added = addItem(item, view.component.getState().length - 1);
+            view.live.leftTo(view.component.getState().length - 1, function () {
                 $added.animate({
                     opacity: 1
                 }, 200, function () {
@@ -911,15 +896,15 @@ S.view('array',
                 return;
             if (index <= 0)
                 index = 0;
-            if (index >= view.component.array.length - 1)
-                index = view.component.array.length - 1;
+            if (index >= view.component.getState().length - 1)
+                index = view.component.getState().length - 1;
             var time = Math.min(Math.abs(index - view.leftBound) * view.config.stepTime, view.config.maxScrollTime);
             if (index == 0) {
                 view.leftBound = 0;
                 view.rightBound = view.config.numElements - 1;
-            } else if (index > view.component.array.length - view.config.numElements) {
-                view.leftBound = view.component.array.length - view.config.numElements;
-                view.rightBound = view.component.array.length - 1;
+            } else if (index > view.component.getState().length - view.config.numElements) {
+                view.leftBound = view.component.getState().length - view.config.numElements;
+                view.rightBound = view.component.getState().length - 1;
             } else {
                 view.leftBound = index;
                 view.rightBound = index + view.config.numElements - 1;
@@ -933,15 +918,15 @@ S.view('array',
                 return;
             if (index <= 0)
                 index = 0;
-            if (index >= view.component.array.length - 1)
-                index = view.component.array.length - 1;
+            if (index >= view.component.getState().length - 1)
+                index = view.component.getState().length - 1;
             var time = Math.min(Math.abs(index - view.leftBound) * view.config.stepTime, view.config.maxScrollTime);
             if (index <= view.config.numElements - 1) {
                 view.leftBound = 0;
                 view.rightBound = view.config.numElements - 1;
-            } else if (index == view.component.array.length - 1) {
-                view.leftBound = view.component.array.length - view.config.numElements;
-                view.rightBound = view.component.array.length - 1;
+            } else if (index == view.component.getState().length - 1) {
+                view.leftBound = view.component.getState().length - view.config.numElements;
+                view.rightBound = view.component.getState().length - 1;
             } else {
                 view.leftBound = index - view.config.numElements + 1;
                 view.rightBound = index;
@@ -950,8 +935,8 @@ S.view('array',
         }
 
         view.pageRight = function () {
-            view.leftBound = view.leftBound + view.config.numElements <= view.component.array.length - view.config.numElements ? view.leftBound + view.config.numElements : view.component.array.length - view.config.numElements;
-            view.rightBound = view.rightBound + view.config.numElements <= view.component.array.length - 1 ? view.rightBound + view.config.numElements : view.component.array.length - 1;
+            view.leftBound = view.leftBound + view.config.numElements <= view.component.getState().length - view.config.numElements ? view.leftBound + view.config.numElements : view.component.getState().length - view.config.numElements;
+            view.rightBound = view.rightBound + view.config.numElements <= view.component.getState().length - 1 ? view.rightBound + view.config.numElements : view.component.getState().length - 1;
             page(true);
         }
 
@@ -962,8 +947,8 @@ S.view('array',
         }
 
         view.right = function () {
-            view.leftBound = view.leftBound + 1 <= view.component.array.length - view.config.numElements ? view.leftBound + 1 : view.component.array.length - view.config.numElements;
-            view.rightBound = view.rightBound + 1 <= view.component.array.length - 1 ? view.rightBound + 1 : view.component.array.length - 1;
+            view.leftBound = view.leftBound + 1 <= view.component.getState().length - view.config.numElements ? view.leftBound + 1 : view.component.getState().length - view.config.numElements;
+            view.rightBound = view.rightBound + 1 <= view.component.getState().length - 1 ? view.rightBound + 1 : view.component.getState().length - 1;
             step(true);
         }
 
@@ -1004,7 +989,7 @@ S.view('array',
 (function () {
 
     function Tree(state, view) {
-        this.live.component = this;
+        // this.live.component = this; // no need, this bound in deferred
         this.alias = 'tree';
         var s = copyTree(state, null);
         S.Component.call(this, s, view);
@@ -1827,823 +1812,6 @@ S.view('tree', function () {
 
     return view;
 });
-
-
-S.component('treeOld', function (tree, view) {
-    var c = new S.Component(),
-        height = 0;
-    c.alias = 'tree';
-    c.live = {};
-
-
-    c.init = function () {
-        c.tree = copyTree(tree, null);
-        c.state = tree;
-        height = computeHeights(c.tree);
-        computeHeights(c.tree);
-    }
-
-    c.height = function () {
-        return height;
-    }
-
-    function node(value) {
-        return {
-            value: value,
-            left: null,
-            right: null,
-            sid: S.nextId()
-        };
-    }
-
-    function copyTree(_node, parent) {
-        if (!_node) return null;
-        var n = node(_node.value);
-        n.parent = parent;
-        n.left = copyTree(_node.left, n);
-        n.right = copyTree(_node.right, n);
-        return n;
-    }
-
-    function computeHeights(root) {
-        if (root)
-            return root.height = 1 + Math.max(computeHeights(root.left), computeHeights(root.right));
-        return -1;
-    }
-
-    c.computeHeights = function () {
-        computeHeights(c.tree);
-    }
-
-    c.live.root = function () {
-        if (c.tree)
-            return c.tree;
-    }
-
-    c.live.height = function () {
-        return height;
-    }
-
-    c.live.add = function (parent, direction, value) {
-        var ret;
-        if (direction) {
-            ret = parent.right = node(value);
-        } else {
-            ret = parent.left = node(value);
-        }
-        computeHeights(c.tree);
-        // TODO if avl, avl stuff here
-        return ret;
-    }
-
-    c.live.clear = function () {
-        c.tree = node('__');
-    }
-
-    c.live.remove = function (node) {
-        /*if(node.parent) {
-      if(node.parent.left == node) {
-        console.info('Setting parent.left to null');
-        node.parent.left = null;
-      } else {
-        console.info('Setting parent.right to null');
-        node.parent.right = null;
-      }
-    }*/
-
-        if (node.parent && node.parent.left == node) {
-            console.info('Setting parent.left to null');
-            node.parent.left = null;
-        } else if (node.parent && node.parent.right == node) {
-            console.info('Setting parent.right to null');
-            node.parent.right = null;
-        } else {
-            console.info('node.parent doesn\'t exist.');
-        }
-
-        c.computeHeights();
-    }
-
-    c.live.mark = null;
-
-    c.live.markPath = null;
-
-    c.live.clearPath = null;
-
-    c.live.showHeights = null;
-
-    c.live.hideHeights = null;
-
-    c.live.height = null;
-
-    c.live.clearlabels = null;
-
-    c.live.clearfocus = null;
-
-    c.live.travel = null;
-
-    c.live.label = null;
-
-    c.live.focusOn = null;
-
-    c.live.setNode = function (node, value) {
-        node.value = value;
-    };
-
-    c.live.isBinary = function () {
-        return checkBST(c.tree);
-    };
-
-    function checkBST(root) {
-        if (root) {
-            var ret = true;
-            if (root.left) {
-                ret = root.left.value <= root.value;
-            }
-            if (root.right && ret) {
-                ret = root.right.value >= root.value;
-            }
-            return ret && checkBST(root.left) && checkBST(root.right);
-        } else {
-            return true; // null tree is vacuously BST
-        }
-    }
-
-    c.getMethods = function () {
-        return S.getComponentMethods('tree');
-    }
-
-    // TODO, add copy method
-    c.noCopy = true;
-
-    return c;
-});
-S.view('treeOld', function () {
-    var view = new S.View(), //new S.View(), //S.baseView(),
-        data = S.map(), // stores data about nodes
-        $e,
-        dom_svg,
-        s_svg, // snap svg object
-        $svg, // jQuery svg object
-        width = 100,
-        height = 100,
-        nodeRadius = 8,
-        mh = 32, // horizontal margin between nodes
-        mv = 32, // vertical margin between nodes
-        x0, // x offset
-        y0; // y offset
-
-    /*
-  example node data:
-  {
-    x: 100,
-    y: 100,
-    element: [svg element],
-    leftLine: [svg element],
-    rightLine: [svg element],
-    label: 'some text',
-    s_value: [svg element],
-    s_height: [svg element]
-  }
-   */
-
-    view.init = function () {
-
-    }
-
-
-    view.scaleTo = function (dimensions) {
-        //console.log('scaling tree');
-        width = dimensions.width;
-        height = dimensions.height;
-        x0 = width / 2;
-        nodeRadius = view.config.nodeRadius || .05 * height; // TODO
-        y0 = nodeRadius;
-        mv = view.config.mv || height / 5; //(height / view.component.height()) - nodeRadius;
-        mh = view.config.mh || mv + nodeRadius / 2;
-        view.$element.width(width);
-        view.$element.height(height);
-        view.render();
-    }
-
-    view.render = function () {
-        //console.log('rendering');
-        if ($e) $e.remove();
-        $e = $('<div class="tree"></div>');
-        dom_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
-        $svg = $(dom_svg)
-            .width(width)
-            .height(height)
-            .appendTo($e);
-        s_svg = Snap(dom_svg);
-        s_svg.addClass('tree-svg');
-        rg(view.component.tree, data, {
-            mh: mh,
-            mv: mv,
-            x0: x0,
-            y0: y0
-        });
-        drawLines(view.component.tree);
-        allNodes(view.component.tree, function (node) {
-            data(node).element = drawNode(node, data(node).x, data(node).y);
-            data(node).s_value = drawValue(node.value, data(node).x, data(node).y);
-            data(node).s_height = drawHeight(node);
-            drawHeightIcon(node);
-        });
-        view.$element.append($e);
-        return view.$element;
-    }
-
-    function drawNode(node, x, y) {
-        return circle = s_svg.circle(x + x0, y + y0 + 2, nodeRadius)
-            .addClass('tree-node');
-    }
-
-    function drawLabel(node, label) {
-        return s_svg.text(data(node).x + x0 + nodeRadius + 5, data(node).y + y0 + nodeRadius / 2 - 3, '/' + label)
-            .addClass('tree-node-label')
-            .attr('text-anchor', 'right')
-            .attr('font-size', nodeRadius);
-    }
-
-    function drawValue(value, x, y) {
-        return s_svg.text(x + x0 /*- 10*/ , y + y0 + nodeRadius * .5, value + '')
-            .addClass('tree-node-value')
-            .attr('text-anchor', 'middle')
-            .attr('font-size', nodeRadius * 1.25);
-    }
-
-    function drawLine(xi, yi, xf, yf) {
-        return s_svg.line(xi + x0, yi + y0, xf + x0, yf + y0)
-            .addClass('tree-line'); //.attr('stroke', 'black');
-    }
-
-    function drawHeight(node) {
-        return s_svg.text(data(node).x + x0 - nodeRadius - nodeRadius * .85, data(node).y + y0 + nodeRadius / 2 - 3, node.height + '')
-            .attr('font-size', nodeRadius)
-            .addClass('tree-height');
-    }
-
-    function drawHeightIcon(node) {
-        //s_svg.image('height.png', data(node).x + x0 - nodeRadius - nodeRadius * 1.1, data(node).y + y0 - nodeRadius * .3, 5, nodeRadius * .75);
-    }
-
-
-    /**
-     * Recursive method to draw connecting lines of tree.
-     * @param root
-     */
-    function drawLines(root) {
-        if (root.left) {
-            data(root).leftLine = drawLine(data(root).x, data(root).y, data(root.left).x, data(root.left).y);
-            drawLines(root.left);
-        }
-        if (root.right) {
-            data(root).rightLine = drawLine(data(root).x, data(root).y, data(root.right).x, data(root.right).y);
-            drawLines(root.right);
-        }
-    }
-
-    function allNodes(root, func) {
-        if (root) {
-            func(root)
-            allNodes(root.left, func);
-            allNodes(root.right, func);
-        }
-    }
-
-
-    view.live.focusOn = function (node, fn) {
-        if (!node) return;
-        var circle = data(node).element
-            .addClass('focus');
-        fn();
-    }
-
-    view.live.clearfocus = function (fn) {
-        data.forEach(function (pair) {
-            pair[1].element.removeClass('focus');
-        });
-        fn();
-    }
-
-    view.live.add = function (parent, direction, value, fn) {
-        if (direction) {
-            data(parent.right).doNotDraw = true;
-        } else {
-            data(parent.left).doNotDraw = true;
-        }
-        // TODO animate addition of node
-        view.scaleTo({
-            width: width,
-            height: height
-        });
-        view.render();
-        /*rg(view.component.tree, data, {
-      xProperty: 'newX',
-      yProperty: 'newY'
-    }); */
-        //moveToNewPositions(view.component.tree);
-        fn();
-    }
-
-    function moveToNewPositions(root) {
-        if (root) {
-            var _data = data(root),
-                circle = data.element;
-            if (circle) {
-                circle.animate({
-                    x: _data.newX,
-                    y: _data.newY
-                }, 1000, null, function () {
-
-                });
-            }
-            moveToNewPositions(root.left);
-            moveToNewPositions(root.right);
-        }
-    }
-
-    view.live.travel = function (parent, direction, fn) {
-        if (direction) {
-            if (data(parent).rightLine) {
-                var rightLine = data(parent).rightLine;
-                rightLine.addClass('tree-line-active');
-                var s_circle = s_svg.circle(rightLine.attr('x1'), rightLine.attr('y1'), 5)
-                    .addClass('tree-travelorb');
-                s_circle.insertAfter(rightLine);
-                s_circle.animate({
-                    cx: rightLine.attr('x2'),
-                    cy: rightLine.attr('y2')
-                }, 500, null, function () {
-                    s_circle.remove();
-                    fn();
-                });
-            } else {
-                fn();
-            }
-        } else {
-            if (data(parent).leftLine) {
-                var leftLine = data(parent).leftLine;
-                leftLine.addClass('tree-line-active');
-                var s_circle = s_svg.circle(leftLine.attr('x1'), leftLine.attr('y1'), 5)
-                    .addClass('tree-travelorb');
-                s_circle.insertAfter(leftLine);
-                s_circle.animate({
-                    cx: leftLine.attr('x2'),
-                    cy: leftLine.attr('y2')
-                }, 500, null, function () {
-                    s_circle.remove();
-                    fn();
-                });
-            } else {
-                fn();
-            }
-        }
-    };
-
-    view.live.label = function (node, label, fn) {
-        if (node && data(node)) {
-            data(node).label = label;
-            data(node).s_label = drawLabel(node, label);
-            fn();
-        } else {
-            fn();
-        }
-    }
-
-    view.live.setNode = function (node, value, fn) {
-        var s_node = data(node).element,
-            s_value = data(node).s_value;
-        S.wait(function () {
-            s_node.addClass('tree-remove');
-            s_value.addClass('tree-remove');
-            S.wait(function () {
-                s_node.removeClass('tree-remove');
-                s_value.removeClass('tree-remove')
-                    .attr('text', value);
-                fn();
-            }, 300);
-        }, 200);
-    }
-
-    view.live.clear = function (fn) {
-        view.render();
-        fn();
-    }
-
-    view.live.clearlabels = function (fn) {
-        data.forEach(function (pair) {
-            view.live.clearlabel(pair[0]);
-        });
-        fn();
-    }
-
-    view.live.clearlabel = function (node, fn) {
-        if (data(node).s_label) {
-            data(node).s_label.remove();
-            data(node).label = undefined;
-            data(node).s_label = undefined;
-        }
-        if (fn) fn();
-    }
-
-    view.live.showHeights = function (fn) {
-        data.forEach(function (pair) {
-            view.live.height(pair[0], true);
-        });
-        fn();
-    }
-
-    view.live.hideHeights = function (fn) {
-        data.forEach(function (pair) {
-            view.live.height(pair[0], false);
-        });
-        fn();
-    }
-
-    view.live.height = function (node, show, fn) {
-        if (!node || !data(node).s_height) return;
-        console.log('s_height = ' + data(node).s_height);
-        if (show)
-            data(node).s_height.attr('visibility', 'visible');
-        else
-            data(node).s_height.attr('visibility', 'hidden');
-        if (fn) fn();
-    }
-
-    view.live.remove = function (node, fn) {
-        var elements = getTreeElements(node),
-            parent = node.parent,
-            count = 0,
-            max;
-
-        if (parent.left == null) {
-            elements.push(data(parent).leftLine);
-        } else {
-            elements.push(data(parent).rightLine);
-        }
-
-        max = elements.length;
-
-        elements.forEach(function (element) {
-            if (!element) {
-                count++;
-                return;
-            }
-            if (element.attr('cy')) {
-                element.animate({
-                    cy: 1000
-                }, 500, mina.easeinout, function () {
-                    count++;
-                    checkIfAllRemoved();
-                });
-            } else if (element.attr('y1')) {
-                element.animate({
-                    y1: 1000,
-                    y2: 1000
-                }, 500, mina.easeinout, function () {
-                    count++;
-                    checkIfAllRemoved();
-                });
-            } else {
-                element.animate({
-                    y: 1000
-                }, 500, mina.easeinout, function () {
-                    count++;
-                    checkIfAllRemoved();
-                });
-            }
-        });
-
-        function checkIfAllRemoved() {
-            console.log('allremoved, count max ' + count + ' ' + max);
-            if (count >= max) {
-                console.log('all removed!');
-                elements.forEach(function (element) {
-                    if (element) {
-                        element.remove();
-                    }
-                });
-                view.render();
-                fn();
-            }
-        }
-    }
-
-    function getTreeElements(root) {
-        var ret = [];
-        if (root) {
-            console.log('element is ' + data(root).element);
-            ret.push(data(root).element);
-            ret.push(data(root).s_height);
-            ret.push(data(root).s_value);
-            ret.push(data(root).s_label);
-            ret.push(data(root).leftLine);
-            ret.push(data(root).rightLine);
-            console.log('returning ' + ret.concat(getTreeElements(root.left).concat(getTreeElements(root.right))));
-            return ret.concat(getTreeElements(root.left).concat(getTreeElements(root.right)));
-        }
-        return ret;
-    }
-
-    view.live.mark = function (node, num, fn) {
-        if (data(node).element) {
-            data(node).element.addClass('range' + num);
-            fn();
-        }
-    }
-
-    view.live.markPath = function (node, dir, num, fn) {
-        if (dir && data(node).rightLine) {
-            data(node).rightLine.addClass('pathrange' + num);
-        } else if (data(node).leftLine) {
-            data(node).leftLine.addClass('pathrange' + num);
-        }
-        fn();
-    }
-
-    view.live.clearPath = function (node, dir, num, fn) {
-        if (dir && data(node).rightLine) {
-            data(node).rightLine.removeClass('pathrange' + num);
-        } else if (data(node).leftLine) {
-            data(node).leftLine.removeClass('pathrange' + num);
-        }
-        fn();
-    }
-
-    view.add = function (parent_s, left, value, fn) {
-        /*nodes(parent_s, getNodeElement(value));
-    rg(view.component.tree, data, view.config);
-    nodes.forEach(function(pair){
-      move(nodes(pair[0]), pair[1].x, pair[1].y, function(){
-        $e.append(nodes(parent_s));
-      });
-    });*/
-    }
-
-    function move($elem, x, y, fn) {
-        /*$elem.animate({
-      left: x,
-      top: y
-    }, 250, function(){
-      fn();
-    });*/
-    }
-
-    /**
-     * My (Alex Kizer's) crappy implementation of the Reingold-Tilford algorithm.
-     * http://emr.cs.iit.edu/~reingold/tidier-drawings.pdf
-     * @param root Root of the tree to draw.
-     * @param store A map where position data will be deposited.
-     * @param options Options to specify the minimum vertical and horizontal spacing between nodes.
-     */
-    function rg(root, store, options) {
-        //1. copy tree
-        //2. run rg
-        //3. copy to store
-
-
-        var config = {
-            mh: 10,
-            mv: 10,
-            xProperty: 'x',
-            yProperty: 'y'
-        };
-
-        $.extend(config, options);
-        var _root = copyTree(root);
-        //console.log('printing _root');
-        //printTree(_root);
-        setup(_root, 0, null, null);
-        assign(_root, 0, false);
-        copyToStore(_root, store);
-
-        function RNode(node) {
-            //console.log('R ' + node.value);
-            this.value = node.value;
-            this.left = null; //node.left;
-            this.right = null; //node.right;
-            this.x = 0;
-            this.y = 0;
-            this.thread = false;
-            this.offset = 0;
-            this.sid = node.sid;
-        }
-
-        function Extreme(node) {
-            this.node = node;
-            this.offset = 0;
-            this.level = 0;
-        }
-
-        function copyTree(node) {
-            var copy;
-            if (!node)
-                copy = null;
-            else {
-                /*copy = {};
-         copy.value = node.value;*/
-                copy = new RNode(node);
-                copy.left = copyTree(node.left);
-                copy.right = copyTree(node.right);
-            }
-            return copy;
-        }
-
-        function printTree(root) {
-            if (!root)
-                return;
-            console.log(root.value)
-            printTree(root.left);
-            printTree(root.right);
-        }
-
-        function setup(node, level, rightMost, leftMost) {
-            var left,
-                right,
-                lRightMost = new Extreme(null),
-                lLeftMost = new Extreme(null),
-                rRightMost = new Extreme(null),
-                rLeftMost = new Extreme(null);
-
-            // while loop variables:
-            var currentSeparation, // The separation between contour nodes on the current level
-                rootSeparation, // ?
-                leftOffsetSum, // offset from root
-                rightOffsetSum; // offset from root
-
-
-            if (!node /*== null*/ ) {
-                // base case ?
-                // ? update leftMost, rightMost
-                leftMost.level = -1;
-                rightMost.level = -1;
-                return;
-            }
-
-            node.y = level * config.mv;
-            left = node.left;
-            //console.log('left is ' + left);
-            right = node.right;
-            setup(left, level + 1, lRightMost, lLeftMost);
-            setup(right, level + 1, rRightMost, rLeftMost);
-            if (left === null && right === null) {
-                // node is a leaf
-                // base case?
-                if (leftMost && rightMost) {
-                    rightMost.node = node;
-                    leftMost.node = node;
-                    rightMost.level = level; // single node is both rightMost and leftMost on lowest level (which is current level)
-                    leftMost.level = level;
-                    rightMost.offset = 0; // ? TODO
-                    leftMost.offset = 0; // ? TODO
-                }
-                node.offset = 0;
-            } else {
-                // node is not a leaf
-
-                currentSeparation = config.mh; // margin = minimum separation between two nodes on a level
-                rootSeparation = config.mh; // ? TODO
-                leftOffsetSum = 0;
-                rightOffsetSum = 0;
-
-                while (left !== null && right !== null) {
-
-                    if (currentSeparation < config.mh) { // nodes are too close together
-
-                        // Increase rootSeparation just enough so that it accounts for difference between
-                        // config.mh and currentSeparation:
-                        rootSeparation += (config.mh - currentSeparation);
-
-                        // Now, increase currentSeparation to the minimumSeparation:
-                        currentSeparation = config.mh;
-
-                    }
-
-                    // left contour:
-                    if (left.right !== null) {
-
-                        // leftOffsetSum is offset of left from root
-                        // left.offset = distance to each son
-                        // increase leftOffsetSum by left's offset from each child:
-                        leftOffsetSum += left.offset;
-
-                        // At this level, now, currentSeparation is decreased by left.offset,
-                        // because that is how far out left's right child is stick out.
-                        currentSeparation -= left.offset;
-
-                        // Go to next level, next on contour:
-                        left = left.right;
-                    } else {
-
-                        //left.right is null.
-
-                        // We can move left in now:
-                        leftOffsetSum -= left.offset; // ? TODO
-
-                        // We've allowed more separation ?
-                        currentSeparation += left.offset;
-
-                        // Go to next level, next on contour:
-                        left = left.left;
-                    }
-
-                    // right contour:
-                    if (right.left !== null) {
-                        rightOffsetSum -= right.offset;
-                        currentSeparation -= right.offset;
-                        right = right.left;
-                    } else {
-                        rightOffsetSum += right.offset;
-                        currentSeparation += right.offset;
-                        right = right.right;
-                    }
-
-                }
-
-                // set root's offset:
-                node.offset = (rootSeparation + 1) / 2;
-                // ? TODO :
-                leftOffsetSum -= node.offset;
-                rightOffsetSum += node.offset;
-
-                // determine 2 extremes from the 4 we have:
-                // pick leftMost:
-                if (rLeftMost.level > lLeftMost.level || node.left == null) {
-                    // rLeftMost wins
-                    leftMost = rLeftMost;
-                    leftMost.offset += node.offset; // ? TODO
-                } else {
-                    // lLeftMost wins
-                    leftMost = lLeftMost;
-                    leftMost.offset -= node.offset;
-                }
-
-
-                // threading:
-                // necessary if uneven heights? TODO
-
-                if (left != null && left != node.left && rRightMost.node) {
-                    rRightMost.node.thread = true;
-                    // no idea what's going on here: TODO
-                    rRightMost.node.offset = Math.abs((rRightMost.offset + node.offset) - leftOffsetSum);
-                    if (leftOffsetSum - node.offset <= rRightMost.offset) {
-                        rRightMost.node.left = left;
-                    } else {
-                        rRightMost.node.right = left;
-                    }
-                } else if (right != null && right != node.right && lLeftMost.node) {
-                    lLeftMost.node.thread = true;
-                    lLeftMost.node.offset = Math.abs((lLeftMost.offset - node.offset) - rightOffsetSum);
-                    if (rightOffsetSum + node.offset >= lLeftMost.offset) {
-                        lLeftMost.node.right = right;
-                    } else {
-                        lLeftMost.node.left = right;
-                    }
-                } else {
-                    // nothing
-                }
-
-            }
-
-
-        }
-
-        function assign(node, x, useNew) {
-            if (node != null) {
-                node.x = x;
-                if (node.thread) {
-                    // clean up threading:
-                    node.thread = false;
-                    node.right = null;
-                    node.left = null;
-                }
-                // ? TODO
-                assign(node.left, x - node.offset, useNew);
-                assign(node.right, x + node.offset, useNew);
-            }
-        }
-
-        function copyToStore(root, store) {
-
-            if (!root)
-                return;
-            store(root)[config.xProperty] = root.x;
-            store(root)[config.yProperty] = root.y;
-            /*store(root, {
-        x: root.x,
-        y: root.y
-      });*/
-            copyToStore(root.left, store);
-            copyToStore(root.right, store);
-        }
-
-
-    }
-
-    return view;
-});
 S.method('array', 'finish', function () {
     this.clearfocus();
     this.leftTo(0);
@@ -2706,7 +1874,6 @@ S.method('array', 'searchBinary', function (target) {
 
 });
 
-console.log('creating insertionSort');
 S.method('array', 'insertionSort', function () {
     for (var i = 0; i < this.getLength(); i++) {
         this('j', i);

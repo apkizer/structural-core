@@ -1,7 +1,7 @@
 (function(){
 
   function Tree(state, view) {
-    this.live.component = this;
+    // this.live.component = this; // no need, this bound in deferred
     this.alias = 'tree';
     var s = copyTree(state, null);
     S.Component.call(this, s, view);

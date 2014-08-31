@@ -4,10 +4,11 @@ S.DeferredInterface = (function(){
     S.EventEmitter.call(this); // TODO phase out?
     this.queue = queue;
     this.clones = {}; // TODO store wrappable clones here
+    var self = this;
     this.interface = function(key, value) {
       if (typeof value === 'undefined')
-        return this.interface.get(key);
-      this.interface.set(key, value);
+        return self.interface.get(key);
+      self.interface.set(key, value);
     };
     this.include(std());
   };
@@ -66,7 +67,7 @@ S.DeferredInterface = (function(){
                 wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn));
               else
                 fn();
-            }
+            };
 
             self.queue.push.call(self.queue, pushFn);
             return ret;

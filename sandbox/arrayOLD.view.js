@@ -1,33 +1,33 @@
 
-S.view('array2',
+S.view('array', 
   function (options) {
     var view = new S.View(), //S.baseView(),
-      $e,
-      $table,
-      $topRow,
-      $bottomRow,
-      $cells = $(),
-      $indices = $(),
-      computedWidth,
-      width,
-      border = 0,
-      computedCellWidth,
-      height;
-
+        $e,
+        $table,
+        $topRow,
+        $bottomRow,
+        $cells = $(),
+        $indices = $(),
+        computedWidth,
+        width,
+        border = 0,
+        computedCellWidth,
+        height;
+        
     view.init = function() {
       view.config = {
-        hiddenDelimiter: ',',
-        numElements: 5,
-        pageTime: 300,
-        stepTime: 50,
-        scrollTime: 500,
+        hiddenDelimiter: ',', 
+        numElements: 5, 
+        pageTime: 300, 
+        stepTime: 50, 
+        scrollTime: 500, 
         maxScrollTime: 1000
       };
       view.config = options;
       view.leftBound = 0;
       view.rightBound = view.config.numElements - 1;
     }
-
+    
     view.config = function(options) {
       $.extend(view.config, options);
       view.leftBound = 0;
@@ -44,19 +44,19 @@ S.view('array2',
       $topRow = $('<tr></tr>').addClass('array-top');
       $bottomRow = $('<tr></tr>').addClass('array-bottom');
       $e.append($table);
-      $table.append($topRow).append($bottomRow);
-
+      $table.append($topRow).append($bottomRow); 
+      
       $table.css({
         height: height
       });
-
+      
       $topRow.css({
         fontSize: Math.round($table.height() * .25)
       });
-
-      for(var i = 0; i < view.component.getState().length; i++) {
-        var $td = $('<td>' + view.component.getState()[i] + '<span style="font-size: 0;">' + view.config.hiddenDelimiter + '</span></td>'),
-          $th = $('<th>' + i + '</th>');
+      
+      for(var i = 0; i < view.component.array.length; i++) {
+        var $td = $('<td>' + view.component.array[i] + '<span style="font-size: 0;">' + view.config.hiddenDelimiter + '</span></td>'),
+            $th = $('<th>' + i + '</th>');
         $td.data('index', i);
         $th.data('index', i);
         $td.width(computedCellWidth);
@@ -83,7 +83,7 @@ S.view('array2',
       view.$element.css('width', dimensions.width);
       view.$element.css('height', dimensions.height);
       computedCellWidth = Math.floor(width / view.config.numElements) - border;
-      view.render();
+      view.render();  
     }
 
     function bindEvents($_cells, $_indices) {
@@ -122,7 +122,7 @@ S.view('array2',
     }
 
     view.live.focus = function(index, fn) {
-      if(index < 0 || index > view.component.getState().length - 1)
+      if(index < 0 || index > view.component.array.length - 1)
         return;
       $cells.removeClass('focus');
       $indices.removeClass('focus');
@@ -145,7 +145,7 @@ S.view('array2',
 
     view.live.range = function(start, end, num, fn) {
       var $range = $cells.slice(start, end + 1),
-        clazz = 'range' + num;
+          clazz = 'range' + num;
       // TODO why do I do this? -v
       $range.addClass(function(i){
         var classes = $range.eq(i).attr('class'),
@@ -175,11 +175,11 @@ S.view('array2',
 
     view.live.push = function(item, fn) {
       console.log('pushing ' + item + ' in arrayOLD.view.js');
-      console.log('view.component.getState() = ' + view.component.getState());
-      console.log('view.component.getState().length = ' + view.component.getState().length);
-      console.log('view.component.getState().length - 1 = ' +  view.component.getState().length - 1);
-      var $added = addItem(item, view.component.getState().length - 1);
-      view.live.leftTo(view.component.getState().length - 1, function() {
+      console.log('view.component.array = ' + view.component.array);
+      console.log('view.component.array.length = ' + view.component.array.length);
+      console.log('view.component.array.length - 1 = ' +  view.component.array.length - 1);
+      var $added = addItem(item, view.component.array.length - 1);
+      view.live.leftTo(view.component.array.length - 1, function() {
         $added.animate({
           opacity: 1
         }, 200, function(){
@@ -212,15 +212,15 @@ S.view('array2',
         return;
       if(index <= 0)
         index = 0;
-      if(index >= view.component.getState().length - 1)
-        index = view.component.getState().length - 1;
+      if(index >= view.component.array.length - 1)
+        index = view.component.array.length - 1;
       var time = Math.min(Math.abs(index - view.leftBound) * view.config.stepTime, view.config.maxScrollTime);
       if(index == 0) {
         view.leftBound = 0;
         view.rightBound = view.config.numElements - 1;
-      } else if (index > view.component.getState().length - view.config.numElements) {
-        view.leftBound = view.component.getState().length - view.config.numElements;
-        view.rightBound = view.component.getState().length - 1;
+      } else if (index > view.component.array.length - view.config.numElements) {
+        view.leftBound = view.component.array.length - view.config.numElements;
+        view.rightBound = view.component.array.length - 1;
       } else {
         view.leftBound = index;
         view.rightBound = index + view.config.numElements - 1;
@@ -234,15 +234,15 @@ S.view('array2',
         return;
       if(index <= 0)
         index = 0;
-      if(index >= view.component.getState().length - 1)
-        index = view.component.getState().length - 1;
+      if(index >= view.component.array.length - 1)
+        index = view.component.array.length - 1;
       var time = Math.min(Math.abs(index - view.leftBound) * view.config.stepTime, view.config.maxScrollTime);
       if(index <= view.config.numElements - 1) {
         view.leftBound = 0;
         view.rightBound = view.config.numElements - 1;
-      } else if (index == view.component.getState().length - 1) {
-        view.leftBound = view.component.getState().length - view.config.numElements;
-        view.rightBound = view.component.getState().length - 1;
+      } else if (index == view.component.array.length - 1) {
+        view.leftBound = view.component.array.length - view.config.numElements;
+        view.rightBound = view.component.array.length - 1;
       } else {
         view.leftBound = index - view.config.numElements + 1;
         view.rightBound = index;
@@ -251,8 +251,8 @@ S.view('array2',
     }
 
     view.pageRight = function() {
-      view.leftBound = view.leftBound + view.config.numElements <= view.component.getState().length - view.config.numElements ? view.leftBound + view.config.numElements : view.component.getState().length - view.config.numElements;
-      view.rightBound = view.rightBound + view.config.numElements <= view.component.getState().length - 1 ? view.rightBound + view.config.numElements : view.component.getState().length - 1;
+      view.leftBound = view.leftBound + view.config.numElements <= view.component.array.length - view.config.numElements ? view.leftBound + view.config.numElements : view.component.array.length - view.config.numElements;
+      view.rightBound = view.rightBound + view.config.numElements <= view.component.array.length - 1 ? view.rightBound + view.config.numElements : view.component.array.length - 1;
       page(true);
     }
 
@@ -263,8 +263,8 @@ S.view('array2',
     }
 
     view.right = function() {
-      view.leftBound = view.leftBound + 1 <= view.component.getState().length - view.config.numElements ? view.leftBound + 1 : view.component.getState().length - view.config.numElements;
-      view.rightBound = view.rightBound + 1 <= view.component.getState().length - 1 ? view.rightBound + 1 : view.component.getState().length - 1;
+      view.leftBound = view.leftBound + 1 <= view.component.array.length - view.config.numElements ? view.leftBound + 1 : view.component.array.length - view.config.numElements;
+      view.rightBound = view.rightBound + 1 <= view.component.array.length - 1 ? view.rightBound + 1 : view.component.array.length - 1;
       step(true);
     }
 

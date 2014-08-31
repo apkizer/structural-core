@@ -1,56 +1,52 @@
-(function(S){
-  
-    function array(arr) {
-      var c = new S.Component(), //S.base(),
-        flags = [];
-      if(arr) 
-        c.array = arr;
-      c.alias = 'array';
+(function(){
 
-      c.copy = function() {
-          return array(c.array.slice(0)); // by value copy
-      }
+  function Array(state, view) {
+    //this.live.component = this;
+    this.alias = 'array';
+    S.Component.call(this, state, view);
+    this.state.flags = [];
+  }
 
-      c.live.focus = null;
-      c.live.range = null;
-      c.live.clearfocus = null;
-      c.live.clearrange = null;
-      c.live.leftTo = null;
+  Array.prototype = Object.create(S.Component.prototype);
+  Array.prototype.constructor = Array;
+  Array.prototype.live = {};
 
-      c.live.getLength = function() {
-        return c.array.length;
-      }
+  Array.prototype.live.getLength = function() {
+    return this.state.length;
+  };
 
-      c.live.flag = function(index) {
-        flags[index] = true;
-      }
+  Array.prototype.live.flag = function(index) {
+    this.state.flags[index] = true;
+  };
 
-      c.live.isFlagged = function(index) {
-        return !!flags[index];
-      }
+  Array.prototype.live.flagged = function(index) {
+    return this.state.flags[index];
+  };
 
-      c.live.setItem = function(index, value) {
-        c.array[index] = value;
-      }
+  Array.prototype.live.setItem = function(index, value) {
+    this.state[index] = value;
+  };
 
-      c.live.getItem = function(index) {
-        return c.array[index];
-      }
+  Array.prototype.live.getItem = function(index) {
+    return this.state[index];
+  };
 
-      c.live.push = function(item) {
-        console.log('pushing ' + item + ' in array.js');
-        c.array.push(item);
-      }
+  Array.prototype.live.push = function(item) {
+    this.state.push(item);
+  }
 
-      c.getMethods = function() {
-        return S.getComponentMethods('array');
-      }
+  Array.prototype.live.focus = null;
 
-      return c;
-    }
-    S.component('array', array, {
-      name: 'Array',
-      desc: 'A standard array.'
-    });
-})(window.S);
+  Array.prototype.live.range = null;
 
+  Array.prototype.live.range = null;
+
+  Array.prototype.live.clearfocus = null;
+
+  Array.prototype.live.clearrange = null;
+
+  Array.prototype.live.leftTo = null;
+
+  S.defineComponent2('array2', Array);
+
+})();

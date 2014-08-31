@@ -16,35 +16,31 @@
             };
             var scaling = true;
 
-            var root = node(17);
-            root.left = node(16);
-            root.right = node(18);
-            root.left.left = node(12);
-            root.left.left.right = node(13);
+            var arr = [0, 12, 5, 34, 234, 09, 61, 23, 99, 3];
 
-            var _tree = S.components.tree(root);
+            var _array = S.components.array2(arr);
 
-            _tree.view.scaleTo({
+            _array.view.scaleTo({
                 width: 800,
-                height: 600
-            })
+                height: 200
+            });
 
-            var scope = new S.Scope(_tree);
+            var scope = new S.Scope(_array);
 
-            window.actual = _tree;
+            window.actual = _array;
             window.scope = scope;
-            window.tree = scope.interface.handle();
+            window.array = scope.interface.handle();
             window.queue = scope.queue;
 
             scope.queue.open();
 
-            $('body').append(_tree.view.render());
+            $('body').append(_array.view.render());
 
             $(document).mousemove(function(event) {
                 if(!scaling) return;
-                _tree.view.scaleTo({
-                    width: event.pageX * 2,
-                    height: event.pageY * 2
+                _array.view.scaleTo({
+                    width: event.pageX,
+                    height: event.pageY
                 });
             });
 
