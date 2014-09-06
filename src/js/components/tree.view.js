@@ -303,8 +303,10 @@ S.view('tree', function () {
 
     if(parent.left == null) {
       elements.push(data(parent).leftLine);
+      delete data(parent).leftLine;
     } else {
       elements.push(data(parent).rightLine);
+      delete data(parent).rightLine;
     }
 
     max = elements.length;

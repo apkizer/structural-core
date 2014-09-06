@@ -1,9 +1,16 @@
 (function(){
 
+  /*
+  NOTE:
+  Components should not accept objects as parameters. If they do, they should only use and id property set on object, because
+  doing operations on the actual object passed in will not work, because it references an object in the synchronous phase.
+   */
+
   function Tree(state, view) {
     // this.live.component = this; // no need, this bound in deferred
     this.alias = 'tree';
-    var s = copyTree(state, null);
+    this.nodeMap = {};
+    var s = this._copyTree(state, null);
     S.Component.call(this, s, view);
   }
 
@@ -56,6 +63,7 @@
     } else {
       added = parent.left = node(value);
     }
+    this.nodeMap[added.sid] = added;
     this.height = computeHeights(this.state);
     return bindGetters(added);
   }
@@ -65,6 +73,11 @@
    * @param node The node to remove.
    */
   Tree.prototype.live.remove = function(node) {
+    console.info('Removing node ' + node.sid);
+
+    node = this.nodeMap[node.sid];
+    var parent = this.nodeMap[node.parent.sid];
+
     if(node.parent && node.parent.left == node) {
       node.parent.left = null;
     } else if(node.parent && node.parent.right == node) {
@@ -95,6 +108,11 @@
     // TODO
   }
 
+  Tree.prototype.live.verify = function() {
+    console.group('Verifying tree...');
+    console.dir(this.getState());
+  }
+
   /*
   View only methods
    */
@@ -120,6 +138,26 @@
 
   // utils:
 
+  Tree.prototype._copyTree = function(_node, parent) {
+    // this should use either left or _left to lookup child references
+    console.log('copying tree');
+    if(!_node) return null;
+    var n = node(_node.value);
+    if(_node.sid)
+      n.sid = _node.sid;
+    else
+      n.sid = S.nextId();
+    n.parent = parent;
+    n.left = this._copyTree(_node.left || node._left, n);
+    n.right = this._copyTree(_node.right || node._right, n);
+    if(n.sid == 'sid_0') {
+      console.log('ROOT');
+      console.dir(n);
+    }
+    this.nodeMap[n.sid] = n;
+    return n;
+  }
+
   function bindGetters(node) {
     return node;
   }
@@ -142,19 +180,7 @@
     };
   }
 
-  function copyTree(_node, parent) {
-    // this should use either left or _left to lookup child references
-    if(!_node) return null;
-    var n = node(_node.value);
-    if(_node.sid)
-      n.sid = _node.sid;
-    else
-      n.sid = S.nextId();
-    n.parent = parent;
-    n.left = copyTree(_node.left || node._left, n);
-    n.right = copyTree(_node.right || node._right, n);
-    return n;
-  }
+
 
   S.defineComponent2('tree', Tree);
 

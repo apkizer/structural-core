@@ -1,7 +1,7 @@
 S.config = {
-    provideDefaultDeferredContext: true, /* Provide a deferred context on newly created components. */
-    viewClass: 'structural_view', /* CSS class for views */
-    specialStrings: {
-      nullString: '__null' /* special symbol displayed when array cell or tree node set to this */
-    }
+  provideDefaultDeferredContext: true, /* Provide a deferred context on newly created components. */
+  viewClass: 'structural_view', /* CSS class for views */
+  specialStrings: {
+    nullString: '__null' /* special symbol displayed when array cell or tree node set to this */
+  }
 };
