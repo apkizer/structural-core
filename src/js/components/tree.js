@@ -18,6 +18,8 @@
     this.alias = 'tree';
     this.nodeMap = {};
     var s = this._copyTree(state, null);
+    console.log('Tree setting view');
+    console.dir(view);
     S.Component.call(this, s, view);
   }
 
@@ -64,13 +66,19 @@
    * @returns {*} The added node.
    */
   Tree.prototype.live.add = function(parent, direction, value) {
+    console.log('Adding %s', value);
+    parent = this.nodeMap[parent.sid];
     var added;
     if(direction) {
       added = parent.right = node(value);
     } else {
       added = parent.left = node(value);
     }
+    added.sid = S.nextId();
     this.nodeMap[added.sid] = added;
+    console.dir(added);
+    console.log('parent it');
+    console.dir(parent);
     this.height = computeHeights(this.state);
     return bindGetters(added);
   }

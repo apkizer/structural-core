@@ -69,6 +69,7 @@ S.view('tree', function () {
     });
     drawLines(view.component.getState());
     allNodes(view.component.getState(), function(node) {
+      console.info('allNodes %s', node.sid);
       data(node).element = drawNode(node, data(node).x, data(node).y);
       data(node).s_value = drawValue(node.value, data(node).x, data(node).y);
       data(node).s_height = drawHeight(node);
@@ -138,6 +139,9 @@ S.view('tree', function () {
 
 
   view.live.focusOn = function(node, fn) {
+    console.log('node.sid %s', node.sid);
+    node = view.component.nodeMap[node.sid];
+    console.dir(data(node));
     if(!node) return;
     var circle = data(node).element
       .addClass('focus');
@@ -152,11 +156,14 @@ S.view('tree', function () {
   }
 
   view.live.add = function(parent, direction, value, fn) {
-    if(direction) {
+    console.log('VIEW ADD');
+    parent = view.component.nodeMap[parent.sid];
+    console.dir(parent.left);
+    /*if(direction) {
       data(parent.right).doNotDraw = true;
     } else {
       data(parent.left).doNotDraw = true;
-    }
+    }*/
     // TODO animate addition of node
     view.scaleTo({
       width: width,

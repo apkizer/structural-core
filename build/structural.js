@@ -976,6 +976,8 @@ S.view('array2',
         this.alias = 'tree';
         this.nodeMap = {};
         var s = this._copyTree(state, null);
+        console.log('Tree setting view');
+        console.dir(view);
         S.Component.call(this, s, view);
     }
 
@@ -1022,13 +1024,19 @@ S.view('array2',
      * @returns {*} The added node.
      */
     Tree.prototype.live.add = function (parent, direction, value) {
+        console.log('Adding %s', value);
+        parent = this.nodeMap[parent.sid];
         var added;
         if (direction) {
             added = parent.right = node(value);
         } else {
             added = parent.left = node(value);
         }
+        added.sid = S.nextId();
         this.nodeMap[added.sid] = added;
+        console.dir(added);
+        console.log('parent it');
+        console.dir(parent);
         this.height = computeHeights(this.state);
         return bindGetters(added);
     }
@@ -1222,6 +1230,7 @@ S.view('tree', function () {
         });
         drawLines(view.component.getState());
         allNodes(view.component.getState(), function (node) {
+            console.info('allNodes %s', node.sid);
             data(node).element = drawNode(node, data(node).x, data(node).y);
             data(node).s_value = drawValue(node.value, data(node).x, data(node).y);
             data(node).s_height = drawHeight(node);
@@ -1291,6 +1300,9 @@ S.view('tree', function () {
 
 
     view.live.focusOn = function (node, fn) {
+        console.log('node.sid %s', node.sid);
+        node = view.component.nodeMap[node.sid];
+        console.dir(data(node));
         if (!node) return;
         var circle = data(node).element
             .addClass('focus');
@@ -1305,11 +1317,14 @@ S.view('tree', function () {
     }
 
     view.live.add = function (parent, direction, value, fn) {
-        if (direction) {
-            data(parent.right).doNotDraw = true;
-        } else {
-            data(parent.left).doNotDraw = true;
-        }
+        console.log('VIEW ADD');
+        parent = view.component.nodeMap[parent.sid];
+        console.dir(parent.left);
+        /*if(direction) {
+      data(parent.right).doNotDraw = true;
+    } else {
+      data(parent.left).doNotDraw = true;
+    }*/
         // TODO animate addition of node
         view.scaleTo({
             width: width,
