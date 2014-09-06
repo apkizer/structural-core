@@ -87,9 +87,9 @@
 }
 
 .tree-node {
-    fill: #fff;
-    stroke: #000;
-    stroke-width: 2;
+    fill: #0011ff;
+    stroke: #b0b0b0;
+    stroke-width: 0;
     z-index: 100;
     transition: .25s;
 }
@@ -99,18 +99,17 @@
   font-family: monospace;
 }
 
-.tree-node-hidden {
-  display: none;
-}
+.tree-node-hidden { display: none; }
 
 .tree-node-value {
     font-family: arial;
-    fill: #000;
+    fill: #fff;
+    text-shadow: 1px 1px black;
     pointer-events: none;
 }
 
 .tree-line {
-    stroke: #000;
+    stroke: #3b3b3b;
     stroke-width: 2;
 }
 
