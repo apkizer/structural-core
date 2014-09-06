@@ -3,7 +3,7 @@
   function Array(state, view) {
     //this.live.component = this;
     this.alias = 'array';
-    S.Component.call(this, state, view);
+    S.Component.call(this, [].concat(state), view);
     this.state.flags = [];
   }
 

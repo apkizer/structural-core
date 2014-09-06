@@ -93,8 +93,6 @@ S.view('array2',
     }
 
     function handleTdClick(e) {
-      console.log('handleTdClick');
-      console.log('setting focus to ' + $(this).data('index'));
       view.live.focus($(this).data('index'));
     }
 
@@ -174,10 +172,6 @@ S.view('array2',
     }
 
     view.live.push = function(item, fn) {
-      console.log('pushing ' + item + ' in arrayOLD.view.js');
-      console.log('view.component.getState() = ' + view.component.getState());
-      console.log('view.component.getState().length = ' + view.component.getState().length);
-      console.log('view.component.getState().length - 1 = ' +  view.component.getState().length - 1);
       var $added = addItem(item, view.component.getState().length - 1);
       view.live.leftTo(view.component.getState().length - 1, function() {
         $added.animate({
