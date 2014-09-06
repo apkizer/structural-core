@@ -38,13 +38,13 @@
 }
 
 .tree-node.focus {
-    fill: #ffff99;
+    fill: #4970ff;
     transition-property: fill;
     transition-duration: .25s;
 }
 
 .tree-node:hover {
-    fill: #ffff99;
+    fill: #4970ff;
     transition-property: fill;
     transition-duration: .25s;
 }
