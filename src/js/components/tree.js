@@ -4,6 +4,13 @@
   NOTE:
   Components should not accept objects as parameters. If they do, they should only use and id property set on object, because
   doing operations on the actual object passed in will not work, because it references an object in the synchronous phase.
+  Basically, pretend component is a webserver receiving requests. It cannot maintain a map of external objects, etc.
+  Example violation:
+
+  var obj = {};
+  component.setObj('myObj', obj);
+  var gotten = component.getObj('myObj');
+  obj === gotten // NOT guaranteed
    */
 
   function Tree(state, view) {
@@ -94,6 +101,7 @@
    * @param value
    */
   Tree.prototype.live.setNode = function(node, value) {
+    node = this.nodeMap[node.sid];
     node.value = value;
     return node;
   }
