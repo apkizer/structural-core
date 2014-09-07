@@ -1,4 +1,3 @@
-/* Structural, by Alex Kizer */
 window.S = (function ($) {
     "use strict";
     var S = {};
