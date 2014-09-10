@@ -2,6 +2,7 @@ window.S = (function ($) {
     "use strict";
     var S = {};
     console.info('Initializing structural-core');
+
     S.components = {};
     S.views = {};
 
@@ -98,6 +99,7 @@ window.S = (function ($) {
     S.getComponentMethods = function (componentName) {
         return componentMethods[componentName];
     }
+
     S.config = {
         provideDefaultDeferredContext: true,
         /* Provide a deferred context on newly created components. */
@@ -107,6 +109,7 @@ window.S = (function ($) {
             nullString: '__null' /* special symbol displayed when array cell or tree node set to this */
         }
     };
+
     var id = 0;
 
     S.nextId = function () {
@@ -159,6 +162,7 @@ window.S = (function ($) {
     S.wait = function (func, time) {
         setTimeout(func, time);
     }
+
     S.EventEmitter = function () {
         this.registeredEvents = {};
     }
@@ -198,6 +202,7 @@ window.S = (function ($) {
 
         return ee;
     }
+
     S.Component = (function () {
 
         function Component(state, view) {
@@ -257,8 +262,6 @@ window.S = (function ($) {
 
     })();
 
-
-
     S.View = (function ($) {
 
         function View() {
@@ -307,6 +310,7 @@ window.S = (function ($) {
 
         return View;
     })(jQuery);
+
 
 
     S.AsyncFunctionQueue = (function () {
@@ -425,6 +429,7 @@ window.S = (function ($) {
         return AsyncFunctionQueue;
 
     })();
+
 
 
 
@@ -568,6 +573,7 @@ window.S = (function ($) {
     })();
 
 
+
     S.Scope = (function () {
 
         function Scope(items) {
@@ -588,6 +594,7 @@ window.S = (function ($) {
 
     })();
 
+
     S.component = function (name, factory, meta) {
         S.defineComponent(name, factory, false);
         if (meta)
@@ -603,8 +610,10 @@ window.S = (function ($) {
         S.setDefaultView(componentName, factory);
     }
 
+
     return S;
 })(jQuery);
+
 (function () {
 
     function Array(state, view) {
@@ -657,6 +666,7 @@ window.S = (function ($) {
     S.defineComponent2('array2', Array);
 
 })();
+
 
 S.view('array2',
     function (options) {
@@ -955,6 +965,7 @@ S.view('array2',
 
         return view;
     });
+
 (function () {
 
     /*
@@ -1158,6 +1169,7 @@ S.view('array2',
     S.defineComponent2('tree', Tree);
 
 })();
+
 S.view('tree', function () {
     var view = new S.View(), //new S.View(), //S.baseView(),
         data = S.map(), // stores data about nodes
@@ -1832,6 +1844,7 @@ S.view('tree', function () {
 
     return view;
 });
+
 S.method('array', 'finish', function () {
     this.clearfocus();
     this.leftTo(0);
@@ -1851,6 +1864,7 @@ S.method('array', 'isSorted', function () {
     }
     return true;
 });
+
 
 S.method('array', 'searchLinear', function (target) {
     for (var i = 0; i < this.getLength(); i++) {
@@ -1893,6 +1907,7 @@ S.method('array', 'searchBinary', function (target) {
     search.call(this, 0, this.getLength());
 
 });
+
 
 S.method('array', 'insertionSort', function () {
     for (var i = 0; i < this.getLength(); i++) {
@@ -1937,6 +1952,7 @@ S.method('array', 'bubbleSort', function () {
 S.method('array', 'quickSort', function () {
     // TODO
 });
+
 S.method('tree', 'finish', function () {
     this.clearfocus();
 });
@@ -1949,9 +1965,11 @@ S.method('tree', 'buildBST', function () {
     this.add(this('left'), false, 4);
     this.add(this('right'), true, 14);
 });
+
 S.method('tree', 'isBST', function () {
 
 });
+
 S.method('tree', 'traversal', function traversal(kind) {
 
     var count = 0;

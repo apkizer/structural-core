@@ -56,5 +56,3 @@ S.Component = (function() {
   return Component;
   
 })();
-
-
