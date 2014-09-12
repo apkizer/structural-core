@@ -207,22 +207,29 @@ window.S = (function ($) {
 
         function Component(state, view) {
             if (state)
-                this.setState(state);
+                this.state = state;
             if (view)
                 this.view = view;
         }
 
         Component.prototype = Object.create(S.EventEmitter.prototype);
 
-        Component.prototype.getState = function () {
-            return this.state;
-        };
+        /*Component.prototype.getState = function() {
+    return this.state;
+  };
 
-        Component.prototype.setState = function (state) {
-            console.info('Component setting state:');
-            console.dir(state);
-            this.state = state;
-        };
+  Component.prototype.setState = function(state) {
+    this.state = state;
+  };*/
+
+        Object.defineProperty(Component.prototype, 'state', {
+            get: function () {
+                return this._state;
+            },
+            set: function (state) {
+                this._state = state;
+            }
+        });
 
         Object.defineProperty(Component.prototype, 'view', {
             get: function () {
@@ -234,17 +241,6 @@ window.S = (function ($) {
                 view.init();
             }
         });
-
-        /*Object.defineProperty(Component.prototype, 'state', {
-    get: function() {
-      return this._state;
-    },
-    set: function(state) {
-      this._state = state;
-    }
-  });*/
-
-        // wrappable:
 
         Component.prototype.getSync = function () {
             return this.live;
@@ -259,7 +255,6 @@ window.S = (function ($) {
         }
 
         return Component;
-
     })();
 
     S.View = (function ($) {
@@ -477,7 +472,7 @@ window.S = (function ($) {
                 clone;
             console.assert(wrappable.getSync && wrappable.getAsync, '`wrappable` satisfies interface.');
             if (!wrappable.noCopy) {
-                clone = new wrappable.constructor(wrappable.getState());
+                clone = new wrappable.constructor(wrappable.state);
             }
 
             console.groupCollapsed('Wrapping methods of \'%s\'', wrappable.alias || wrappable);
@@ -504,6 +499,10 @@ window.S = (function ($) {
                                 wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn));
                             else
                                 fn();
+                        };
+
+                        pushFn.toString = function () {
+                            return property;
                         };
 
                         self.queue.push.call(self.queue, pushFn);
@@ -723,8 +722,8 @@ S.view('array2',
                 fontSize: Math.round($table.height() * .25)
             });
 
-            for (var i = 0; i < view.component.getState().length; i++) {
-                var $td = $('<td>' + view.component.getState()[i] + '<span style="font-size: 0;">' + view.config.hiddenDelimiter + '</span></td>'),
+            for (var i = 0; i < view.component.state.length; i++) {
+                var $td = $('<td>' + view.component.state[i] + '<span style="font-size: 0;">' + view.config.hiddenDelimiter + '</span></td>'),
                     $th = $('<th>' + i + '</th>');
                 $td.data('index', i);
                 $th.data('index', i);
@@ -789,7 +788,7 @@ S.view('array2',
         }
 
         view.live.focus = function (index, fn) {
-            if (index < 0 || index > view.component.getState().length - 1)
+            if (index < 0 || index > view.component.state.length - 1)
                 return;
             $cells.removeClass('focus');
             $indices.removeClass('focus');
@@ -841,8 +840,8 @@ S.view('array2',
         }
 
         view.live.push = function (item, fn) {
-            var $added = addItem(item, view.component.getState().length - 1);
-            view.live.leftTo(view.component.getState().length - 1, function () {
+            var $added = addItem(item, view.component.state.length - 1);
+            view.live.leftTo(view.component.state.length - 1, function () {
                 $added.animate({
                     opacity: 1
                 }, 200, function () {
@@ -875,15 +874,15 @@ S.view('array2',
                 return;
             if (index <= 0)
                 index = 0;
-            if (index >= view.component.getState().length - 1)
-                index = view.component.getState().length - 1;
+            if (index >= view.component.state.length - 1)
+                index = view.component.state.length - 1;
             var time = Math.min(Math.abs(index - view.leftBound) * view.config.stepTime, view.config.maxScrollTime);
             if (index == 0) {
                 view.leftBound = 0;
                 view.rightBound = view.config.numElements - 1;
-            } else if (index > view.component.getState().length - view.config.numElements) {
-                view.leftBound = view.component.getState().length - view.config.numElements;
-                view.rightBound = view.component.getState().length - 1;
+            } else if (index > view.component.state.length - view.config.numElements) {
+                view.leftBound = view.component.state.length - view.config.numElements;
+                view.rightBound = view.component.state.length - 1;
             } else {
                 view.leftBound = index;
                 view.rightBound = index + view.config.numElements - 1;
@@ -897,15 +896,15 @@ S.view('array2',
                 return;
             if (index <= 0)
                 index = 0;
-            if (index >= view.component.getState().length - 1)
-                index = view.component.getState().length - 1;
+            if (index >= view.component.state.length - 1)
+                index = view.component.state.length - 1;
             var time = Math.min(Math.abs(index - view.leftBound) * view.config.stepTime, view.config.maxScrollTime);
             if (index <= view.config.numElements - 1) {
                 view.leftBound = 0;
                 view.rightBound = view.config.numElements - 1;
-            } else if (index == view.component.getState().length - 1) {
-                view.leftBound = view.component.getState().length - view.config.numElements;
-                view.rightBound = view.component.getState().length - 1;
+            } else if (index == view.component.state.length - 1) {
+                view.leftBound = view.component.state.length - view.config.numElements;
+                view.rightBound = view.component.state.length - 1;
             } else {
                 view.leftBound = index - view.config.numElements + 1;
                 view.rightBound = index;
@@ -914,8 +913,8 @@ S.view('array2',
         }
 
         view.pageRight = function () {
-            view.leftBound = view.leftBound + view.config.numElements <= view.component.getState().length - view.config.numElements ? view.leftBound + view.config.numElements : view.component.getState().length - view.config.numElements;
-            view.rightBound = view.rightBound + view.config.numElements <= view.component.getState().length - 1 ? view.rightBound + view.config.numElements : view.component.getState().length - 1;
+            view.leftBound = view.leftBound + view.config.numElements <= view.component.state.length - view.config.numElements ? view.leftBound + view.config.numElements : view.component.state.length - view.config.numElements;
+            view.rightBound = view.rightBound + view.config.numElements <= view.component.state.length - 1 ? view.rightBound + view.config.numElements : view.component.state.length - 1;
             page(true);
         }
 
@@ -926,8 +925,8 @@ S.view('array2',
         }
 
         view.right = function () {
-            view.leftBound = view.leftBound + 1 <= view.component.getState().length - view.config.numElements ? view.leftBound + 1 : view.component.getState().length - view.config.numElements;
-            view.rightBound = view.rightBound + 1 <= view.component.getState().length - 1 ? view.rightBound + 1 : view.component.getState().length - 1;
+            view.leftBound = view.leftBound + 1 <= view.component.state.length - view.config.numElements ? view.leftBound + 1 : view.component.state.length - view.config.numElements;
+            view.rightBound = view.rightBound + 1 <= view.component.state.length - 1 ? view.rightBound + 1 : view.component.state.length - 1;
             step(true);
         }
 
@@ -998,10 +997,20 @@ S.view('array2',
     // TODO delete
     // Tree.prototype.noCopy = true;
 
-    Tree.prototype.setState = function (state) {
-        this.state = state;
-        this.height = computeHeights(this.state);
-    }
+    /*Tree.prototype.setState = function(state) {
+    this.state = state;
+    this.height = computeHeights(this.state);
+  }*/
+
+    Object.defineProperty(Tree.prototype, 'state', {
+        get: function () {
+            return this._state;
+        },
+        set: function (state) {
+            this._state = state;
+            this.height = computeHeights(this.state);
+        }
+    });
 
     Tree.prototype.getState = function () {
         return this.state;
@@ -1012,7 +1021,7 @@ S.view('array2',
      * @returns {*}
      */
     Tree.prototype.live.root = function () {
-        return this.getState();
+        return this.state;
     }
     Tree.prototype.live.root.getter = true;
 
@@ -1021,7 +1030,7 @@ S.view('array2',
      * @returns {*}
      */
     Tree.prototype.live.height = function () {
-        this.height = computeHeights(this.getState());
+        this.height = computeHeights(this.state);
         return this.height;
     }
     Tree.prototype.live.height.getter = true;
@@ -1093,8 +1102,7 @@ S.view('array2',
     }
 
     Tree.prototype.live.verify = function () {
-        console.group('Verifying tree...');
-        console.dir(this.getState());
+        console.dir(this.state);
     }
 
     /*
@@ -1233,14 +1241,14 @@ S.view('tree', function () {
             .appendTo($e);
         s_svg = Snap(dom_svg);
         s_svg.addClass('tree-svg');
-        rg(view.component.getState(), data, {
+        rg(view.component.state, data, {
             mh: mh,
             mv: mv,
             x0: x0,
             y0: y0
         });
-        drawLines(view.component.getState());
-        allNodes(view.component.getState(), function (node) {
+        drawLines(view.component.state);
+        allNodes(view.component.state, function (node) {
             console.info('allNodes %s', node.sid);
             data(node).element = drawNode(node, data(node).x, data(node).y);
             data(node).s_value = drawValue(node.value, data(node).x, data(node).y);
@@ -1342,11 +1350,11 @@ S.view('tree', function () {
             height: height
         });
         view.render();
-        /*rg(view.component.getState(), data, {
+        /*rg(view.component.state, data, {
      xProperty: 'newX',
      yProperty: 'newY'
      }); */
-        //moveToNewPositions(view.component.getState());
+        //moveToNewPositions(view.component.state);
         fn();
     }
 
@@ -1574,7 +1582,7 @@ S.view('tree', function () {
 
     view.add = function (parent_s, left, value, fn) {
         /*nodes(parent_s, getNodeElement(value));
-     rg(view.component.getState(), data, view.config);
+     rg(view.component.state, data, view.config);
      nodes.forEach(function(pair){
      move(nodes(pair[0]), pair[1].x, pair[1].y, function(){
      $e.append(nodes(parent_s));

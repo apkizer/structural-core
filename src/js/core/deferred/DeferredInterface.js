@@ -40,7 +40,7 @@ S.DeferredInterface = (function(){
         clone;
     console.assert(wrappable.getSync && wrappable.getAsync, '`wrappable` satisfies interface.');
     if (!wrappable.noCopy) {
-      clone = new wrappable.constructor(wrappable.getState());
+      clone = new wrappable.constructor(wrappable.state);
     }
 
     console.groupCollapsed('Wrapping methods of \'%s\'', wrappable.alias || wrappable);
@@ -67,6 +67,10 @@ S.DeferredInterface = (function(){
                 wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn));
               else
                 fn();
+            };
+
+            pushFn.toString = function() {
+              return property;
             };
 
             self.queue.push.call(self.queue, pushFn);

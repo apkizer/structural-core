@@ -1,23 +1,21 @@
 S.Component = (function() {
-
   function Component(state, view) {
     if(state)
-      this.setState(state);
+      this.state = state;
     if(view)
       this.view = view;
   }
 
   Component.prototype = Object.create(S.EventEmitter.prototype);
 
-  Component.prototype.getState = function() {
-    return this.state;
-  };
-
-  Component.prototype.setState = function(state) {
-    console.info('Component setting state:');
-    console.dir(state);
-    this.state = state;
-  };
+  Object.defineProperty(Component.prototype, 'state', {
+    get: function() {
+      return this._state;
+    },
+    set: function(state) {
+      this._state = state;
+    }
+  });
 
   Object.defineProperty(Component.prototype, 'view', {
     get: function() {
@@ -30,29 +28,17 @@ S.Component = (function() {
     }
   });
 
-  /*Object.defineProperty(Component.prototype, 'state', {
-    get: function() {
-      return this._state;
-    },
-    set: function(state) {
-      this._state = state;
-    }
-  });*/
-
-  // wrappable:
-
   Component.prototype.getSync = function() {
     return this.live;
-  }
+  };
 
   Component.prototype.getAsync = function() {
     return this.view.live;
-  }
+  };
 
   Component.prototype.getMethods = function() {
     return S.getComponentMethods(this.alias);
-  }
+  };
 
   return Component;
-  
 })();

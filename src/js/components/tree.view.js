@@ -61,14 +61,14 @@ S.view('tree', function () {
       .appendTo($e);
     s_svg = Snap(dom_svg);
     s_svg.addClass('tree-svg');
-    rg(view.component.getState(), data, {
+    rg(view.component.state, data, {
       mh: mh,
       mv: mv,
       x0: x0,
       y0: y0
     });
-    drawLines(view.component.getState());
-    allNodes(view.component.getState(), function(node) {
+    drawLines(view.component.state);
+    allNodes(view.component.state, function(node) {
       console.info('allNodes %s', node.sid);
       data(node).element = drawNode(node, data(node).x, data(node).y);
       data(node).s_value = drawValue(node.value, data(node).x, data(node).y);
@@ -170,11 +170,11 @@ S.view('tree', function () {
       height: height
     });
     view.render();
-    /*rg(view.component.getState(), data, {
+    /*rg(view.component.state, data, {
      xProperty: 'newX',
      yProperty: 'newY'
      }); */
-    //moveToNewPositions(view.component.getState());
+    //moveToNewPositions(view.component.state);
     fn();
   }
 
@@ -402,7 +402,7 @@ S.view('tree', function () {
 
   view.add = function(parent_s, left, value, fn) {
     /*nodes(parent_s, getNodeElement(value));
-     rg(view.component.getState(), data, view.config);
+     rg(view.component.state, data, view.config);
      nodes.forEach(function(pair){
      move(nodes(pair[0]), pair[1].x, pair[1].y, function(){
      $e.append(nodes(parent_s));

@@ -30,10 +30,20 @@
   // TODO delete
   // Tree.prototype.noCopy = true;
 
-  Tree.prototype.setState = function(state) {
+  /*Tree.prototype.setState = function(state) {
     this.state = state;
     this.height = computeHeights(this.state);
-  }
+  }*/
+
+  Object.defineProperty(Tree.prototype, 'state', {
+    get: function() {
+      return this._state;
+    },
+    set: function(state) {
+      this._state = state;
+      this.height = computeHeights(this.state);
+    }
+  });
 
   Tree.prototype.getState = function() {
     return this.state;
@@ -44,7 +54,7 @@
    * @returns {*}
    */
   Tree.prototype.live.root = function() {
-    return this.getState();
+    return this.state;
   }
   Tree.prototype.live.root.getter = true;
 
@@ -53,7 +63,7 @@
    * @returns {*}
    */
   Tree.prototype.live.height = function() {
-    this.height = computeHeights(this.getState());
+    this.height = computeHeights(this.state);
     return this.height;
   }
   Tree.prototype.live.height.getter = true;
@@ -125,8 +135,7 @@
   }
 
   Tree.prototype.live.verify = function() {
-    console.group('Verifying tree...');
-    console.dir(this.getState());
+    console.dir(this.state);
   }
 
   /*
