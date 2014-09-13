@@ -47,7 +47,7 @@ S.method('tree', 'traversal', function traversal(kind) {
   }
   
   function visit(node) {
-    this.focusOn(node);
+    this.focus(node);
     label.call(this, node);
   }
   

@@ -187,6 +187,10 @@
 
   Tree.prototype.live.unfocus = null;
 
+  Tree.prototype.live.clearFocus = null;
+
+  Tree.prototype.live.display = null;
+
   // utils:
 
   Tree.prototype._copyTree = function(_node, parent) {

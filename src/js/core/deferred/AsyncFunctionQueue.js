@@ -12,6 +12,7 @@ S.AsyncFunctionQueue = (function(){
     this.sleep = 100; // the time to wait between executing functions after `exec` is called.
     this.states = []; //
     this._open = false; // If true, auto execution is enabled.
+    this.clearOnFinish = true; // If true, clears `functionList` once the last function is executed.
     this.executing = false; // True while executing.
   }
 
@@ -57,6 +58,9 @@ S.AsyncFunctionQueue = (function(){
     var self = this;
 
     function iteration() {
+      if(self.position >= self.functionList.length && self.clearOnFinish) {
+          self.clear();
+      }
       if(self.position >= self.functionList.length || !self.executing || !self.functionList[self.position]) {
         self.executing = false;
         console.groupEnd();

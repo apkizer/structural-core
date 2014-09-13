@@ -21,6 +21,10 @@
 
 .tree-node-hidden { display: none; }
 
+.tree-hidden {
+    display: none;
+}
+
 .tree-value {
     font-family: arial;
     fill: #fff;

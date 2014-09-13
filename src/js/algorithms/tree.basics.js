@@ -1,5 +1,5 @@
 S.method('tree', 'finish', function() {
-  this.clearfocus();
+  this.clearFocus();
 });
 
 S.method('tree', 'buildBST', function() {

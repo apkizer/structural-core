@@ -308,6 +308,7 @@ window.S = (function ($) {
             this.sleep = 100; // the time to wait between executing functions after `exec` is called.
             this.states = []; //
             this._open = false; // If true, auto execution is enabled.
+            this.clearOnFinish = true; // If true, clears `functionList` once the last function is executed.
             this.executing = false; // True while executing.
         }
 
@@ -353,6 +354,9 @@ window.S = (function ($) {
             var self = this;
 
             function iteration() {
+                if (self.position >= self.functionList.length && self.clearOnFinish) {
+                    self.clear();
+                }
                 if (self.position >= self.functionList.length || !self.executing || !self.functionList[self.position]) {
                     self.executing = false;
                     console.groupEnd();
@@ -1143,6 +1147,10 @@ S.view('array2',
 
     Tree.prototype.live.unfocus = null;
 
+    Tree.prototype.live.clearFocus = null;
+
+    Tree.prototype.live.display = null;
+
     // utils:
 
     Tree.prototype._copyTree = function (_node, parent) {
@@ -1881,7 +1889,10 @@ S.TreeView = (function () {
                 node: 'tree-node',
                 value: 'tree-value',
                 height: 'tree-height',
-                line: 'tree-line'
+                label: 'tree-label',
+                line: 'tree-line',
+                hidden: 'tree-hidden',
+                nodeFocus: 'tree-node--focused'
             },
             easings: {
                 remove: mina.easeinout
@@ -1988,6 +1999,14 @@ S.TreeView = (function () {
             .addClass(this.options.classes.height);
     };
 
+    TreeView.prototype._drawLabel = function (node, label) {
+        var _ = this._;
+        return _.svg.text(_.data(node).x + _.nodeRadius + 5, _.data(node).y + _.nodeRadius / 2 - 3, '/' + label)
+            .addClass(this.options.classes.label)
+            .attr('text-anchor', 'right')
+            .attr('font-size', _.nodeRadius);
+    };
+
     TreeView.prototype.live.add = function (parent, direction, value, fn) {
         var parent = this.component.nodeMap[parent.sid],
             _ = this.view._;
@@ -2078,19 +2097,71 @@ S.TreeView = (function () {
     };
 
     TreeView.prototype.live.clearFocus = function (node, fn) {
-
+        var view = this.view,
+            _ = view._;
+        view.allNodes(view.component.state, function (node) {
+            _.data(node).element.removeClass('focus');
+        });
     }
 
-    TreeView.prototype.live.travel = function (node, direction, fn) {
-
+    TreeView.prototype.live.travel = function (parent, direction, fn) {
+        var _ = this.view._;
+        if (direction) {
+            if (_.data(parent).rightLine) {
+                var rightLine = _.data(parent).rightLine;
+                rightLine.addClass('tree-line-active');
+                var s_circle = _.svg.circle(rightLine.attr('x1'), rightLine.attr('y1'), 5)
+                    .addClass('tree-travelorb');
+                s_circle.insertAfter(rightLine);
+                s_circle.animate({
+                    cx: rightLine.attr('x2'),
+                    cy: rightLine.attr('y2')
+                }, 500, null, function () {
+                    s_circle.remove();
+                    rightLine.removeClass('tree-line-active');
+                    fn();
+                });
+            } else {
+                fn();
+            }
+        } else {
+            if (_.data(parent).leftLine) {
+                var leftLine = _.data(parent).leftLine;
+                leftLine.addClass('tree-line-active');
+                var s_circle = _.svg.circle(leftLine.attr('x1'), leftLine.attr('y1'), 5)
+                    .addClass('tree-travelorb');
+                s_circle.insertAfter(leftLine);
+                s_circle.animate({
+                    cx: leftLine.attr('x2'),
+                    cy: leftLine.attr('y2')
+                }, 500, null, function () {
+                    s_circle.remove();
+                    leftLine.removeClass('tree-line-active');
+                    fn();
+                });
+            } else {
+                fn();
+            }
+        }
     };
 
     TreeView.prototype.live.label = function (node, label, fn) {
-
+        var _ = this.view._;
+        if (node && _.data(node)) {
+            _.data(node).label = label;
+            _.data(node).s_label = this.view._drawLabel(node, label);
+            fn();
+        } else {
+            fn();
+        }
     };
 
     TreeView.prototype.live.clearLabels = function (fn) {
-
+        var view = this.view,
+            _ = view._;
+        view.allNodes(view.component.state, function (node) {
+            _.data(node).s_label.remove();
+        });
     };
 
     /*
@@ -2102,8 +2173,38 @@ S.TreeView = (function () {
      nodes: true/false
      }
      */
+    // TODO
     TreeView.prototype.live.display = function (options, fn) {
-
+        console.info('display');
+        var view = this.view,
+            _ = view._;
+        view.allNodes(view.component.state, function (node) {
+            var data = _.data(node);
+            if (options.heights)
+                data.s_height.removeClass(view.options.classes.hidden);
+            if (options.heights === false)
+                data.s_height.addClass(view.options.classes.hidden);
+            if (options.labels)
+                data.s_label.removeClass(view.options.classes.hidden);
+            if (options.labels === false)
+                data.s_label.addClass(view.options.classes.hidden);
+            if (options.values)
+                data.s_value.removeClass(view.options.classes.hidden);
+            if (options.values === false)
+                data.s_value.addClass(view.options.classes.hidden);
+            if (options.lines) {
+                data.leftLine.removeClass(view.options.classes.hidden);
+                data.rightLine.removeClass(view.options.classes.hidden);
+            }
+            if (options.lines === false) {
+                data.leftLine.addClass(view.options.classes.hidden);
+                data.rightLine.addClass(view.options.classes.hidden);
+            }
+            if (options.nodes)
+                data.element.removeClass(view.options.classes.hidden);
+            if (options.nodes === false)
+                data.element.addClass(view.options.classes.hidden);
+        });
     };
 
     function getTreeElements(root, data) {
@@ -2478,7 +2579,7 @@ S.method('array', 'quickSort', function () {
 });
 
 S.method('tree', 'finish', function () {
-    this.clearfocus();
+    this.clearFocus();
 });
 
 S.method('tree', 'buildBST', function () {
@@ -2543,7 +2644,7 @@ S.method('tree', 'traversal', function traversal(kind) {
     }
 
     function visit(node) {
-        this.focusOn(node);
+        this.focus(node);
         label.call(this, node);
     }
 
