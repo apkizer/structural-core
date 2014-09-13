@@ -1,3 +1,4 @@
+S.VIEW_CLASS = 'structural_view';
 S.components = {};
 S.views = {};
 

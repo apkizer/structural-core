@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tree Refactor</title>
+    <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
+    <script type="text/javascript" src="../lib/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../build/structural.js"></script>
+    <link rel="stylesheet" href="../build/structural.css"/>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var node = function(value) {
+                return {
+                    value: value,
+                    left: null,
+                    right: null
+                };
+            };
+            var scaling = true;
+
+            var root = node(17);
+            root.left = node(16);
+            root.right = node(18);
+            root.left.left = node(12);
+            root.left.left.right = node(13);
+
+            var _tree = S.components.tree(root);
+            _tree.view = new S.TreeView();
+            _tree.view.component = _tree;
+            _tree.view.init();
+
+            $('body').append(_tree.view.scale({
+                width: 800,
+                height: 600
+            }));
+
+            var scope = new S.Scope(_tree);
+
+            window.actual = _tree;
+            window.scope = scope;
+            window.tree = scope.interface.handle();
+            window.queue = scope.queue;
+
+            scope.queue.open();
+
+            $(document).mousemove(function(event) {
+                if(!scaling) return;
+                _tree.view.scale({
+                    width: event.pageX * 2,
+                    height: event.pageY * 2
+                });
+            });
+
+            $(document).click(function(event){
+                scaling = false;
+            });
+
+        });
+    </script>
+
+</head>
+<body>
+
+</body>
+</html>

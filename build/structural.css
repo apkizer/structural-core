@@ -95,14 +95,14 @@
     transition: .25s;
 }
 
-.tree-node-label {
+.tree-label {
   fill: #333;
   font-family: monospace;
 }
 
 .tree-node-hidden { display: none; }
 
-.tree-node-value {
+.tree-value {
     font-family: arial;
     fill: #fff;
     text-shadow: 1px 1px black;

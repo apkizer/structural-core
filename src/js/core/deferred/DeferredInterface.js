@@ -7,8 +7,8 @@ S.DeferredInterface = (function(){
     var self = this;
     this.interface = function(key, value) {
       if (typeof value === 'undefined')
-        return self.interface.get(key);
-      self.interface.set(key, value);
+        return self.interface._get(key);
+      self.interface._set(key, value);
     };
     this.include(std());
   };
@@ -44,6 +44,7 @@ S.DeferredInterface = (function(){
     }
 
     console.groupCollapsed('Wrapping methods of \'%s\'', wrappable.alias || wrappable);
+    console.dir(wrappable);
 
     for (var prop in wrappable.getSync()) {
       console.log('Wrapping \'%s\'', prop);
@@ -61,6 +62,8 @@ S.DeferredInterface = (function(){
             }
 
             pushFn = function(fn) {
+              fn.deferredInterface = self;
+              fn.speed = 1; // TODO
               if(wrappable.getSync()[property])
                 wrappable.getSync()[property].apply(wrappable, args);
               if(wrappable.getAsync()[property])
@@ -114,10 +117,10 @@ S.DeferredInterface = (function(){
     std.live.warn = function(msg) {
       console.warn(msg);
     };
-    std.live.set = function(key, value) {
+    std.live._set = function(key, value) {
       vars[key] = value;
     };
-    std.live.get = function(key) {
+    std.live._get = function(key) {
       return vars[key];
     };
     std.live.is = function(key, value) {

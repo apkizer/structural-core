@@ -12,6 +12,7 @@ S.view('tree', function () {
     mv = 32, // vertical margin between nodes
     x0, // x offset
     y0; // y offset
+  view.live = {};
 
   view.scaleTo({
     width: 500,

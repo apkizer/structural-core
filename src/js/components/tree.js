@@ -13,10 +13,36 @@
   obj === gotten // NOT guaranteed
    */
 
+
+  function TreeNode(sid) {
+    this.sid = sid;
+    var self = this;
+    Object.defineProperty(this, 'left', {
+      get: function() {
+        return this.left;
+      },
+      set: function(value) {
+        self.treeInterface.set(node.left, value);
+      }
+    });
+    Object.defineProperty(this, 'right', {
+      get: function() {
+        return this.right;
+      },
+      set: function(value) {
+        self.treeInterface.set(node.right, value);
+      }
+    });
+    this.focus = function() {
+      self.treeInterface.focus(node);
+    };
+  }
+
   function Tree(state, view) {
     // this.live.component = this; // no need, this bound in deferred
     this.alias = 'tree';
     this.nodeMap = {};
+    this.treeNodes = {}; // TODO
     var s = this._copyTree(state, null);
     console.log('Tree setting view');
     console.dir(view);
@@ -44,10 +70,6 @@
       this.height = computeHeights(this.state);
     }
   });
-
-  Tree.prototype.getState = function() {
-    return this.state;
-  }
 
   /**
    * Returns the root of the tree.
@@ -118,7 +140,7 @@
    * @param node
    * @param value
    */
-  Tree.prototype.live.setNode = function(node, value) {
+  Tree.prototype.live.set = function(node, value) {
     node = this.nodeMap[node.sid];
     node.value = value;
     return node;
@@ -151,15 +173,19 @@
 
   Tree.prototype.live.hideHeights = null;
 
-  Tree.prototype.live.clearlabels = null;
+  Tree.prototype.live.clearLabels = null;
 
-  Tree.prototype.live.clearfocus = null;
+  //Tree.prototype.live.clearlabels = null;
+
+  //Tree.prototype.live.clearfocus = null;
 
   Tree.prototype.live.travel = null;
 
   Tree.prototype.live.label = null;
 
-  Tree.prototype.live.focusOn = null;
+  Tree.prototype.live.focus = null;
+
+  Tree.prototype.live.unfocus = null;
 
   // utils:
 

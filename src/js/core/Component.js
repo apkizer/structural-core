@@ -24,6 +24,7 @@ S.Component = (function() {
     set: function(view) {
       this._view = view;
       view.component = this;
+      view.live.component = this;
       view.init();
     }
   });
@@ -33,6 +34,7 @@ S.Component = (function() {
   };
 
   Component.prototype.getAsync = function() {
+    console.log('getAsync');
     return this.view.live;
   };
 
