@@ -34,7 +34,6 @@ S.Component = (function() {
   };
 
   Component.prototype.getAsync = function() {
-    console.log('getAsync');
     return this.view.live;
   };
 

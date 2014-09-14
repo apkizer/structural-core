@@ -1,6 +1,5 @@
 S.View = (function($){
   function View() {
-    //this.live = {}; // TODO delete
     this._config = {};
     this.$element = $('<div>').addClass(S.VIEW_CLASS);
   }

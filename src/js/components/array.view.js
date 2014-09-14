@@ -1,4 +1,3 @@
-
 S.view('array2',
   function (options) {
     var view = new S.View(), //S.baseView(),
