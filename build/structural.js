@@ -502,10 +502,25 @@ window.S = (function ($) {
                         return interfaceMethod;
                     })(prop, clone);
                 (function (interfaceMethod) {
-                    if (wrappable.getSync()[prop] && wrappable.getSync()[prop].getter) {
+                    if (wrappable.getSync()[prop] && wrappable.getSync()[prop].getter && wrappable.getSync()[prop].setter) {
                         Object.defineProperty(self.interface, prop, {
                             get: function () {
                                 return interfaceMethod();
+                            },
+                            set: function (value) {
+                                return interfaceMethod(value);
+                            }
+                        });
+                    } else if (wrappable.getSync()[prop] && wrappable.getSync()[prop].getter) {
+                        Object.defineProperty(self.interface, prop, {
+                            get: function () {
+                                return interfaceMethod();
+                            }
+                        });
+                    } else if (wrappable.getSync()[prop] && wrappable.getSync()[prop].setter) {
+                        Object.defineProperty(self.interface, prop, {
+                            set: function (value) {
+                                return interfaceMethod(value);
                             }
                         });
                     } else {
@@ -1052,8 +1067,8 @@ S.view('array2',
      * Returns the root of the tree.
      * @returns {*}
      */
-    Tree.prototype.live.root = function () {
-        var last = arguments[arguments.length - 1]
+    Tree.prototype.live.root = function (value) {
+        var last = arguments[arguments.length - 1];
         if (last) {
             console.log('returing pseudoNode');
             var treeNode = this.treeNodes[this.state.sid];
@@ -1065,6 +1080,7 @@ S.view('array2',
         return this.state;
     }
     Tree.prototype.live.root.getter = true;
+    //Tree.prototype.live.root.setter = true;
 
     /**
      * Returns the height of the tree.

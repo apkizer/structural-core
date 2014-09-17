@@ -85,8 +85,8 @@
      * Returns the root of the tree.
      * @returns {*}
      */
-    Tree.prototype.live.root = function () {
-        var last = arguments[arguments.length - 1]
+    Tree.prototype.live.root = function (value) {
+        var last = arguments[arguments.length - 1];
         if(last) {
             console.log('returing pseudoNode');
             var treeNode = this.treeNodes[this.state.sid];
@@ -98,6 +98,7 @@
         return this.state;
     }
     Tree.prototype.live.root.getter = true;
+    //Tree.prototype.live.root.setter = true;
 
     /**
      * Returns the height of the tree.

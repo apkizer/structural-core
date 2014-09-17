@@ -82,10 +82,27 @@ S.DeferredInterface = (function () {
                     return interfaceMethod;
                 })(prop, clone);
             (function(interfaceMethod) {
-                if(wrappable.getSync()[prop] && wrappable.getSync()[prop].getter) {
+                if(wrappable.getSync()[prop] && wrappable.getSync()[prop].getter && wrappable.getSync()[prop].setter) {
                     Object.defineProperty(self.interface, prop, {
                         get: function() {
                             return interfaceMethod();
+                        },
+                        set: function(value) {
+                            return interfaceMethod(value);
+                        }
+                    });
+                }
+                else if(wrappable.getSync()[prop] && wrappable.getSync()[prop].getter) {
+                    Object.defineProperty(self.interface, prop, {
+                        get: function() {
+                            return interfaceMethod();
+                        }
+                    });
+                }
+                else if(wrappable.getSync()[prop] && wrappable.getSync()[prop].setter) {
+                    Object.defineProperty(self.interface, prop, {
+                        set: function(value) {
+                            return interfaceMethod(value);
                         }
                     });
                 } else {
