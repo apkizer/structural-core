@@ -13,7 +13,7 @@ window.S = (function () {
         var nest = path.split('.'),
             last = S.definitions;
         nest.forEach(function (property) {
-            if(!last[property]) {
+            if (!last[property]) {
                 (last[property] = {}).value = null;
             }
             last = last[property];
@@ -22,11 +22,11 @@ window.S = (function () {
     };
 
     S.get = function (path) {
-        if(path.indexOf('undefined') > -1) return;
+        if (path.indexOf('undefined') > -1) return;
         var nest = path.split('.'),
             last = S.definitions;
         nest.forEach(function (property) {
-            if(!last[property]) {
+            if (!last[property]) {
                 (last[property] = {}).value = null;
             }
             last = last[property];
@@ -35,27 +35,27 @@ window.S = (function () {
     };
 
     /*S.modifier = function(component, func) {
-        S.define('components.' + component + '.modifiers')
-    }*/
+     S.define('components.' + component + '.modifiers')
+     }*/
 
-    S.component = function(name, ctor) {
-        if(ctor)
+    S.component = function (name, ctor) {
+        if (ctor)
             S.defineComponent(name, ctor);
         else
             return S.instantiateComponent(name);
     };
 
-    S.defineComponent = function(name, ctor) {
+    S.defineComponent = function (name, ctor) {
         S.define(ctor, 'components.' + name);
     };
 
-    S.instantiateComponent = function(name) {
+    S.instantiateComponent = function (name) {
         return new S.get('components.' + name);
     }
 
-    S.method = function(func, name, component) {
+    S.method = function (func, name, component) {
         var path = 'components.' + component + '.methods';
-        if(!S.get(path))
+        if (!S.get(path))
             S.define([], path)
         S.get(path).push({
             name: name,
@@ -63,8 +63,8 @@ window.S = (function () {
         });
     };
 
-    S.components = function(name) {
-        if(typeof S.get('components.' + name) === 'function') {
+    S.components = function (name) {
+        if (typeof S.get('components.' + name) === 'function') {
 
         }
     };
@@ -74,15 +74,15 @@ window.S = (function () {
     }
 
     S.EventEmitter.prototype.on = function (eventName, fn) {
-        if(!this.registeredEvents[eventName])
+        if (!this.registeredEvents[eventName])
             this.registeredEvents[eventName] = [];
         this.registeredEvents[eventName].push(fn);
     };
 
     S.EventEmitter.prototype.fire = function (eventName, event) {
-        if(!this.registeredEvents[eventName])
+        if (!this.registeredEvents[eventName])
             return;
-        for(var i = 0; i < this.registeredEvents[eventName].length; i++) {
+        for (var i = 0; i < this.registeredEvents[eventName].length; i++) {
             this.registeredEvents[eventName][i].call(event, event);
         }
     };

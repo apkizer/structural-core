@@ -1,4 +1,8 @@
-@namespace svg url(http://www.w3.org/2000/svg);
+@namespace svg url
+(
+http://www.w3.org/2000/svg
+)
+;
 .tree-svg {
     width: 100%;
     height: 100%;
@@ -15,11 +19,13 @@
 }
 
 .tree-label {
-  fill: #333;
-  font-family: monospace;
+    fill: #333;
+    font-family: monospace;
 }
 
-.tree-node-hidden { display: none; }
+.tree-node-hidden {
+    display: none;
+}
 
 .tree-hidden {
     display: none;
@@ -63,12 +69,12 @@
 }
 
 .tree-travelorb {
-  fill: #666;
+    fill: #666;
 }
 
 text.tree-remove {
-  fill: red !important;
-  transition: .25s;
+    fill: red !important;
+    transition: .25s;
 }
 
 .tree-svg .range1 {

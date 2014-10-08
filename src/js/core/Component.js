@@ -14,10 +14,9 @@ Object.defineProperty(S.Component.prototype, 'state', {
     },
     set: function (state) {
         /*if (this.handleState)
-            this._state = this.handleState(state);
-        else*/
-        console.info('Setting state');
-            this._state = state;
+         this._state = this.handleState(state);
+         else*/
+        this._state = state;
     }
 });
 
@@ -26,12 +25,8 @@ Object.defineProperty(S.Component.prototype, 'view', {
         return this._view;
     },
     set: function (view) {
-        console.info('Setting view');
-        console.dir(this);
         this._view = view;
-        // TODO
         view.component = this;
-        //view.live.component = this;
         view.init();
     }
 });
@@ -54,8 +49,8 @@ S.Component.prototype.makeViewOnly = function () {
 
 S.Component.prototype.bindLive = function () {
     console.info('bindLive');
-    for(var property in this.live) {
-        if(!this.live.hasOwnProperty(property) || typeof this.live[property] !== 'function')
+    for (var property in this.live) {
+        if (!this.live.hasOwnProperty(property) || typeof this.live[property] !== 'function')
             continue;
         this.live[property].bind(this);
     }
@@ -63,5 +58,5 @@ S.Component.prototype.bindLive = function () {
 
 S.Component.prototype.init = function () {
     // this.makeViewOnly(); // TODO
-    // this.bindLive();
+    // this.bindLive(); // TODO
 }

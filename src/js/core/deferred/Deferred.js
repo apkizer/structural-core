@@ -4,7 +4,7 @@ S.Deferred = (function () {
 
     };
 
-    function Deferred (queue) {
+    function Deferred(queue) {
         var self = this;
         S.EventEmitter.call(this);
         this.queue = queue;
@@ -26,14 +26,13 @@ S.Deferred = (function () {
             _interface = this.handle[options.name || component] ? this.handle[options.name || component] : this.handle[options.name || component] = {},
             self = this,
             definedMethods = S.get('components.' + component.alias + '.methods');
-        console.dir(component);
         for (var property in component) {
-            if(typeof component[property] !== 'function' || !component[property].live)
+            if (typeof component[property] !== 'function' || !component[property].live)
                 continue;
             _interface[property] = (function (property) {
                 var method = function () {
                     var args = Array.prototype.slice.call(arguments);
-                    self.queue.push(function(fn) {
+                    self.queue.push(function (fn) {
                         component[property].apply(component, args.concat(fn));
                     });
                     return copy[property].apply(copy, args);
@@ -41,11 +40,9 @@ S.Deferred = (function () {
                 return method;
             })(property);
         }
-        console.dir(definedMethods);
-        if(!definedMethods || definedMethods.length == 0) return;
+        if (!definedMethods || definedMethods.length == 0) return;
         definedMethods.forEach(function (definedMethod) {
-            if(!_interface[definedMethod.name]) {
-                console.info('Including %s', definedMethod.name);
+            if (!_interface[definedMethod.name]) {
                 _interface[definedMethod.name] = function () {
                     definedMethod.func.call(self.standard, _interface);
                 };
@@ -53,26 +50,26 @@ S.Deferred = (function () {
         });
     };
 
-    function std () {
+    function std() {
         var standard = {},
             vars = {};
         standard.flog = function (str, fn) {
             console.log(str);
-            if(fn) fn();
+            if (fn) fn();
         };
         standard.flog.live = true;
-        standard.fwarn = function(str, fn) {
+        standard.fwarn = function (str, fn) {
             console.warn(str);
-            if(fn) fn();
+            if (fn) fn();
         };
         standard.fwarn.live = true;
         standard._set = function (key, value, fn) {
             vars[key] = value;
-            if(fn) fn();
+            if (fn) fn();
         };
         standard._set.live = true;
         standard._get = function (key, fn) {
-            if(fn) fn();
+            if (fn) fn();
             return vars[key];
         };
         standard._get.live = true;

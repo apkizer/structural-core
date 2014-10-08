@@ -5,7 +5,7 @@ var jsonToQueue = function () {
 
     };
 
-    function validateJSON (json) {
+    function validateJSON(json) {
 
     };
 

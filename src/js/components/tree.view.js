@@ -13,7 +13,7 @@ S.TreeView = (function () {
                 label: 'tree-label',
                 line: 'tree-line',
                 hidden: 'tree-hidden',
-                nodeFocus : 'tree-node--focused'
+                nodeFocus: 'tree-node--focused'
             },
             easings: {
                 remove: mina.easeinout
@@ -127,7 +127,7 @@ S.TreeView = (function () {
             .addClass(this.options.classes.height);
     };
 
-    TreeView.prototype._drawLabel = function(node, label) {
+    TreeView.prototype._drawLabel = function (node, label) {
         var _ = this._;
         return _.svg.text(_.data(node).x + _.nodeRadius + 5, _.data(node).y + _.nodeRadius / 2 - 3, '/' + label)
             .addClass(this.options.classes.label)
@@ -173,7 +173,7 @@ S.TreeView = (function () {
         if (parent && parent.left == null && _.data(parent).leftLine) {
             elements.push(_.data(parent).leftLine);
             delete _.data(parent).leftLine;
-        } else if(parent && parent.right == null && _.data(parent).rightLine) {
+        } else if (parent && parent.right == null && _.data(parent).rightLine) {
             elements.push(_.data(parent).rightLine);
             delete _.data(parent).rightLine;
         }
@@ -212,14 +212,14 @@ S.TreeView = (function () {
 
     TreeView.prototype.focus = function (node, fn) {
         node = this.view.component.getNode(node.sid);
-        if(node)
+        if (node)
             this.view._.data(node).element.addClass('focus');
         fn();
     };
 
     TreeView.prototype.unfocus = function (node, fn) {
         node = this.view.component.getNode(node.sid);
-        if(node)
+        if (node)
             this.view._.data(node).element.removeClass('focus');
         fn();
     };
@@ -227,15 +227,15 @@ S.TreeView = (function () {
     TreeView.prototype.clearFocus = function (node, fn) {
         var view = this.view,
             _ = view._;
-        view.allNodes(view.component.state, function(node) {
+        view.allNodes(view.component.state, function (node) {
             _.data(node).element.removeClass('focus');
         });
     }
 
     TreeView.prototype.travel = function (parent, direction, fn) {
         var _ = this.view._;
-        if(direction) {
-            if(_.data(parent).rightLine) {
+        if (direction) {
+            if (_.data(parent).rightLine) {
                 var rightLine = _.data(parent).rightLine;
                 rightLine.addClass('tree-line-active');
                 var s_circle = _.svg.circle(rightLine.attr('x1'), rightLine.attr('y1'), 5)
@@ -244,7 +244,7 @@ S.TreeView = (function () {
                 s_circle.animate({
                     cx: rightLine.attr('x2'),
                     cy: rightLine.attr('y2')
-                }, 500, null, function() {
+                }, 500, null, function () {
                     s_circle.remove();
                     rightLine.removeClass('tree-line-active');
                     fn();
@@ -253,7 +253,7 @@ S.TreeView = (function () {
                 fn();
             }
         } else {
-            if(_.data(parent).leftLine) {
+            if (_.data(parent).leftLine) {
                 var leftLine = _.data(parent).leftLine;
                 leftLine.addClass('tree-line-active');
                 var s_circle = _.svg.circle(leftLine.attr('x1'), leftLine.attr('y1'), 5)
@@ -262,7 +262,7 @@ S.TreeView = (function () {
                 s_circle.animate({
                     cx: leftLine.attr('x2'),
                     cy: leftLine.attr('y2')
-                }, 500, null, function() {
+                }, 500, null, function () {
                     s_circle.remove();
                     leftLine.removeClass('tree-line-active');
                     fn();
@@ -276,7 +276,7 @@ S.TreeView = (function () {
     TreeView.prototype.label = function (node, label, fn) {
         console.log('trying to label ' + node.value);
         var _ = this.view._;
-        if(node && _.data(node)) {
+        if (node && _.data(node)) {
             _.data(node).label = label;
             _.data(node).s_label = this.view._drawLabel(node, label);
             fn();
@@ -288,7 +288,7 @@ S.TreeView = (function () {
     TreeView.prototype.clearLabels = function (fn) {
         var view = this.view,
             _ = view._;
-        view.allNodes(view.component.state, function(node) {
+        view.allNodes(view.component.state, function (node) {
             _.data(node).s_label.remove();
         });
     };
@@ -307,31 +307,31 @@ S.TreeView = (function () {
         console.info('display');
         var view = this.view,
             _ = view._;
-        view.allNodes(view.component.state, function(node) {
+        view.allNodes(view.component.state, function (node) {
             var data = _.data(node);
-            if(options.heights)
+            if (options.heights)
                 data.s_height.removeClass(view.options.classes.hidden);
-            if(options.heights === false)
+            if (options.heights === false)
                 data.s_height.addClass(view.options.classes.hidden);
-            if(options.labels)
+            if (options.labels)
                 data.s_label.removeClass(view.options.classes.hidden);
-            if(options.labels === false)
+            if (options.labels === false)
                 data.s_label.addClass(view.options.classes.hidden);
-            if(options.values)
+            if (options.values)
                 data.s_value.removeClass(view.options.classes.hidden);
-            if(options.values === false)
+            if (options.values === false)
                 data.s_value.addClass(view.options.classes.hidden);
-            if(options.lines) {
+            if (options.lines) {
                 data.leftLine.removeClass(view.options.classes.hidden);
                 data.rightLine.removeClass(view.options.classes.hidden);
             }
-            if(options.lines === false) {
+            if (options.lines === false) {
                 data.leftLine.addClass(view.options.classes.hidden);
                 data.rightLine.addClass(view.options.classes.hidden);
             }
-            if(options.nodes)
+            if (options.nodes)
                 data.element.removeClass(view.options.classes.hidden);
-            if(options.nodes === false)
+            if (options.nodes === false)
                 data.element.addClass(view.options.classes.hidden);
         });
     };

@@ -19,8 +19,8 @@
 }
 
 .array-cell {
-  position: relative;
-  font-family: arial;
+    position: relative;
+    font-family: arial;
 }
 
 .array-cell:hover {

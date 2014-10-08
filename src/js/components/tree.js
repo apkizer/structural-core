@@ -104,63 +104,63 @@ S.Tree = (function () {
 
     /* View only methods */
 
-    Tree.prototype.mark = function(next) {
-        if(this._view) this._view.mark(next);
+    Tree.prototype.mark = function (next) {
+        if (this._view) this._view.mark(next);
     };
     Tree.prototype.mark.live = true;
 
-    Tree.prototype.markPath = function(next) {
-        if(this._view) this._view.markPath(next);
+    Tree.prototype.markPath = function (next) {
+        if (this._view) this._view.markPath(next);
     };
     Tree.prototype.markPath.live = true;
 
-    Tree.prototype.clearPath = function(next) {
-        if(this._view) this._view.clearPath(next);
+    Tree.prototype.clearPath = function (next) {
+        if (this._view) this._view.clearPath(next);
     };
     Tree.prototype.clearPath.live = true;
 
     // TODO delete
     /*Tree.prototype.showHeights = function(next) {
-        if(this._view) this._view.showHeights(next);
-    };
+     if(this._view) this._view.showHeights(next);
+     };
 
-    // TODO delete
-    Tree.prototype.hideHeights = function(next) {
-        if(this._view) this._view.hideHeights(next);
-    };*/
+     // TODO delete
+     Tree.prototype.hideHeights = function(next) {
+     if(this._view) this._view.hideHeights(next);
+     };*/
 
-    Tree.prototype.clearLabels = function(next) {
-        if(this._view) this._view.clearLabels(next);
+    Tree.prototype.clearLabels = function (next) {
+        if (this._view) this._view.clearLabels(next);
     };
     Tree.prototype.clearLabels.live = true;
 
-    Tree.prototype.travel = function(parent, direction, next) {
-        if(this._view) this._view.travel(parent, direction, next);
+    Tree.prototype.travel = function (parent, direction, next) {
+        if (this._view) this._view.travel(parent, direction, next);
     };
     Tree.prototype.travel.live = true;
 
-    Tree.prototype.label = function(node, label, next) {
-        if(this._view) this._view.label(node, label, next);
+    Tree.prototype.label = function (node, label, next) {
+        if (this._view) this._view.label(node, label, next);
     };
     Tree.prototype.label.live = true;
 
-    Tree.prototype.focus = function(node, next) {
-        if(this._view) this._view.focus(node, next);
+    Tree.prototype.focus = function (node, next) {
+        if (this._view) this._view.focus(node, next);
     };
     Tree.prototype.focus.live = true;
 
-    Tree.prototype.unfocus = function(node, next) {
-        if(this._view) this._view.unfocus(node, next);
+    Tree.prototype.unfocus = function (node, next) {
+        if (this._view) this._view.unfocus(node, next);
     };
     Tree.prototype.unfocus.live = true;
 
-    Tree.prototype.clearFocus = function(node, next) {
-        if(this._view) this._view.clearFocus(node, next);
+    Tree.prototype.clearFocus = function (node, next) {
+        if (this._view) this._view.clearFocus(node, next);
     };
     Tree.prototype.clearFocus.live = true;
 
-    Tree.prototype.display = function(options, next) {
-        if(this._view) this._view.display(options, next);
+    Tree.prototype.display = function (options, next) {
+        if (this._view) this._view.display(options, next);
     };
     Tree.prototype.display.live = true;
 
@@ -178,31 +178,31 @@ S.Tree = (function () {
         console.log('copying ' + _node.value);
         var n = new Tree.TreeNode(_node.value, _node.sid || S.nextId(), null, null);
         /*if (_node.sid)
-            n.sid = _node.sid;
-        else
-            n.sid = S.nextId();*/
+         n.sid = _node.sid;
+         else
+         n.sid = S.nextId();*/
         n.parent = parent;
         n.left = this.copyTree(_node.left || _node._left, n); // TODO get rid of ||
         n.right = this.copyTree(_node.right || _node._right, n); // TODO get rid of ||
         /*if (n.sid == 'sid_0') {
-            console.log('ROOT');
-            console.dir(n);
-        }*/
+         console.log('ROOT');
+         console.dir(n);
+         }*/
         //this.nodes[n.sid] = n;
         this.setNode(n);
         return n;
     };
 
     /*Tree.prototype._makeTreeNodes = function (root) {
-        var treeNode = null;
-        if (root) {
-            treeNode = new Tree.TreeNode(root.sid, this._makeTreeNodes(root.left), this._makeTreeNodes(root.right));
-            this.nodes[treeNode.sid] = treeNode;
-        }
-        return treeNode;
-    };*/
+     var treeNode = null;
+     if (root) {
+     treeNode = new Tree.TreeNode(root.sid, this._makeTreeNodes(root.left), this._makeTreeNodes(root.right));
+     this.nodes[treeNode.sid] = treeNode;
+     }
+     return treeNode;
+     };*/
 
-    Tree.prototype.getNode = function(sidOrObject) {
+    Tree.prototype.getNode = function (sidOrObject) {
         if (typeof sidOrObject === 'string')
             return this.nodes[sidOrObject];
         else
@@ -213,7 +213,7 @@ S.Tree = (function () {
         this.nodes[treeNode.sid] = treeNode;
     };
 
-    Tree.prototype.computeHeights = function(root) {
+    Tree.prototype.computeHeights = function (root) {
         if (root)
             return root.height = 1 + Math.max(this.computeHeights(root.left), this.computeHeights(root.right));
         return -1;
@@ -221,12 +221,12 @@ S.Tree = (function () {
 
 
     /*function node(value) {
-        return {
-            value: value,
-            left: null,
-            right: null
-        };
-    }*/
+     return {
+     value: value,
+     left: null,
+     right: null
+     };
+     }*/
 
     return Tree;
 })();
