@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Array Refactor</title>
+    <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
+    <script type="text/javascript" src="../lib/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../build/structural.js"></script>
+    <link rel="stylesheet" href="../build/structural.css"/>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var state = [12, 3, 97, 16, 82, 39, 71, 92];
+            console.log('creating array view');
+            var view = new S.ArrayView('.array-div');
+            var array = new S.Array(state, view);
+
+            function markEach(array) {
+                for(var i = 0; i < array.getLength(); i++) {
+                    array.focus(i);
+                    array.flag(i);
+                    array.getItem(i);
+                    array.setItem(i, 'LOL');
+                }
+            }
+
+            S.method(markEach, 'markEach', 'array');
+
+            window.queue = new S.AsyncFunctionQueue();
+            window.deferred = new S.Deferred(queue);
+            deferred.include(array, new S.Array(state), {
+                name: 'array'
+            });
+
+            function insertion (s, array) {
+                for(var i = 0; i < array.getLength(); i++) {
+                    s('j', i);
+                    while(s('j') > 0 && array.getItem(s('j') - 1) > array.getItem(s('j'))) {
+                        //swap(s, array, s('j'), s('j') - 1);
+                        s('temp', array.getItem(s('j')));
+                        array.setItem(s('j'), array.getItem(s('j') - 1));
+                        array.setItem(s('j') - 1, s('temp'));
+                        s('swapped', true);
+                        s('j', s('j') - 1);
+                    }
+                    array.range(0, i, 1); //show sorted portion of array
+                }
+                array.clearrange(1);
+            }
+
+            function swap(s, array, a, b) {
+                s('temp', array.getItem(a));
+                array.setItem(a, array.getItem(b));
+                array.setItem(b, s('temp'));
+            }
+
+            //insertion(deferred.handle.standard, deferred.handle.array);
+        });
+    </script>
+
+</head>
+<body>
+<div class="array-div" style="width: 600px; height: 100px;">
+
+</div>
+</body>
+</html>

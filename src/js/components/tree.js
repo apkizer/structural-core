@@ -1,215 +1,168 @@
-(function () {
+S.Tree = (function () {
+    function Tree(state, view) {
+        this.alias = 'tree';
+        this.nodes = {};
+        var copy = this.copyTree(state, null);
+        S.Component.call(this, copy, view); // TODO handleState should be called
+        this.height = this.computeHeights(this.state);
+        //this.component = this;
+    }
 
-    /*
-     NOTE:
-     Components should not accept objects as parameters. If they do, they should only use and id property set on object, because
-     doing operations on the actual object passed in will not work, because it references an object in the synchronous phase.
-     Basically, pretend component is a webserver receiving requests. It cannot maintain a map of external objects, etc.
-     Example violation:
-
-     var obj = {};
-     component.setObj('myObj', obj);
-     var gotten = component.getObj('myObj');
-     obj === gotten // NOT guaranteed
-     */
-
-
-    function TreeNode(sid, left, right) {
+    Tree.TreeNode = function (value, sid, left, right) {
+        this.value = value;
         this.sid = sid;
         this._left = left;
         this._right = right;
-        var self = this;
-        Object.defineProperty(this, 'left', {
-            get: function () {
-                return this._left;
-            },
-            set: function (value) {
-                console.log('setting left0');
-                if(self._left)  {
-                    console.log('setting left1');
-                    self.treeInterface.set(self._left, value);
-                }
-                else
-                    self.treeInterface.add(self, false, value);
-            }
-        });
-        Object.defineProperty(this, 'right', {
-            get: function () {
-                return this._right;
-            },
-            set: function (value) {
-                self.treeInterface.set(self._right, value);
-            }
-        });
-        this.focus = function () {
-            console.log('focusing');
-            self.treeInterface.focus(self);
-        };
-    }
-
-    function Tree(state, view) {
-        // this.live.component = this; // no need, this bound in deferred
-        this.alias = 'tree';
-        this.nodeMap = {};
-        this.treeNodes = {}; // TODO
-        var s = this._copyTree(state, null);
-        console.log('Tree setting view');
-        console.dir(view);
-        S.Component.call(this, s, view);
-    }
+    };
 
     Tree.prototype = Object.create(S.Component.prototype);
     Tree.prototype.constructor = Tree;
-    Tree.prototype.live = {};
+    //Tree.prototype.live = {};
 
-    // TODO delete
-    // Tree.prototype.noCopy = true;
+    Tree.prototype.handleState = function (state) {
+        return this.copyTree(state, null);
+    };
 
-    /*Tree.prototype.setState = function(state) {
-     this.state = state;
-     this.height = computeHeights(this.state);
-     }*/
-
-    Object.defineProperty(Tree.prototype, 'state', {
-        get: function () {
-            return this._state;
-        },
-        set: function (state) {
-            this._state = state;
-            this._makeTreeNodes(this._state);
-            this.height = computeHeights(this.state);
+    Tree.prototype.root = function (next) {
+        console.dir(this);
+        if (this._view)
+            next(this.state);
+        else {
+            console.info('Operating in synchronous mode');
+            console.dir(this._view);
+            return this.state;
         }
-    });
+    };
+    Tree.prototype.root.live = true;
 
-    /**
-     * Returns the root of the tree.
-     * @returns {*}
-     */
-    Tree.prototype.live.root = function (value) {
-        var last = arguments[arguments.length - 1];
-        if(last) {
-            console.log('returing pseudoNode');
-            var treeNode = this.treeNodes[this.state.sid];
-            this._setTreeNodesInterface(treeNode, last);
-            console.dir(treeNode);
-            return treeNode;
-        }
-        console.log('returning state');
-        return this.state;
-    }
-    Tree.prototype.live.root.getter = true;
-    //Tree.prototype.live.root.setter = true;
-
-    /**
-     * Returns the height of the tree.
-     * @returns {*}
-     */
-    Tree.prototype.live.height = function () {
-        this.height = computeHeights(this.state);
-        return this.height;
-    }
-    Tree.prototype.live.height.getter = true;
-
-    /**
-     * Adds a node to the tree.
-     * @param parent The parent to add the node onto.
-     * @param direction The direction to add the node (false for left, true for right).
-     * @param value The value of the new node.
-     * @returns {*} The added node.
-     */
-    Tree.prototype.live.add = function (parent, direction, value) {
-        console.log('Adding %s', value);
-        parent = this.nodeMap[parent.sid];
+    Tree.prototype.add = function (parent, direction, value, next) {
+        parent = this.getNode(parent);
         var added;
         if (direction) {
-            added = parent.right = node(value);
+            if (parent.right) return; // a node is already there
+            added = parent.right = new Tree.TreeNode(value, S.nextId(), null, null);
         } else {
-            added = parent.left = node(value);
+            if (parent.left) return; // a node is already there
+            added = parent.left = new Tree.TreeNode(value, S.nextId(), null, null);
         }
-        added.sid = S.nextId();
-        this.nodeMap[added.sid] = added;
-        console.dir(added);
-        console.log('parent it');
-        console.dir(parent);
-        this.height = computeHeights(this.state);
-        return bindGetters(added);
-    }
+        this.setNode(added);
+        this.height = this.computeHeights(this.state);
+        if (this._view)
+            this._view.add(parent, direction, value, function () {
+                next(added);
+            });
+        else
+            return added;
+    };
+    Tree.prototype.add.live = true;
 
-    /**
-     * Removes the given node from the tree and all of its children.
-     * @param node The node to remove.
-     */
-    Tree.prototype.live.remove = function (node) {
-        console.info('Removing node ' + node.sid);
-
-        node = this.nodeMap[node.sid];
-        var parent = this.nodeMap[node.parent.sid];
-
+    Tree.prototype.remove = function (node, next) {
+        node = this.getNode(node);
+        var parent = node.parent;
         if (node.parent && node.parent.left == node) {
             node.parent.left = null;
         } else if (node.parent && node.parent.right == node) {
             node.parent.right = null;
+        } else if (node.parent) {
+            // problem
         } else {
-
+            // must have been root node
         }
-        this.height = computeHeights(this.state);
-    }
+        this.height = this.computeHeights(this.state);
+        if (this._view)
+            this._view.remove(node, next);
+    };
+    Tree.prototype.remove.live = true;
 
-    /**
-     * Sets the value of the given node.
-     * @param node
-     * @param value
-     */
-    Tree.prototype.live.set = function (node, value) {
-        node = this.nodeMap[node.sid];
+    Tree.prototype.set = function (node, value, next) {
+        node = this.getNode(node);
         node.value = value;
-        return node;
-    }
+        if (this._view)
+            this._view.set(node, value, function () {
+                next(node);
+            });
+        else
+            return node;
+    };
+    Tree.prototype.set.live = true;
 
-    /**
-     * Sets the [direction] child of `parent` to `child`.
-     * @param parent
-     * @param direction false for left, true for right
-     * @param child
-     */
-    Tree.prototype.live.setChild = function (parent, direction, child) {
-        // TODO
-    }
+    Tree.prototype.get = function (node, next) {
+        node = this.getNode(node);
+        if (this._view)
+            next(node.value);
+        else
+            return node.value;
+    };
+    Tree.prototype.get.live = true;
 
-    Tree.prototype.live.verify = function () {
-        console.dir(this.state);
-    }
+    Tree.prototype.height = function (next) {
+        if (this._view)
+            next(this.height);
+        return this.height;
+    };
+    Tree.prototype.height.live = true;
 
-    /*
-     View only methods
-     */
-    Tree.prototype.live.mark = null;
+    /* View only methods */
 
-    Tree.prototype.live.markPath = null;
+    Tree.prototype.mark = function(next) {
+        if(this._view) this._view.mark(next);
+    };
+    Tree.prototype.mark.live = true;
 
-    Tree.prototype.live.clearPath = null;
+    Tree.prototype.markPath = function(next) {
+        if(this._view) this._view.markPath(next);
+    };
+    Tree.prototype.markPath.live = true;
 
-    Tree.prototype.live.showHeights = null;
+    Tree.prototype.clearPath = function(next) {
+        if(this._view) this._view.clearPath(next);
+    };
+    Tree.prototype.clearPath.live = true;
 
-    Tree.prototype.live.hideHeights = null;
+    // TODO delete
+    /*Tree.prototype.showHeights = function(next) {
+        if(this._view) this._view.showHeights(next);
+    };
 
-    Tree.prototype.live.clearLabels = null;
+    // TODO delete
+    Tree.prototype.hideHeights = function(next) {
+        if(this._view) this._view.hideHeights(next);
+    };*/
 
-    //Tree.prototype.live.clearlabels = null;
+    Tree.prototype.clearLabels = function(next) {
+        if(this._view) this._view.clearLabels(next);
+    };
+    Tree.prototype.clearLabels.live = true;
 
-    //Tree.prototype.live.clearfocus = null;
+    Tree.prototype.travel = function(parent, direction, next) {
+        if(this._view) this._view.travel(parent, direction, next);
+    };
+    Tree.prototype.travel.live = true;
 
-    Tree.prototype.live.travel = null;
+    Tree.prototype.label = function(node, label, next) {
+        if(this._view) this._view.label(node, label, next);
+    };
+    Tree.prototype.label.live = true;
 
-    Tree.prototype.live.label = null;
+    Tree.prototype.focus = function(node, next) {
+        if(this._view) this._view.focus(node, next);
+    };
+    Tree.prototype.focus.live = true;
 
-    Tree.prototype.live.focus = null;
+    Tree.prototype.unfocus = function(node, next) {
+        if(this._view) this._view.unfocus(node, next);
+    };
+    Tree.prototype.unfocus.live = true;
 
-    Tree.prototype.live.unfocus = null;
+    Tree.prototype.clearFocus = function(node, next) {
+        if(this._view) this._view.clearFocus(node, next);
+    };
+    Tree.prototype.clearFocus.live = true;
 
-    Tree.prototype.live.clearFocus = null;
-
-    Tree.prototype.live.display = null;
+    Tree.prototype.display = function(options, next) {
+        if(this._view) this._view.display(options, next);
+    };
+    Tree.prototype.display.live = true;
 
     // utils:
     Tree.prototype.allNodes = function (tree, fn) {
@@ -220,65 +173,60 @@
         }
     };
 
-    Tree.prototype._copyTree = function (_node, parent) {
+    Tree.prototype.copyTree = function (_node, parent) {
         if (!_node) return null;
-        var n = node(_node.value);
-        if (_node.sid)
+        console.log('copying ' + _node.value);
+        var n = new Tree.TreeNode(_node.value, _node.sid || S.nextId(), null, null);
+        /*if (_node.sid)
             n.sid = _node.sid;
         else
-            n.sid = S.nextId();
+            n.sid = S.nextId();*/
         n.parent = parent;
-        n.left = this._copyTree(_node.left || node._left, n);
-        n.right = this._copyTree(_node.right || node._right, n);
-        if (n.sid == 'sid_0') {
+        n.left = this.copyTree(_node.left || _node._left, n); // TODO get rid of ||
+        n.right = this.copyTree(_node.right || _node._right, n); // TODO get rid of ||
+        /*if (n.sid == 'sid_0') {
             console.log('ROOT');
             console.dir(n);
-        }
-        this.nodeMap[n.sid] = n;
+        }*/
+        //this.nodes[n.sid] = n;
+        this.setNode(n);
         return n;
-    }
+    };
 
-    Tree.prototype._makeTreeNodes = function(root) {
+    /*Tree.prototype._makeTreeNodes = function (root) {
         var treeNode = null;
-        if(root) {
-            treeNode = new TreeNode(root.sid, this._makeTreeNodes(root.left), this._makeTreeNodes(root.right));
-            this.treeNodes[treeNode.sid] = treeNode;
+        if (root) {
+            treeNode = new Tree.TreeNode(root.sid, this._makeTreeNodes(root.left), this._makeTreeNodes(root.right));
+            this.nodes[treeNode.sid] = treeNode;
         }
         return treeNode;
+    };*/
+
+    Tree.prototype.getNode = function(sidOrObject) {
+        if (typeof sidOrObject === 'string')
+            return this.nodes[sidOrObject];
+        else
+            return this.nodes[sidOrObject.sid];
     };
 
-    Tree.prototype._setTreeNodesInterface = function(root, _interface) {
-        console.log('setting interface of %s', root);
-        if(root) {
-            root.treeInterface = _interface;
-            this._setTreeNodesInterface(root.left, _interface);
-            this._setTreeNodesInterface(root.right, _interface);
-        }
+    Tree.prototype.setNode = function (treeNode) {
+        this.nodes[treeNode.sid] = treeNode;
     };
 
-    function bindGetters(node) {
-        return node;
-    }
-
-    function computeHeights(root) {
+    Tree.prototype.computeHeights = function(root) {
         if (root)
-            return root.height = 1 + Math.max(computeHeights(root.left), computeHeights(root.right));
+            return root.height = 1 + Math.max(this.computeHeights(root.left), this.computeHeights(root.right));
         return -1;
-    }
+    };
 
-    function computeParents(root) {
 
-    }
-
-    function node(value) {
+    /*function node(value) {
         return {
             value: value,
             left: null,
             right: null
         };
-    }
+    }*/
 
-
-    S.defineComponent2('tree', Tree);
-
+    return Tree;
 })();

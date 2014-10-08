@@ -1,639 +1,474 @@
-window.S = (function ($) {
+window.S = (function () {
     "use strict";
     var S = {};
-    console.info('Initializing structural-core');
-
-    S.VIEW_CLASS = 'structural_view';
-    S.components = {};
-    S.views = {};
-
-    var components = {},
-        componentMethods = {},
-        standaloneMethods = {},
-        componentMeta = {};
+    S.definitions = {};
 
     /**
-     * Registers a component.
-     * @param name The name of the component.
-     * @param factoryFunction A function which returns new instances of the component.
-     * @param noDefault If true, Structural does not provide a default deferred execution context on instances of this component.
+     * Global definition function. Allows properties to be defined in any order.
+     * @param obj
+     * @param path
      */
-    S.defineComponent = function (name, factoryFunction, noDefault) {
-        components[name] = factoryFunction;
-        /* middleware & default deferred context */
-        S.components[name] = function () {
-            var component = components[name].apply(this, arguments);
-            // provide default deferred context
-            if (S.config.provideDefaultDeferredContext && !noDefault) {
-                provideDefaultDeferredContext(component);
+    S.define = function (obj, path) {
+        console.info('Defining %s', path);
+        var nest = path.split('.'),
+            last = S.definitions;
+        nest.forEach(function (property) {
+            if (!last[property]) {
+                (last[property] = {}).value = null;
             }
-            // give default view
-            if (S.views[name]) {
-                console.log('setting view ' + name);
-                component.view = S.views[name]();
-            }
-            // initialize component
-            if (component.init) component.init();
-            return component;
-        }
-    }
-
-    S.defineComponent2 = function (name, ctor, noDefault) {
-        components[name] = ctor;
-        S.components[name] = function (state, view) {
-            var component = new components[name](state, view);
-
-            if (S.config.provideDefaultDeferredContext && !noDefault) {
-                provideDefaultDeferredContext(component);
-            }
-
-            if (S.views[name]) {
-                component.view = S.views[name]();
-            }
-
-            //if(component.init) component.init();
-
-            return component;
-        }
-    }
-
-    S.defineMethodOn = function (name, methodName, func) {
-        if (!componentMethods[name])
-            componentMethods[name] = {};
-        componentMethods[name][methodName] = func;
-    }
-
-    S.defineStandaloneMethod = function (requirements, optionalRequirements, func) {
-        if (!standaloneMethods[name])
-            standaloneMethods[name] = {};
-        standaloneMethods[name].requirements = requirements;
-        standaloneMethods[name].optionalRequirements = optionalRequirements;
-        standaloneMethods[name][methodName] = func;
-    }
-
-    S.setMetaData = function (name, meta) {
-        componentMeta[name] = meta;
-    }
-
-    function provideDefaultDeferredContext(component) {
-        /*component.def = new S.Deferred(); //S.deferred();
-  component.def.wrap(component);
-  component.deferredContext = component.def.getContext();       */
-    }
-
-    S.setDefaultView = function (name, factory) {
-        S.views[name] = factory;
-    }
-
-    /*S.addView = function(component, name, func) {
-    if(!S.views[component])
-      S.views[component] = {};
-    S.views[component][name] = func;
-}*/
-
-    S.addMethod = function (componentName, methodName, func) {
-        if (!componentMethods[componentName])
-            componentMethods[componentName] = {};
-        componentMethods[componentName][methodName] = func;
-    }
-
-    S.getComponentMethods = function (componentName) {
-        return componentMethods[componentName];
-    }
-
-    S.config = {
-        provideDefaultDeferredContext: true,
-        /* Provide a deferred context on newly created components. */
-        viewClass: 'structural_view' /* CSS class for views */
+            last = last[property];
+        });
+        last.value = obj;
     };
 
-    var id = 0;
-
-    S.nextId = function () {
-        return 'sid_' + id++;
-    }
-
-    S.map = function () {
-        var values = {},
-            keys = {},
-            map = function (key, value) {
-                if (!key.sid)
-                    throw new Error('S.map() requires sid property. Use S.nextId().');
-                if (typeof value === 'undefined') {
-                    if (!values[key.sid])
-                        values[key.sid] = {};
-                    return values[key.sid];
-                }
-                values[key.sid] = value;
-                keys[key.sid] = key;
-            };
-
-        map.clear = function () {
-            values = {};
-            keys = {};
-        };
-
-        map.delete = function (key) {
-            if (!key.sid)
-                throw new Error('S.map() requires sid property. Use S.nextId().');
-            delete values[key.sid];
-        };
-
-        map.has = function (key) {
-            if (!key.sid)
-                throw new Error('S.map() requires sid property. Use S.nextId().');
-            return typeof values[key.sid] !== 'undefined';
-        }
-
-        map.forEach = function (fn, thisArg) {
-            if (!thisArg)
-                thisArg = {};
-            for (var sid in values) {
-                fn.call(thisArg, [keys[sid], values[sid]]);
+    S.get = function (path) {
+        if (path.indexOf('undefined') > -1) return;
+        var nest = path.split('.'),
+            last = S.definitions;
+        nest.forEach(function (property) {
+            if (!last[property]) {
+                (last[property] = {}).value = null;
             }
+            last = last[property];
+        });
+        return last.value;
+    };
+
+    /*S.modifier = function(component, func) {
+        S.define('components.' + component + '.modifiers')
+    }*/
+
+    S.component = function (name, ctor) {
+        if (ctor)
+            S.defineComponent(name, ctor);
+        else
+            return S.instantiateComponent(name);
+    };
+
+    S.defineComponent = function (name, ctor) {
+        S.define(ctor, 'components.' + name);
+    };
+
+    S.instantiateComponent = function (name) {
+        return new S.get('components.' + name);
+    }
+
+    S.method = function (func, name, component) {
+        var path = 'components.' + component + '.methods';
+        if (!S.get(path))
+            S.define([], path)
+        S.get(path).push({
+            name: name,
+            func: func
+        });
+    };
+
+    S.components = function (name) {
+        if (typeof S.get('components.' + name) === 'function') {
+
         }
-
-        return map;
-    }
-
-    S.wait = function (func, time) {
-        setTimeout(func, time);
-    }
+    };
 
     S.EventEmitter = function () {
         this.registeredEvents = {};
     }
 
     S.EventEmitter.prototype.on = function (eventName, fn) {
-        if (!this.registeredEvents[eventName]) //typeof this.registeredEvents[eventName] === 'undefined')
+        if (!this.registeredEvents[eventName])
             this.registeredEvents[eventName] = [];
         this.registeredEvents[eventName].push(fn);
     };
 
     S.EventEmitter.prototype.fire = function (eventName, event) {
-        if (!this.registeredEvents[eventName]) //typeof this.registeredEvents[eventName] === 'undefined')
+        if (!this.registeredEvents[eventName])
             return;
         for (var i = 0; i < this.registeredEvents[eventName].length; i++) {
             this.registeredEvents[eventName][i].call(event, event);
         }
     };
 
+    return S;
+})();
 
-    S.ee = function () {
-        var ee = {};
-        ee.registeredEvents = {};
+S.config = {
+    provideDefaultDeferredContext: true,
+    /* Provide a deferred context on newly created components. */
+    viewClass: 'structural_view' /* CSS class for views */
+};
 
-        ee.on = function (eventName, fn) {
-            if (typeof ee.registeredEvents[eventName] === 'undefined')
-                ee.registeredEvents[eventName] = [];
-            ee.registeredEvents[eventName].push(fn);
-        };
+var id = 0;
 
-        ee.fire = function (eventName, event) {
-            if (typeof ee.registeredEvents[eventName] === 'undefined')
-                return;
-            for (var i = 0; i < ee.registeredEvents[eventName].length; i++) {
-                ee.registeredEvents[eventName][i].call(event, event);
+/**
+ * Shallow extend utility.
+ */
+S.extend = function () {
+    var args = Array.prototype.slice.call(arguments),
+        ret = {};
+    args.forEach(function (mixin) {
+        for (var property in mixin) {
+            if (!mixin.hasOwnProperty(property)) continue;
+            ret[property] = mixin[property];
+        }
+    });
+    return ret;
+}
+
+S.nextId = function () {
+    return 'sid_' + id++;
+}
+
+S.map = function () {
+    var values = {},
+        keys = {},
+        map = function (key, value) {
+            if (!key.sid)
+                throw new Error('S.map() requires sid property. Use S.nextId().');
+            if (typeof value === 'undefined') {
+                if (!values[key.sid])
+                    values[key.sid] = {};
+                return values[key.sid];
             }
+            values[key.sid] = value;
+            keys[key.sid] = key;
         };
 
-        return ee;
+    map.clear = function () {
+        values = {};
+        keys = {};
+    };
+
+    map.delete = function (key) {
+        if (!key.sid)
+            throw new Error('S.map() requires sid property. Use S.nextId().');
+        delete values[key.sid];
+    };
+
+    map.has = function (key) {
+        if (!key.sid)
+            throw new Error('S.map() requires sid property. Use S.nextId().');
+        return typeof values[key.sid] !== 'undefined';
     }
 
-    S.Component = (function () {
-        function Component(state, view) {
-            if (state)
-                this.state = state;
-            if (view)
-                this.view = view;
+    map.forEach = function (fn, thisArg) {
+        if (!thisArg)
+            thisArg = {};
+        for (var sid in values) {
+            fn.call(thisArg, [keys[sid], values[sid]]);
         }
+    }
 
-        Component.prototype = Object.create(S.EventEmitter.prototype);
+    return map;
+}
 
-        Object.defineProperty(Component.prototype, 'state', {
-            get: function () {
-                return this._state;
-            },
-            set: function (state) {
-                this._state = state;
-            }
+S.wait = function (func, time) {
+    setTimeout(func, time);
+}
+
+S.Component = function (state, view) {
+    console.info('Component constructor');
+    if (state)
+        this.state = state;
+    if (view)
+        this.view = view;
+};
+
+S.Component.prototype = Object.create(S.EventEmitter.prototype);
+
+Object.defineProperty(S.Component.prototype, 'state', {
+    get: function () {
+        return this._state;
+    },
+    set: function (state) {
+        /*if (this.handleState)
+            this._state = this.handleState(state);
+        else*/
+        console.info('Setting state');
+        this._state = state;
+    }
+});
+
+Object.defineProperty(S.Component.prototype, 'view', {
+    get: function () {
+        return this._view;
+    },
+    set: function (view) {
+        console.info('Setting view');
+        console.dir(this);
+        this._view = view;
+        // TODO
+        view.component = this;
+        //view.live.component = this;
+        view.init();
+    }
+});
+
+/**
+ * Convenience method. Makes all properties set to null on this.live view-only methods.
+ */
+// TODO
+S.Component.prototype.makeViewOnly = function () {
+    for (var property in this.live) {
+        if (this.live.hasOwnProperty(property) && property === null) {
+            this.live[property] = (function (property) {
+                var fn = function () {
+                    this.view.live[property].apply(this.view.live, Array.prototype.slice.call(arguments));
+                };
+            })(property);
+        }
+    }
+};
+
+S.Component.prototype.bindLive = function () {
+    console.info('bindLive');
+    for (var property in this.live) {
+        if (!this.live.hasOwnProperty(property) || typeof this.live[property] !== 'function')
+            continue;
+        this.live[property].bind(this);
+    }
+};
+
+S.Component.prototype.init = function () {
+    // this.makeViewOnly(); // TODO
+    // this.bindLive();
+}
+
+S.View = function (element) {
+    this.$element = element instanceof jQuery ? element : jQuery(element);
+    this.interactive = true;
+};
+
+S.View.prototype = Object.create(S.EventEmitter.prototype);
+
+S.View.prototype.clear = function () {
+    this.$element.empty();
+};
+
+S.View.prototype.enableInteractivity = function () {
+    this.interactive = true;
+};
+
+S.View.prototype.disableInteractivity = function () {
+    this.interactive = false;
+}
+
+
+S.AsyncFunctionQueue = (function () {
+
+    /**
+     * Constructs a new Asynchronous Function Queue. This is a list of functions that run asynchronous code,
+     * such as animating elements on the page or making ajax requests. Each function should accept the callback
+     * parameter as its final parameter, and call this callback to signal the completion of the function.
+     * @constructor
+     */
+    function AsyncFunctionQueue() {
+        this.functionList = []; // the array of functions.
+        this.position = 0; // the current function to be executed.
+        this.sleep = 100; // the time to wait between executing functions after `exec` is called.
+        this.states = []; //
+        this._open = false; // If true, auto execution is enabled.
+        this.clearOnFinish = true; // If true, clears `functionList` once the last function is executed.
+        this.executing = false; // True while executing.
+    }
+
+    /**
+     * Pushes a function to the queue. If auto execution is enabled, the function is called.
+     * @param fn This should accept a callback as its last parameter.
+     */
+    AsyncFunctionQueue.prototype.push = function (fn) {
+        this.functionList.push(fn);
+        if (this._open && !this.executing) {
+            this.exec();
+        }
+    }
+
+    /**
+     * Stops execution, clears all functions, and sets `position` to 0.
+     */
+    AsyncFunctionQueue.prototype.clear = function () {
+        this.executing = false;
+        this.functionList = [];
+        this.position = 0;
+
+    }
+
+    /**
+     * Executes the next function and increments `position` on its completion.
+     */
+    AsyncFunctionQueue.prototype.next = function (fn) {
+        var self = this;
+        // TODO bind self as this?
+        this.functionList[this.position].call(self, function () {
+            self.position++;
+            fn();
         });
+    }
 
-        Object.defineProperty(Component.prototype, 'view', {
-            get: function () {
-                return this._view;
-            },
-            set: function (view) {
-                this._view = view;
-                view.component = this;
-                view.live.component = this;
-                view.init();
+    /**
+     * Begins executing all functions starting with the next function.
+     */
+    AsyncFunctionQueue.prototype.exec = function () {
+        console.groupCollapsed('AsyncFunctionQueue executing');
+        this.executing = true;
+        var self = this;
+
+        function iteration() {
+            if (self.position >= self.functionList.length && self.clearOnFinish) {
+                self.clear();
             }
-        });
-
-        Component.prototype.getSync = function () {
-            return this.live;
-        };
-
-        Component.prototype.getAsync = function () {
-            return this.view.live;
-        };
-
-        Component.prototype.getMethods = function () {
-            return S.getComponentMethods(this.alias);
-        };
-
-        return Component;
-    })();
-
-    S.View = (function ($) {
-        function View() {
-            this._config = {};
-            this.$element = $('<div>').addClass(S.VIEW_CLASS);
-        }
-
-        View.prototype = Object.create(S.EventEmitter.prototype);
-
-        View.prototype.init = function () {};
-
-        View.prototype.render = function () {};
-
-        // TODO remove scaleTo:
-        View.prototype.scaleTo = function (dimensions) {
-            this.$element.width(dimensions.width);
-            this.$element.height(dimensions.height);
-        };
-
-        // TODO keep this:
-        /**
-         * Adjusts the View's drawing parameters based on `dimensions`.
-         * @param dimensions An object containing `width` and `height` properties.
-         */
-        View.prototype.scale = function (dimensions) {
-            this.$element.width(dimensions.width);
-            this.$element.height(dimensions.height);
-        };
-
-        View.prototype.clear = function () {
-            this.$element.empty();
-        };
-
-        Object.defineProperty(View.prototype, 'config', {
-            get: function () {
-                return this._config;
-            },
-            set: function (options) {
-                $.extend(this._config, options);
+            if (self.position >= self.functionList.length || !self.executing || !self.functionList[self.position]) {
+                self.executing = false;
+                console.groupEnd();
+                return;
             }
-        });
-
-        return View;
-    })(jQuery);
-
-
-
-    S.AsyncFunctionQueue = (function () {
-
-        /**
-         * Constructs a new Asynchronous Function Queue. This is a list of functions that run asynchronous code,
-         * such as animating elements on the page or making ajax requests. Each function should accept the callback
-         * parameter as its final parameter, and call this callback to signal the completion of the function.
-         * @constructor
-         */
-        function AsyncFunctionQueue() {
-            this.functionList = []; // the array of functions.
-            this.position = 0; // the current function to be executed.
-            this.sleep = 100; // the time to wait between executing functions after `exec` is called.
-            this.states = []; //
-            this._open = false; // If true, auto execution is enabled.
-            this.clearOnFinish = true; // If true, clears `functionList` once the last function is executed.
-            this.executing = false; // True while executing.
-        }
-
-        /**
-         * Pushes a function to the queue. If auto execution is enabled, the function is called.
-         * @param fn This should accept a callback as its last parameter.
-         */
-        AsyncFunctionQueue.prototype.push = function (fn) {
-            this.functionList.push(fn);
-            if (this._open && !this.executing) {
-                this.exec();
-            }
-        }
-
-        /**
-         * Stops execution, clears all functions, and sets `position` to 0.
-         */
-        AsyncFunctionQueue.prototype.clear = function () {
-            this.executing = false;
-            this.functionList = [];
-            this.position = 0;
-
-        }
-
-        /**
-         * Executes the next function and increments `position` on its completion.
-         */
-        AsyncFunctionQueue.prototype.next = function (fn) {
-            var self = this;
-            // TODO bind self as this?
-            this.functionList[this.position].call(self, function () {
-                self.position++;
-                fn();
+            self.next(function () {
+                setTimeout(iteration, self.sleep);
             });
         }
 
-        /**
-         * Begins executing all functions starting with the next function.
-         */
-        AsyncFunctionQueue.prototype.exec = function () {
-            console.groupCollapsed('AsyncFunctionQueue executing');
-            this.executing = true;
-            var self = this;
-
-            function iteration() {
-                if (self.position >= self.functionList.length && self.clearOnFinish) {
-                    self.clear();
-                }
-                if (self.position >= self.functionList.length || !self.executing || !self.functionList[self.position]) {
-                    self.executing = false;
-                    console.groupEnd();
-                    return;
-                }
-                self.next(function () {
-                    setTimeout(iteration, self.sleep);
-                });
-            }
-
-            iteration();
-        }
-
-        /**
-         * Pauses execution.
-         */
-        AsyncFunctionQueue.prototype.pause = function () {
-            this.executing = false;
-        }
-
-        /**
-         * Enables auto execution. Functions are run as they are pushed.
-         */
-        AsyncFunctionQueue.prototype.open = function () {
-            this._open = true;
-            this.exec();
-        }
-
-        /**
-         * Disables auto execution and stops current execution. Function "pile up".
-         */
-        AsyncFunctionQueue.prototype.close = function () {
-            this._open = false;
-            this.executing = false;
-        }
-
-        /**
-         * Returns the number of functions on the queue.
-         */
-        Object.defineProperty(AsyncFunctionQueue.prototype, 'length', {
-            get: function () {
-                return this.functionList.length;
-            }
-        });
-
-        /**
-         * Returns the number of current position / the number of functions on the queue.
-         */
-        Object.defineProperty(AsyncFunctionQueue.prototype, 'completion', {
-            get: function () {
-                return this.position / this.functionList.length;
-            }
-        });
-
-        return AsyncFunctionQueue;
-
-    })();
-
-
-
-
-
-
-    S.DeferredInterface = (function () {
-
-        function DeferredInterface(queue) {
-            S.EventEmitter.call(this); // TODO phase out?
-            this.queue = queue;
-            this.clones = {}; // TODO store wrappable clones here
-            var self = this;
-            this.interface = function (key, value) {
-                if (typeof value === 'undefined')
-                    return self.interface._get(key);
-                self.interface._set(key, value);
-            };
-            this.include(std());
-        };
-
-        DeferredInterface.prototype = Object.create(S.EventEmitter.prototype);
-
-        /**
-         * Returns the actual interface. After wrappables are included, they can be used from this interface.
-         *
-         * @returns {Function}
-         */
-        DeferredInterface.prototype.handle = function () {
-            return this.interface;
-        }
-
-        DeferredInterface.prototype.add = function (name, func) {
-            func.bind(this.interface);
-            this.interface[name] = func;
-        }
-
-        /**
-         * Include a wrappable in this interface. Operations are pushed to this DeferredInterface's queue, and also executed
-         * on a stateful copy of the wrappable. The result is that objects with asynchronous behavior can be coded synchronously.
-         * @param wrappable An object which satisfies the `wrappable` interface.
-         */
-        DeferredInterface.prototype.include = function (wrappable) {
-            // console.info('Including ' + wrappable);
-            var self = this,
-                clone;
-            console.assert(wrappable.getSync && wrappable.getAsync, '`wrappable` satisfies interface.');
-            if (!wrappable.noCopy) {
-                clone = new wrappable.constructor(wrappable.state);
-            }
-
-            console.groupCollapsed('Wrapping methods of \'%s\'', wrappable.alias || wrappable);
-            console.dir(wrappable);
-
-            for (var prop in wrappable.getSync()) {
-                console.log('Wrapping \'%s\'', prop);
-                var interfaceMethod =
-                    (function (property, clone) {
-                        var interfaceMethod = function () {
-                            var args = Array.prototype.slice.call(arguments),
-                                ret,
-                                pushFn;
-
-                            if (wrappable.getSync()[property] !== null && wrappable.noCopy) {
-                                ret = wrappable.getSync()[property].apply(wrappable, args);
-                            } else if (wrappable.getSync()[property] !== null) {
-                                ret = clone.getSync()[property].apply(clone, args.concat(self.interface));
-                            }
-
-                            var pushFn = function (fn) {
-                                fn.deferredInterface = self;
-                                fn.speed = 1; // TODO
-                                if (wrappable.getSync()[property])
-                                    wrappable.getSync()[property].apply(wrappable, args.concat(self.interface));
-                                if (wrappable.getAsync()[property])
-                                    wrappable.getAsync()[property].apply(wrappable.getAsync(), args.concat(fn));
-                                else
-                                    fn();
-                            };
-
-                            pushFn.toString = function () {
-                                return property;
-                            };
-
-                            self.queue.push.call(self.queue, pushFn);
-                            return ret;
-                        };
-                        return interfaceMethod;
-                    })(prop, clone);
-                (function (interfaceMethod) {
-                    if (wrappable.getSync()[prop] && wrappable.getSync()[prop].getter && wrappable.getSync()[prop].setter) {
-                        Object.defineProperty(self.interface, prop, {
-                            get: function () {
-                                return interfaceMethod();
-                            },
-                            set: function (value) {
-                                return interfaceMethod(value);
-                            }
-                        });
-                    } else if (wrappable.getSync()[prop] && wrappable.getSync()[prop].getter) {
-                        Object.defineProperty(self.interface, prop, {
-                            get: function () {
-                                return interfaceMethod();
-                            }
-                        });
-                    } else if (wrappable.getSync()[prop] && wrappable.getSync()[prop].setter) {
-                        Object.defineProperty(self.interface, prop, {
-                            set: function (value) {
-                                return interfaceMethod(value);
-                            }
-                        });
-                    } else {
-                        self.interface[prop] = interfaceMethod;
-                    }
-                })(interfaceMethod);
-            }
-            console.groupEnd();
-            /* now, add in defined methods */
-
-            if (wrappable.getMethods) {
-                var methods = wrappable.getMethods();
-                console.groupCollapsed('Adding defined methods of \'%s\'', wrappable.alias || wrappable);
-                for (var method in methods) {
-                    console.log('Adding ' + method);
-                    this.add(method, methods[method]);
-                }
-            } else {
-                //console.log('no getMethods found');
-            }
-            console.groupEnd();
-        }
-
-        function std() {
-            var std = {
-                    getAsync: function () {
-                        return this.async;
-                    },
-                    getSync: function () {
-                        return this.live;
-                    },
-                    live: {},
-                    async: {},
-                    noCopy: true
-                },
-                vars = {};
-            std.live.log = function (str) {
-                console.log(str);
-            };
-            std.live.warn = function (msg) {
-                console.warn(msg);
-            };
-            std.live._set = function (key, value) {
-                vars[key] = value;
-            };
-            std.live._get = function (key) {
-                return vars[key];
-            };
-            std.live.is = function (key, value) {
-                return vars[key] === value;
-            };
-            std.live.flog = null;
-            std.async.flog = function (str, fn) {
-                console.log(str);
-                fn();
-            };
-            std.live.fwarn = null;
-            std.async.fwarn = function (str, fn) {
-                console.warn(str);
-                fn();
-            };
-            return std;
-        }
-
-        return DeferredInterface;
-    })();
-
-
-
-    S.Scope = (function () {
-
-        function Scope(items) {
-            this.queue = new S.AsyncFunctionQueue();
-            this.interface = new S.DeferredInterface(this.queue);
-            this.include(items);
-        }
-
-        Scope.prototype.include = function (items) {
-            if (Array.isArray(items)) {
-                items.forEach(this.interface.include);
-            } else {
-                this.interface.include(items);
-            }
-        };
-
-        return Scope;
-
-    })();
-
-
-    S.component = function (name, factory, meta) {
-        S.defineComponent(name, factory, false);
-        if (meta)
-            S.setMetaData(name, meta);
+        iteration();
     }
 
-    S.method = function (componentName, methodName, func) {
-        // TODO
-        S.defineMethodOn(componentName, methodName, func);
+    /**
+     * Pauses execution.
+     */
+    AsyncFunctionQueue.prototype.pause = function () {
+        this.executing = false;
+    }
+
+    /**
+     * Enables auto execution. Functions are run as they are pushed.
+     */
+    AsyncFunctionQueue.prototype.open = function () {
+        this._open = true;
+        this.exec();
+    }
+
+    /**
+     * Disables auto execution and stops current execution. Function "pile up".
+     */
+    AsyncFunctionQueue.prototype.close = function () {
+        this._open = false;
+        this.executing = false;
+    }
+
+    /**
+     * Returns the number of functions on the queue.
+     */
+    Object.defineProperty(AsyncFunctionQueue.prototype, 'length', {
+        get: function () {
+            return this.functionList.length;
+        }
+    });
+
+    /**
+     * Returns the number of current position / the number of functions on the queue.
+     */
+    Object.defineProperty(AsyncFunctionQueue.prototype, 'completion', {
+        get: function () {
+            return this.position / this.functionList.length;
+        }
+    });
+
+    return AsyncFunctionQueue;
+
+})();
+
+
+
+
+
+
+S.Deferred = (function () {
+
+    var defaults = {
+
     };
 
-    S.view = function (componentName, factory) {
-        S.setDefaultView(componentName, factory);
+    function Deferred(queue) {
+        var self = this;
+        S.EventEmitter.call(this);
+        this.queue = queue;
+        this.handle = {};
+        this.handle.standard = function (key, value) {
+            if (typeof value === 'undefined')
+                return self.handle.standard._get(key);
+            self.handle.standard._set(key, value);
+        }
+        this.include(std(), std(), {
+            name: 'standard'
+        });
     }
 
+    Deferred.prototype = Object.create(S.EventEmitter.prototype);
 
-    return S;
-})(jQuery);
+    Deferred.prototype.include = function (component, copy, options) {
+        var options = S.extend(defaults, options),
+            _interface = this.handle[options.name || component] ? this.handle[options.name || component] : this.handle[options.name || component] = {},
+            self = this,
+            definedMethods = S.get('components.' + component.alias + '.methods');
+        console.dir(component);
+        for (var property in component) {
+            if (typeof component[property] !== 'function' || !component[property].live)
+                continue;
+            _interface[property] = (function (property) {
+                var method = function () {
+                    var args = Array.prototype.slice.call(arguments);
+                    self.queue.push(function (fn) {
+                        component[property].apply(component, args.concat(fn));
+                    });
+                    return copy[property].apply(copy, args);
+                };
+                return method;
+            })(property);
+        }
+        console.dir(definedMethods);
+        if (!definedMethods || definedMethods.length == 0) return;
+        definedMethods.forEach(function (definedMethod) {
+            if (!_interface[definedMethod.name]) {
+                console.info('Including %s', definedMethod.name);
+                _interface[definedMethod.name] = function () {
+                    definedMethod.func.call(self.standard, _interface);
+                };
+            }
+        });
+    };
 
-(function () {
+    function std() {
+        var standard = {},
+            vars = {};
+        standard.flog = function (str, fn) {
+            console.log(str);
+            if (fn) fn();
+        };
+        standard.flog.live = true;
+        standard.fwarn = function (str, fn) {
+            console.warn(str);
+            if (fn) fn();
+        };
+        standard.fwarn.live = true;
+        standard._set = function (key, value, fn) {
+            vars[key] = value;
+            if (fn) fn();
+        };
+        standard._set.live = true;
+        standard._get = function (key, fn) {
+            if (fn) fn();
+            return vars[key];
+        };
+        standard._get.live = true;
+        standard.comment = function (str) {
+            // TODO
+        };
+        standard.comment.live = true;
+        return standard;
+    }
+
+    return Deferred;
+})();
+
+S.Array = (function () {
 
     function Array(state, view) {
-        //this.live.component = this;
         this.alias = 'array';
         S.Component.call(this, [].concat(state), view);
         this.state.flags = [];
@@ -641,557 +476,537 @@ window.S = (function ($) {
 
     Array.prototype = Object.create(S.Component.prototype);
     Array.prototype.constructor = Array;
-    Array.prototype.live = {};
 
-    Array.prototype.live.getLength = function () {
-        return this.state.length;
+    // sync only
+    Array.prototype.getLength = function (next) {
+        if (this.view)
+            next(this.state.length);
+        else
+            return this.state.length;
     };
+    Array.prototype.getLength.live = true;
 
-    Array.prototype.live.flag = function (index) {
+    Array.prototype.flag = function (index, next) {
         this.state.flags[index] = true;
+        if (this.view)
+            this.view.flag(index, next);
     };
+    Array.prototype.flag.live = true;
 
-    Array.prototype.live.flagged = function (index) {
-        return this.state.flags[index];
+    Array.prototype.flagged = function (index, next) {
+        if (this.view)
+            next(this.state.length);
+        else
+            return this.state.flags[index];
     };
+    Array.prototype.flagged.true;
 
-    Array.prototype.live.setItem = function (index, value) {
+    Array.prototype.setItem = function (index, value, next) {
         this.state[index] = value;
+        if (this.view)
+            this.view.setItem(index, value, next);
     };
+    Array.prototype.setItem.live = true;
 
-    Array.prototype.live.getItem = function (index) {
-        return this.state[index];
+    Array.prototype.getItem = function (index, next) {
+        if (this.view)
+            next(this.state[index]);
+        else
+            return this.state[index];
     };
+    Array.prototype.getItem.live = true;
 
-    Array.prototype.live.push = function (item) {
+    Array.prototype.push = function (item, next) {
         this.state.push(item);
-    }
+        if (this.view)
+            this.view.push(item, next);
+    };
+    Array.prototype.push.live = true;
 
-    Array.prototype.live.focus = null;
+    Array.prototype.focus = function (index, next) {
+        if (this.view) this.view.focus(index, next);
+    };
+    Array.prototype.focus.live = true;
 
-    Array.prototype.live.range = null;
+    Array.prototype.range = function (start, end, num, next) {
+        if (this.view) this.view.range(start, end, num, next);
+    };
+    Array.prototype.range.live = true;
 
-    Array.prototype.live.range = null;
+    Array.prototype.clearfocus = function (next) {
+        if (this.view) this.view.clearfocus(next);
+    };
+    Array.prototype.clearfocus.live = true;
 
-    Array.prototype.live.clearfocus = null;
+    Array.prototype.clearrange = function (num, next) {
+        if (this.view) this.view.clearrange(num, next);
+    };
+    Array.prototype.clearrange.live = true;
 
-    Array.prototype.live.clearrange = null;
+    Array.prototype.leftTo = function (index, next) {
+        if (this.view) this.view.leftTo(index, next);
+    };
+    Array.prototype.leftTo.live = true;
 
-    Array.prototype.live.leftTo = null;
 
-    S.defineComponent2('array2', Array);
+    return Array;
 
 })();
 
-S.view('array2',
-    function (options) {
-        var view = new S.View(), //S.baseView(),
-            $e,
-            $table,
-            $topRow,
-            $bottomRow,
-            $cells = $(),
-            $indices = $(),
-            computedWidth,
-            width,
-            border = 0,
-            computedCellWidth,
-            height;
+S.ArrayView = (function () {
+    function ArrayView(element) {
+        S.View.call(this, element);
+        this.options = {
+            hiddenDelimiter: ',',
+            numElements: 5,
+            pageTime: 300,
+            stepTime: 50,
+            scrollTime: 500,
+            maxScrollTime: 1000
+        };
+        this.leftBound = 0;
+        this.rightBound = this.options.numElements - 1;
+        this.$e = null;
+        this.$table = null;
+        this.$topRow = null;
+        this.$bottomRow = null;
+        this.$cells = $();
+        this.$indices = $();
+        this.computedWidth = null;
+        this.width = null;
+        this.border = 0;
+        this.computedCellWidth = null;
+        this.height = null;
+    }
 
-        view.init = function () {
-            view.config = {
-                hiddenDelimiter: ',',
-                numElements: 5,
-                pageTime: 300,
-                stepTime: 50,
-                scrollTime: 500,
-                maxScrollTime: 1000
-            };
-            view.config = options;
-            view.leftBound = 0;
-            view.rightBound = view.config.numElements - 1;
+    ArrayView.prototype = Object.create(S.View.prototype);
+    ArrayView.prototype.constructor = ArrayView;
+
+    ArrayView.prototype.init = function () {
+        this.$e = $('<div class="array"></div>');
+        this.scaleTo({
+            width: this.$element.width(),
+            height: this.$element.height()
+        });
+    };
+
+    ArrayView.prototype.scaleTo = function (dimensions) {
+        this.width = dimensions.width;
+        this.height = dimensions.height;
+        this.$e.css('width', dimensions.width);
+        this.$e.css('height', dimensions.height);
+        this.computedCellWidth = Math.floor(this.width / this.options.numElements) - this.border;
+        this.render();
+    }
+
+    ArrayView.prototype.render = function () {
+        this.clear();
+        this.$cells = $();
+        this.$indices = $();
+        this.$table = $('<table></table>').addClass('array-table');
+        this.$topRow = $('<tr></tr>').addClass('array-top');
+        this.$bottomRow = $('<tr></tr>').addClass('array-bottom');
+        this.$e.append(this.$table);
+        this.$table.append(this.$topRow).append(this.$bottomRow);
+
+        this.$table.css({
+            height: this.height
+        });
+
+        this.$topRow.css({
+            fontSize: Math.round(this.$table.height() * .25)
+        });
+
+        for (var i = 0; i < this.component.state.length; i++) {
+            var $td = $('<td>' + this.component.state[i] + '<span style="font-size: 0;">' + this.options.hiddenDelimiter + '</span></td>'),
+                $th = $('<th>' + i + '</th>');
+            $td.data('index', i);
+            $th.data('index', i);
+            $td.width(this.computedCellWidth);
+            $th.width(this.computedCellWidth);
+            $td.addClass('array-cell');
+            $th.addClass('array-index');
+            this.$topRow.append($td);
+            this.$bottomRow.append($th);
+            this.$cells = this.$cells.add($td);
+            this.$indices = this.$indices.add($th);
         }
 
-        view.config = function (options) {
-            $.extend(view.config, options);
-            view.leftBound = 0;
-            view.rightBound = view.config.numElements - 1;
-        }
+        this.computedWidth = this.computedCellWidth + this.border;
+        this.width = this.options.numElements * this.computedWidth + this.border;
+        this.$e.css('width', this.width); // TODO
+        this.$element.append(this.$e);
+        this.bindEvents(this.$cells, this.$indices);
+    };
 
-        view.render = function () {
-            if ($e)
-                $e.remove();
-            $cells = $();
-            $indices = $();
-            $e = $('<div class="array"></div>');
-            $table = $('<table></table>');
-            $topRow = $('<tr></tr>').addClass('array-top');
-            $bottomRow = $('<tr></tr>').addClass('array-bottom');
-            $e.append($table);
-            $table.append($topRow).append($bottomRow);
-
-            $table.css({
-                height: height
-            });
-
-            $topRow.css({
-                fontSize: Math.round($table.height() * .25)
-            });
-
-            for (var i = 0; i < view.component.state.length; i++) {
-                var $td = $('<td>' + view.component.state[i] + '<span style="font-size: 0;">' + view.config.hiddenDelimiter + '</span></td>'),
-                    $th = $('<th>' + i + '</th>');
-                $td.data('index', i);
-                $th.data('index', i);
-                $td.width(computedCellWidth);
-                $th.width(computedCellWidth);
-                $td.addClass('array-cell');
-                $th.addClass('array-index');
-                $topRow.append($td);
-                $bottomRow.append($th);
-                $cells = $cells.add($td);
-                $indices = $indices.add($th);
-            }
-
-            computedWidth = computedCellWidth + border;
-            width = view.config.numElements * computedWidth + border;
-            $e.css('width', width);
-            bindEvents($cells);
-            view.$element.append($e);
-            return view.$element;
-        }
-
-        view.scaleTo = function (dimensions) {
-            width = dimensions.width;
-            height = dimensions.height;
-            view.$element.css('width', dimensions.width);
-            view.$element.css('height', dimensions.height);
-            computedCellWidth = Math.floor(width / view.config.numElements) - border;
-            view.render();
-        }
-
-        function bindEvents($_cells, $_indices) {
-            //$e.mousewheel(handleMousewheel); // TODO needs mousewheel
-            $_cells.click(handleTdClick);
-            $_cells.dblclick(handleTdDblClick);
-        }
-
-        function handleTdClick(e) {
-            view.live.focus($(this).data('index'));
-        }
-
-        function handleTdDblClick(e) {
-            // TODO inform component
-            if ($(this).hasClass('flagged'))
-                $(this).removeClass('flagged');
+    ArrayView.prototype.bindEvents = function ($cells, $_indices) {
+        //$e.mousewheel(handleMousewheel); // TODO needs mousewheel
+        var self = this;
+        this.$cells.click(function (e) {
+            if (!self.interactive) return;
+            console.log('handleTdClick');
+            self.focus($(this).data('index'));
+        });
+        this.$cells.dblclick(function (e) {
+            if (!self.interactive) return;
+            if ($(this).hasClass('array-flagged'))
+                $(this).removeClass('array-flagged');
             else
-                $(this).addClass('flagged');
-        }
+                $(this).addClass('array-flagged');
+        });
+    };
+    ArrayView.prototype.focus = function (index, fn) {
+        if (index < 0 || index > this.component.state.length - 1)
+            return;
+        this.$cells.removeClass('focus');
+        this.$indices.removeClass('focus');
+        this.$cells.eq(index).addClass('focus');
+        this.$indices.eq(index).addClass('focus');
+        var idx = index - Math.floor(this.options.numElements / 2);
+        this.leftTo(idx, fn);
+    };
+    ArrayView.prototype.focus.live = true;
 
-        function handleMousewheel(e) {
-            console.log(e);
-            if (e.deltaY < 0) {
-                view.left();
-            } else {
-                view.right();
-            }
-        }
+    ArrayView.prototype.clearfocus = function (fn) {
+        this.$cells.removeClass('focus');
+        this.$indices.removeClass('focus');
+        fn();
+    }
+    ArrayView.prototype.clearfocus.live = true;
 
-        function handleKeydown(e) {
-            console.log('keyDown');
-            if (e.keyCode === 39)
-                view.right();
-        }
+    ArrayView.prototype.flag = function (index, fn) {
+        this.$cells.eq(index).addClass('array-flagged');
+        if (fn) fn();
+    }
+    ArrayView.prototype.flag.live = true;
 
-        view.live.focus = function (index, fn) {
-            if (index < 0 || index > view.component.state.length - 1)
-                return;
-            $cells.removeClass('focus');
-            $indices.removeClass('focus');
-            $cells.eq(index).addClass('focus');
-            $indices.eq(index).addClass('focus');
-            var idx = index - Math.floor(view.config.numElements / 2);
-            view.live.leftTo(idx, fn);
-        }
+    ArrayView.prototype.range = function (start, end, num, fn) {
+        var $range = this.$cells.slice(start, end + 1),
+            clazz = 'range' + num;
+        // TODO why do I do this? -v
+        $range.addClass(function (i) {
+            var classes = $range.eq(i).attr('class'),
+                newClass = clazz + ' ' + classes;
+            $range.eq(i).attr('class', newClass);
+        });
+        fn();
+    };
+    ArrayView.prototype.range.live = true;
 
-        view.live.clearfocus = function (fn) {
-            $cells.removeClass('focus');
-            $indices.removeClass('focus');
-            fn();
-        }
+    ArrayView.prototype.clearrange = function (num, fn) {
+        this.$cells.removeClass('range' + num);
+        fn();
+    };
+    ArrayView.prototype.clearrange.live = true;
 
-        view.live.flag = function (index, fn) {
-            $cells.eq(index).addClass('flagged');
-            if (fn) fn();
-        }
-
-        view.live.range = function (start, end, num, fn) {
-            var $range = $cells.slice(start, end + 1),
-                clazz = 'range' + num;
-            // TODO why do I do this? -v
-            $range.addClass(function (i) {
-                var classes = $range.eq(i).attr('class'),
-                    newClass = clazz + ' ' + classes;
-                $range.eq(i).attr('class', newClass);
-            });
-            fn();
-        }
-
-        view.live.clearrange = function (num, fn) {
-            $cells.removeClass('range' + num);
-            fn();
-        }
-
-        view.live.setItem = function (index, item, fn) {
-            view.live.focus(index, function () {
+    ArrayView.prototype.setItem = function (index, item, fn) {
+        var self = this;
+        this.focus(index, function () {
+            S.wait(function () {
+                self.$cells.eq(index).addClass('array-remove');
                 S.wait(function () {
-                    $cells.eq(index).addClass('array-remove');
-                    S.wait(function () {
-                        $cells.eq(index).text(item);
-                        $cells.eq(index).removeClass('array-remove');
-                        fn();
-                    }, 300);
-                }, 200);
-            });
-        }
-
-        view.live.push = function (item, fn) {
-            var $added = addItem(item, view.component.state.length - 1);
-            view.live.leftTo(view.component.state.length - 1, function () {
-                $added.animate({
-                    opacity: 1
-                }, 200, function () {
+                    self.$cells.eq(index).text(item);
+                    self.$cells.eq(index).removeClass('array-remove');
                     fn();
-                });
+                }, 300);
+            }, 200);
+        });
+    };
+    ArrayView.prototype.setItem.live = true;
+
+    ArrayView.prototype.push = function (item, fn) {
+        var $added = this.addItem(item, this.component.state.length - 1);
+        this.leftTo(this.component.state.length - 1, function () {
+            $added.animate({
+                opacity: 1
+            }, 200, function () {
+                fn();
             });
+        });
+    };
+    ArrayView.prototype.push.live = true;
+
+    ArrayView.prototype.addItem = function (item, index) {
+        var $newTd = $('<td>' + item + '</td>'),
+            $newTh = $('<th>' + index + '</th>');
+        var $both = $newTd.add($newTh).css({
+            opacity: 0,
+            width: this.computedCellWidth
+        });
+        $newTd.addClass('array-cell');
+        $newTh.addClass('array-index');
+        $both.data('index', index);
+        this.$topRow.append($newTd);
+        this.$bottomRow.append($newTh);
+        this.$cells = this.$cells.add($newTd);
+        this.$indices = this.$indices.add($newTh);
+        this.bindEvents($newTd, $newTh);
+        return $both;
+    };
+
+    ArrayView.prototype.leftTo = function (index, fn) {
+        index = parseInt(index, 10);
+        if (isNaN(index))
+            return;
+        if (index <= 0)
+            index = 0;
+        if (index >= this.component.state.length - 1)
+            index = this.component.state.length - 1;
+        var time = Math.min(Math.abs(index - this.leftBound) * this.options.stepTime, this.options.maxScrollTime);
+        if (index == 0) {
+            this.leftBound = 0;
+            this.rightBound = this.options.numElements - 1;
+        } else if (index > this.component.state.length - this.options.numElements) {
+            this.leftBound = this.component.state.length - this.options.numElements;
+            this.rightBound = this.component.state.length - 1;
+        } else {
+            this.leftBound = index;
+            this.rightBound = index + this.options.numElements - 1;
         }
+        this.scrollTo(index * this.computedWidth, time, fn);
+    }
 
-        function addItem(item, index) {
-            var $newTd = $('<td>' + item + '</td>'),
-                $newTh = $('<th>' + index + '</th>');
-            var $both = $newTd.add($newTh).css({
-                opacity: 0,
-                width: computedCellWidth
-            });
-            $newTd.addClass('array-cell');
-            $newTh.addClass('array-index');
-            $both.data('index', index);
-            $topRow.append($newTd);
-            $bottomRow.append($newTh);
-            $cells = $cells.add($newTd);
-            $indices = $indices.add($newTh);
-            bindEvents($newTd, $newTh);
-            return $both;
+    ArrayView.prototype.rightTo = function (index) {
+        index = parseInt(index, 10);
+        if (isNan(index))
+            return;
+        if (index <= 0)
+            index = 0;
+        if (index >= this.component.state.length - 1)
+            index = this.component.state.length - 1;
+        var time = Math.min(Math.abs(index - this.leftBound) * this.options.stepTime, this.options.maxScrollTime);
+        if (index <= this.options.numElements - 1) {
+            this.leftBound = 0;
+            this.rightBound = this.options.numElements - 1;
+        } else if (index == this.component.state.length - 1) {
+            this.leftBound = this.component.state.length - this.options.numElements;
+            this.rightBound = this.component.state.length - 1;
+        } else {
+            this.leftBound = index - this.options.numElements + 1;
+            this.rightBound = index;
         }
+        scrollTo(index * this.computedWidth, time);
+    }
 
-        view.live.leftTo = function (index, fn) {
-            index = parseInt(index, 10);
-            if (isNaN(index))
-                return;
-            if (index <= 0)
-                index = 0;
-            if (index >= view.component.state.length - 1)
-                index = view.component.state.length - 1;
-            var time = Math.min(Math.abs(index - view.leftBound) * view.config.stepTime, view.config.maxScrollTime);
-            if (index == 0) {
-                view.leftBound = 0;
-                view.rightBound = view.config.numElements - 1;
-            } else if (index > view.component.state.length - view.config.numElements) {
-                view.leftBound = view.component.state.length - view.config.numElements;
-                view.rightBound = view.component.state.length - 1;
-            } else {
-                view.leftBound = index;
-                view.rightBound = index + view.config.numElements - 1;
-            }
-            scrollTo(index * computedWidth, time, fn);
-        }
+    ArrayView.prototype.pageRight = function () {
+        this.leftBound = this.leftBound + this.options.numElements <= this.component.state.length - this.options.numElements ? this.leftBound + this.options.numElements : this.component.state.length - this.options.numElements;
+        this.rightBound = this.rightBound + this.options.numElements <= this.component.state.length - 1 ? this.rightBound + this.options.numElements : this.component.state.length - 1;
+        page(true);
+    }
 
-        view.live.rightTo = function (index) {
-            index = parseInt(index, 10);
-            if (isNan(index))
-                return;
-            if (index <= 0)
-                index = 0;
-            if (index >= view.component.state.length - 1)
-                index = view.component.state.length - 1;
-            var time = Math.min(Math.abs(index - view.leftBound) * view.config.stepTime, view.config.maxScrollTime);
-            if (index <= view.config.numElements - 1) {
-                view.leftBound = 0;
-                view.rightBound = view.config.numElements - 1;
-            } else if (index == view.component.state.length - 1) {
-                view.leftBound = view.component.state.length - view.config.numElements;
-                view.rightBound = view.component.state.length - 1;
-            } else {
-                view.leftBound = index - view.config.numElements + 1;
-                view.rightBound = index;
-            }
-            scrollTo(index * computedWidth, time);
-        }
+    ArrayView.prototype.pageLeft = function () {
+        this.leftBound = this.leftBound - this.options.numElements >= 0 ? this.leftBound - this.options.numElements : 0;
+        this.rightBound = this.rightBound - this.options.numElements >= this.options.numElements - 1 ? this.rightBound - this.options.numElements : this.options.numElements - 1;
+        page(false);
+    }
 
-        view.pageRight = function () {
-            view.leftBound = view.leftBound + view.config.numElements <= view.component.state.length - view.config.numElements ? view.leftBound + view.config.numElements : view.component.state.length - view.config.numElements;
-            view.rightBound = view.rightBound + view.config.numElements <= view.component.state.length - 1 ? view.rightBound + view.config.numElements : view.component.state.length - 1;
-            page(true);
-        }
+    ArrayView.prototype.right = function () {
+        this.leftBound = this.leftBound + 1 <= this.component.state.length - this.options.numElements ? this.leftBound + 1 : this.component.state.length - this.options.numElements;
+        this.rightBound = this.rightBound + 1 <= this.component.state.length - 1 ? this.rightBound + 1 : this.component.state.length - 1;
+        this.step(true);
+    }
 
-        view.pageLeft = function () {
-            view.leftBound = view.leftBound - view.config.numElements >= 0 ? view.leftBound - view.config.numElements : 0;
-            view.rightBound = view.rightBound - view.config.numElements >= view.config.numElements - 1 ? view.rightBound - view.config.numElements : view.config.numElements - 1;
-            page(false);
-        }
+    ArrayView.prototype.left = function () {
+        this.leftBound = this.leftBound - 1 >= 0 ? this.leftBound - 1 : 0;
+        this.rightBound = this.rightBound - 1 >= this.options.numElements - 1 ? this.rightBound - 1 : this.options.numElements - 1;
+        this.step(false);
+    }
 
-        view.right = function () {
-            view.leftBound = view.leftBound + 1 <= view.component.state.length - view.config.numElements ? view.leftBound + 1 : view.component.state.length - view.config.numElements;
-            view.rightBound = view.rightBound + 1 <= view.component.state.length - 1 ? view.rightBound + 1 : view.component.state.length - 1;
-            step(true);
-        }
+    ArrayView.prototype.page = function (right) {
+        this.scroll(right, this.options.pageTime, this.width - 1);
+    }
 
-        view.left = function () {
-            view.leftBound = view.leftBound - 1 >= 0 ? view.leftBound - 1 : 0;
-            view.rightBound = view.rightBound - 1 >= view.config.numElements - 1 ? view.rightBound - 1 : view.config.numElements - 1;
-            step(false);
-        }
+    ArrayView.prototype.step = function (right) {
+        this.scroll(right, this.options.stepTime, this.computedWidth);
+    }
 
-        function page(right) {
-            scroll(right, view.config.pageTime, width - 1);
-        }
+    ArrayView.prototype.scroll = function (right, time, amount) {
+        var str = '+=';
+        if (!right) str = '-=';
+        var anim = {};
+        anim.scrollLeft = str + amount;
+        this.$e.animate(anim, time);
+        //this.fire('change', {});
+    };
 
-        function step(right) {
-            scroll(right, view.config.stepTime, computedWidth);
-        }
+    ArrayView.prototype.scrollTo = function (amount, time, fn) {
+        this.$e.animate({
+            scrollLeft: amount
+        }, time, function () {
+            if (typeof fn !== 'undefined')
+                fn();
+        });
+    };
 
-        function scroll(right, time, amount) {
-            var str = '+=';
-            if (!right) str = '-=';
-            var anim = {};
-            anim.scrollLeft = str + amount;
-            $e.animate(anim, time);
-            //view.fire('change', {});
-        }
-
-        function scrollTo(amount, time, fn) {
-            $e.animate({
-                scrollLeft: amount
-            }, time, function () {
-                if (typeof fn !== 'undefined')
-                    fn();
-            });
-        }
-
-        return view;
-    });
-
-(function () {
-
-    /*
-     NOTE:
-     Components should not accept objects as parameters. If they do, they should only use and id property set on object, because
-     doing operations on the actual object passed in will not work, because it references an object in the synchronous phase.
-     Basically, pretend component is a webserver receiving requests. It cannot maintain a map of external objects, etc.
-     Example violation:
-
-     var obj = {};
-     component.setObj('myObj', obj);
-     var gotten = component.getObj('myObj');
-     obj === gotten // NOT guaranteed
-     */
+    return ArrayView;
+})();
 
 
-    function TreeNode(sid, left, right) {
+S.Tree = (function () {
+    function Tree(state, view) {
+        this.alias = 'tree';
+        this.nodes = {};
+        var copy = this.copyTree(state, null);
+        S.Component.call(this, copy, view); // TODO handleState should be called
+        this.height = this.computeHeights(this.state);
+        //this.component = this;
+    }
+
+    Tree.TreeNode = function (value, sid, left, right) {
+        this.value = value;
         this.sid = sid;
         this._left = left;
         this._right = right;
-        var self = this;
-        Object.defineProperty(this, 'left', {
-            get: function () {
-                return this._left;
-            },
-            set: function (value) {
-                console.log('setting left0');
-                if (self._left) {
-                    console.log('setting left1');
-                    self.treeInterface.set(self._left, value);
-                } else
-                    self.treeInterface.add(self, false, value);
-            }
-        });
-        Object.defineProperty(this, 'right', {
-            get: function () {
-                return this._right;
-            },
-            set: function (value) {
-                self.treeInterface.set(self._right, value);
-            }
-        });
-        this.focus = function () {
-            console.log('focusing');
-            self.treeInterface.focus(self);
-        };
-    }
-
-    function Tree(state, view) {
-        // this.live.component = this; // no need, this bound in deferred
-        this.alias = 'tree';
-        this.nodeMap = {};
-        this.treeNodes = {}; // TODO
-        var s = this._copyTree(state, null);
-        console.log('Tree setting view');
-        console.dir(view);
-        S.Component.call(this, s, view);
-    }
+    };
 
     Tree.prototype = Object.create(S.Component.prototype);
     Tree.prototype.constructor = Tree;
-    Tree.prototype.live = {};
+    //Tree.prototype.live = {};
 
-    // TODO delete
-    // Tree.prototype.noCopy = true;
+    Tree.prototype.handleState = function (state) {
+        return this.copyTree(state, null);
+    };
 
-    /*Tree.prototype.setState = function(state) {
-     this.state = state;
-     this.height = computeHeights(this.state);
-     }*/
-
-    Object.defineProperty(Tree.prototype, 'state', {
-        get: function () {
-            return this._state;
-        },
-        set: function (state) {
-            this._state = state;
-            this._makeTreeNodes(this._state);
-            this.height = computeHeights(this.state);
+    Tree.prototype.root = function (next) {
+        console.dir(this);
+        if (this._view)
+            next(this.state);
+        else {
+            console.info('Operating in synchronous mode');
+            console.dir(this._view);
+            return this.state;
         }
-    });
+    };
+    Tree.prototype.root.live = true;
 
-    /**
-     * Returns the root of the tree.
-     * @returns {*}
-     */
-    Tree.prototype.live.root = function (value) {
-        var last = arguments[arguments.length - 1];
-        if (last) {
-            console.log('returing pseudoNode');
-            var treeNode = this.treeNodes[this.state.sid];
-            this._setTreeNodesInterface(treeNode, last);
-            console.dir(treeNode);
-            return treeNode;
-        }
-        console.log('returning state');
-        return this.state;
-    }
-    Tree.prototype.live.root.getter = true;
-    //Tree.prototype.live.root.setter = true;
-
-    /**
-     * Returns the height of the tree.
-     * @returns {*}
-     */
-    Tree.prototype.live.height = function () {
-        this.height = computeHeights(this.state);
-        return this.height;
-    }
-    Tree.prototype.live.height.getter = true;
-
-    /**
-     * Adds a node to the tree.
-     * @param parent The parent to add the node onto.
-     * @param direction The direction to add the node (false for left, true for right).
-     * @param value The value of the new node.
-     * @returns {*} The added node.
-     */
-    Tree.prototype.live.add = function (parent, direction, value) {
-        console.log('Adding %s', value);
-        parent = this.nodeMap[parent.sid];
+    Tree.prototype.add = function (parent, direction, value, next) {
+        parent = this.getNode(parent);
         var added;
         if (direction) {
-            added = parent.right = node(value);
+            if (parent.right) return; // a node is already there
+            added = parent.right = new Tree.TreeNode(value, S.nextId(), null, null);
         } else {
-            added = parent.left = node(value);
+            if (parent.left) return; // a node is already there
+            added = parent.left = new Tree.TreeNode(value, S.nextId(), null, null);
         }
-        added.sid = S.nextId();
-        this.nodeMap[added.sid] = added;
-        console.dir(added);
-        console.log('parent it');
-        console.dir(parent);
-        this.height = computeHeights(this.state);
-        return bindGetters(added);
-    }
+        this.setNode(added);
+        this.height = this.computeHeights(this.state);
+        if (this._view)
+            this._view.add(parent, direction, value, function () {
+                next(added);
+            });
+        else
+            return added;
+    };
+    Tree.prototype.add.live = true;
 
-    /**
-     * Removes the given node from the tree and all of its children.
-     * @param node The node to remove.
-     */
-    Tree.prototype.live.remove = function (node) {
-        console.info('Removing node ' + node.sid);
-
-        node = this.nodeMap[node.sid];
-        var parent = this.nodeMap[node.parent.sid];
-
+    Tree.prototype.remove = function (node, next) {
+        node = this.getNode(node);
+        var parent = node.parent;
         if (node.parent && node.parent.left == node) {
             node.parent.left = null;
         } else if (node.parent && node.parent.right == node) {
             node.parent.right = null;
+        } else if (node.parent) {
+            // problem
         } else {
-
+            // must have been root node
         }
-        this.height = computeHeights(this.state);
-    }
+        this.height = this.computeHeights(this.state);
+        if (this._view)
+            this._view.remove(node, next);
+    };
+    Tree.prototype.remove.live = true;
 
-    /**
-     * Sets the value of the given node.
-     * @param node
-     * @param value
-     */
-    Tree.prototype.live.set = function (node, value) {
-        node = this.nodeMap[node.sid];
+    Tree.prototype.set = function (node, value, next) {
+        node = this.getNode(node);
         node.value = value;
-        return node;
-    }
+        if (this._view)
+            this._view.set(node, value, function () {
+                next(node);
+            });
+        else
+            return node;
+    };
+    Tree.prototype.set.live = true;
 
-    /**
-     * Sets the [direction] child of `parent` to `child`.
-     * @param parent
-     * @param direction false for left, true for right
-     * @param child
-     */
-    Tree.prototype.live.setChild = function (parent, direction, child) {
-        // TODO
-    }
+    Tree.prototype.get = function (node, next) {
+        node = this.getNode(node);
+        if (this._view)
+            next(node.value);
+        else
+            return node.value;
+    };
+    Tree.prototype.get.live = true;
 
-    Tree.prototype.live.verify = function () {
-        console.dir(this.state);
-    }
+    Tree.prototype.height = function (next) {
+        if (this._view)
+            next(this.height);
+        return this.height;
+    };
+    Tree.prototype.height.live = true;
 
-    /*
-     View only methods
-     */
-    Tree.prototype.live.mark = null;
+    /* View only methods */
 
-    Tree.prototype.live.markPath = null;
+    Tree.prototype.mark = function (next) {
+        if (this._view) this._view.mark(next);
+    };
+    Tree.prototype.mark.live = true;
 
-    Tree.prototype.live.clearPath = null;
+    Tree.prototype.markPath = function (next) {
+        if (this._view) this._view.markPath(next);
+    };
+    Tree.prototype.markPath.live = true;
 
-    Tree.prototype.live.showHeights = null;
+    Tree.prototype.clearPath = function (next) {
+        if (this._view) this._view.clearPath(next);
+    };
+    Tree.prototype.clearPath.live = true;
 
-    Tree.prototype.live.hideHeights = null;
+    // TODO delete
+    /*Tree.prototype.showHeights = function(next) {
+        if(this._view) this._view.showHeights(next);
+    };
 
-    Tree.prototype.live.clearLabels = null;
+    // TODO delete
+    Tree.prototype.hideHeights = function(next) {
+        if(this._view) this._view.hideHeights(next);
+    };*/
 
-    //Tree.prototype.live.clearlabels = null;
+    Tree.prototype.clearLabels = function (next) {
+        if (this._view) this._view.clearLabels(next);
+    };
+    Tree.prototype.clearLabels.live = true;
 
-    //Tree.prototype.live.clearfocus = null;
+    Tree.prototype.travel = function (parent, direction, next) {
+        if (this._view) this._view.travel(parent, direction, next);
+    };
+    Tree.prototype.travel.live = true;
 
-    Tree.prototype.live.travel = null;
+    Tree.prototype.label = function (node, label, next) {
+        if (this._view) this._view.label(node, label, next);
+    };
+    Tree.prototype.label.live = true;
 
-    Tree.prototype.live.label = null;
+    Tree.prototype.focus = function (node, next) {
+        if (this._view) this._view.focus(node, next);
+    };
+    Tree.prototype.focus.live = true;
 
-    Tree.prototype.live.focus = null;
+    Tree.prototype.unfocus = function (node, next) {
+        if (this._view) this._view.unfocus(node, next);
+    };
+    Tree.prototype.unfocus.live = true;
 
-    Tree.prototype.live.unfocus = null;
+    Tree.prototype.clearFocus = function (node, next) {
+        if (this._view) this._view.clearFocus(node, next);
+    };
+    Tree.prototype.clearFocus.live = true;
 
-    Tree.prototype.live.clearFocus = null;
-
-    Tree.prototype.live.display = null;
+    Tree.prototype.display = function (options, next) {
+        if (this._view) this._view.display(options, next);
+    };
+    Tree.prototype.display.live = true;
 
     // utils:
     Tree.prototype.allNodes = function (tree, fn) {
@@ -1202,73 +1017,68 @@ S.view('array2',
         }
     };
 
-    Tree.prototype._copyTree = function (_node, parent) {
+    Tree.prototype.copyTree = function (_node, parent) {
         if (!_node) return null;
-        var n = node(_node.value);
-        if (_node.sid)
+        console.log('copying ' + _node.value);
+        var n = new Tree.TreeNode(_node.value, _node.sid || S.nextId(), null, null);
+        /*if (_node.sid)
             n.sid = _node.sid;
         else
-            n.sid = S.nextId();
+            n.sid = S.nextId();*/
         n.parent = parent;
-        n.left = this._copyTree(_node.left || node._left, n);
-        n.right = this._copyTree(_node.right || node._right, n);
-        if (n.sid == 'sid_0') {
+        n.left = this.copyTree(_node.left || _node._left, n); // TODO get rid of ||
+        n.right = this.copyTree(_node.right || _node._right, n); // TODO get rid of ||
+        /*if (n.sid == 'sid_0') {
             console.log('ROOT');
             console.dir(n);
-        }
-        this.nodeMap[n.sid] = n;
+        }*/
+        //this.nodes[n.sid] = n;
+        this.setNode(n);
         return n;
-    }
+    };
 
-    Tree.prototype._makeTreeNodes = function (root) {
+    /*Tree.prototype._makeTreeNodes = function (root) {
         var treeNode = null;
         if (root) {
-            treeNode = new TreeNode(root.sid, this._makeTreeNodes(root.left), this._makeTreeNodes(root.right));
-            this.treeNodes[treeNode.sid] = treeNode;
+            treeNode = new Tree.TreeNode(root.sid, this._makeTreeNodes(root.left), this._makeTreeNodes(root.right));
+            this.nodes[treeNode.sid] = treeNode;
         }
         return treeNode;
+    };*/
+
+    Tree.prototype.getNode = function (sidOrObject) {
+        if (typeof sidOrObject === 'string')
+            return this.nodes[sidOrObject];
+        else
+            return this.nodes[sidOrObject.sid];
     };
 
-    Tree.prototype._setTreeNodesInterface = function (root, _interface) {
-        console.log('setting interface of %s', root);
-        if (root) {
-            root.treeInterface = _interface;
-            this._setTreeNodesInterface(root.left, _interface);
-            this._setTreeNodesInterface(root.right, _interface);
-        }
+    Tree.prototype.setNode = function (treeNode) {
+        this.nodes[treeNode.sid] = treeNode;
     };
 
-    function bindGetters(node) {
-        return node;
-    }
-
-    function computeHeights(root) {
+    Tree.prototype.computeHeights = function (root) {
         if (root)
-            return root.height = 1 + Math.max(computeHeights(root.left), computeHeights(root.right));
+            return root.height = 1 + Math.max(this.computeHeights(root.left), this.computeHeights(root.right));
         return -1;
-    }
+    };
 
-    function computeParents(root) {
 
-    }
-
-    function node(value) {
+    /*function node(value) {
         return {
             value: value,
             left: null,
             right: null
         };
-    }
+    }*/
 
-
-    S.defineComponent2('tree', Tree);
-
+    return Tree;
 })();
 
 S.TreeView = (function () {
 
-    function TreeView() {
-        S.View.call(this);
+    function TreeView(element) {
+        S.View.call(this, element);
         this._ = {};
         this._.data = S.map();
         this.options = {
@@ -1286,17 +1096,24 @@ S.TreeView = (function () {
                 remove: mina.easeinout
             }
         };
-        this.live.view = this;
+        this.view = this;
     }
 
     TreeView.prototype = Object.create(S.View.prototype);
     TreeView.prototype.constructor = TreeView;
-    TreeView.prototype.live = {};
 
     TreeView.prototype.init = function () {
-
+        this.scale({
+            width: this.$element.width(),
+            height: this.$element.height()
+        });
     };
 
+    /**
+     * Sets drawing variables based on dimensions.width and dimensions.height
+     * @param dimensions
+     * @returns {*}
+     */
     TreeView.prototype.scale = function (dimensions) {
         var _ = this._,
             nodeRadiusPct = .05,
@@ -1308,12 +1125,12 @@ S.TreeView = (function () {
         _.y0 = _.nodeRadius;
         _.mv = nodeMvPct * _.height; // TODO
         _.mh = _.mv + _.nodeRadius / 2; // TODO
-        this.$element.width(_.width);
-        this.$element.height(_.height);
         return this.render();
     };
 
     TreeView.prototype.render = function () {
+        console.log('state is ');
+        console.dir(this.component.state);
         var self = this,
             _ = self._;
         this.clear();
@@ -1333,12 +1150,12 @@ S.TreeView = (function () {
         });
         this._drawLines(this.component.state);
         this.allNodes(this.component.state, function (node) {
+            console.log('drawing node with value ' + node.value);
             _.data(node).element = self._drawNode(node, _.data(node).x, _.data(node).y);
             _.data(node).s_value = self._drawValue(node.value, _.data(node).x, _.data(node).y);
             _.data(node).s_height = self._drawHeight(node.height, _.data(node).x, _.data(node).y);
         });
         this.$element.append(_._svg);
-        return this.$element;
     };
 
     TreeView.prototype._drawLines = function (tree) {
@@ -1395,8 +1212,8 @@ S.TreeView = (function () {
             .attr('font-size', _.nodeRadius);
     };
 
-    TreeView.prototype.live.add = function (parent, direction, value, fn) {
-        var parent = this.component.nodeMap[parent.sid],
+    TreeView.prototype.add = function (parent, direction, value, fn) {
+        var parent = this.component.getNode(parent.sid),
             _ = this.view._;
         this.view.scaleTo({
             width: _.width,
@@ -1406,7 +1223,7 @@ S.TreeView = (function () {
         fn();
     };
 
-    TreeView.prototype.live.set = function (node, value, fn) {
+    TreeView.prototype.set = function (node, value, fn) {
         // TODO change classnames
         var _ = this.view._,
             s_node = _.data(node).element,
@@ -1423,7 +1240,7 @@ S.TreeView = (function () {
         }, 200);
     };
 
-    TreeView.prototype.live.remove = function (node, fn) {
+    TreeView.prototype.remove = function (node, fn) {
         var view = this.view,
             _ = view._,
             elements = getTreeElements(node, _.data),
@@ -1470,21 +1287,21 @@ S.TreeView = (function () {
         }
     };
 
-    TreeView.prototype.live.focus = function (node, fn) {
-        node = this.view.component.nodeMap[node.sid];
+    TreeView.prototype.focus = function (node, fn) {
+        node = this.view.component.getNode(node.sid);
         if (node)
             this.view._.data(node).element.addClass('focus');
         fn();
     };
 
-    TreeView.prototype.live.unfocus = function (node, fn) {
-        node = this.view.component.nodeMap[node.sid];
+    TreeView.prototype.unfocus = function (node, fn) {
+        node = this.view.component.getNode(node.sid);
         if (node)
             this.view._.data(node).element.removeClass('focus');
         fn();
     };
 
-    TreeView.prototype.live.clearFocus = function (node, fn) {
+    TreeView.prototype.clearFocus = function (node, fn) {
         var view = this.view,
             _ = view._;
         view.allNodes(view.component.state, function (node) {
@@ -1492,7 +1309,7 @@ S.TreeView = (function () {
         });
     }
 
-    TreeView.prototype.live.travel = function (parent, direction, fn) {
+    TreeView.prototype.travel = function (parent, direction, fn) {
         var _ = this.view._;
         if (direction) {
             if (_.data(parent).rightLine) {
@@ -1533,7 +1350,8 @@ S.TreeView = (function () {
         }
     };
 
-    TreeView.prototype.live.label = function (node, label, fn) {
+    TreeView.prototype.label = function (node, label, fn) {
+        console.log('trying to label ' + node.value);
         var _ = this.view._;
         if (node && _.data(node)) {
             _.data(node).label = label;
@@ -1544,7 +1362,7 @@ S.TreeView = (function () {
         }
     };
 
-    TreeView.prototype.live.clearLabels = function (fn) {
+    TreeView.prototype.clearLabels = function (fn) {
         var view = this.view,
             _ = view._;
         view.allNodes(view.component.state, function (node) {
@@ -1562,7 +1380,7 @@ S.TreeView = (function () {
      }
      */
     // TODO
-    TreeView.prototype.live.display = function (options, fn) {
+    TreeView.prototype.display = function (options, fn) {
         console.info('display');
         var view = this.view,
             _ = view._;
@@ -1867,188 +1685,3 @@ S.TreeView = (function () {
 
     return TreeView;
 })();
-
-S.method('array', 'finish', function () {
-    this.clearfocus();
-    this.leftTo(0);
-});
-
-S.method('array', 'swap', function (a, b) {
-    this.log('swapping');
-    this('temp', this.getItem(a));
-    this.setItem(a, this.getItem(b));
-    this.setItem(b, this('temp'));
-});
-
-S.method('array', 'isSorted', function () {
-    for (var i = 1; i < this.getLength(); i++) {
-        if (this.getItem(i) < this.getItem(i - 1))
-            return false;
-    }
-    return true;
-});
-
-
-S.method('array', 'searchLinear', function (target) {
-    for (var i = 0; i < this.getLength(); i++) {
-        this.focus(i);
-        if (this.getItem(i) == target) {
-            this.flag(i);
-            return;
-        }
-    }
-    this.finish();
-});
-
-S.method('array', 'searchBinary', function (target) {
-
-    if (!this.isSorted()) {
-        this.warn('Array is not sorted. Binary search will not behave correctly.');
-    }
-
-    function search(left, right) {
-        if (right < left) {
-            this.clearrange(1);
-            this.finish();
-            return;
-        }
-        this.clearrange(1);
-        this.range(left, right, 1);
-        var mid = Math.floor((left + right) / 2);
-        this.focus(mid);
-        if (target < this.getItem(mid)) {
-            search.call(this, left, mid - 1);
-        } else if (target > this.getItem(mid)) {
-            search.call(this, mid + 1, right);
-        } else {
-            this.focus(mid);
-            this.flag(mid);
-            return;
-        }
-    }
-
-    search.call(this, 0, this.getLength());
-
-});
-
-
-S.method('array', 'insertionSort', function () {
-    for (var i = 0; i < this.getLength(); i++) {
-        this('j', i);
-        while (this('j') > 0 && this.getItem(this('j') - 1) > this.getItem(this('j'))) {
-            //swap:
-            /*this.log('swapping');
-	        this('temp', this.getItem(this('j')));
-	        this.setItem(this('j'), this.getItem(this('j') - 1));
-	        this.setItem(this('j') - 1, this('temp'));*/
-            this.swap(this('j'), this('j') - 1);
-            this('swapped', true);
-            this('j', this('j') - 1);
-        }
-        this.range(0, i, 1); //show sorted portion of array
-    }
-    this.clearrange(1);
-    this.finish();
-});
-
-S.method('array', 'bubbleSort', function () {
-    this('swap', true);
-    while (this.is('swap', true)) {
-        this('swap', false);
-        for (var i = 0; i < this.getLength() - 1; i++) {
-            this.focus(i);
-            if (this.getItem(i) > this.getItem(i + 1)) {
-                // swap
-                this.range(i, i + 1, 2);
-                /*this('temp', this.getItem(i));
-        this.setItem(i, this.getItem(i + 1));
-        this.setItem(i + 1, this('temp'));*/
-                this.swap(i, i + 1);
-                this('swap', true);
-                this.clearrange(2);
-            }
-        }
-    }
-    this.finish();
-});
-
-S.method('array', 'quickSort', function () {
-    // TODO
-});
-
-S.method('tree', 'finish', function () {
-    this.clearFocus();
-});
-
-S.method('tree', 'buildBST', function () {
-    this.clear();
-    this.setNode(this.root(), 12);
-    this('left', this.add(this.root(), false, 6));
-    this('right', this.add(this.root(), true, 13));
-    this.add(this('left'), false, 4);
-    this.add(this('right'), true, 14);
-});
-
-S.method('tree', 'isBST', function () {
-
-});
-
-S.method('tree', 'traversal', function traversal(kind) {
-
-    var count = 0;
-    if (kind)
-        kind = kind.trim().toLowerCase();
-
-    if (kind === 'pre' || kind === 'preorder') {
-        preorder.call(this, this.root());
-    } else if (kind === 'in' || kind === 'inorder') {
-        inorder.call(this, this.root());
-    } else if (kind === 'post' || kind === 'postorder') {
-        postorder.call(this, this.root());
-    } else {
-        inorder.call(this, this.root());
-    }
-
-    this.finish();
-
-    function preorder(node) {
-        if (node) {
-            visit.call(this, node);
-            this.travel(node, false);
-            preorder.call(this, node.left);
-            this.travel(node, true);
-            preorder.call(this, node.right);
-        }
-    }
-
-    function inorder(node) {
-        if (node) {
-            this.travel(node, false);
-            inorder.call(this, node.left);
-            visit.call(this, node);
-            this.travel(node, true);
-            inorder.call(this, node.right);
-        }
-    }
-
-    function postorder(node) {
-        if (node) {
-            this.travel(node, false);
-            postorder.call(this, node.left);
-            this.travel(node, true);
-            postorder.call(this, node.right);
-            visit.call(this, node);
-        }
-    }
-
-    function visit(node) {
-        this.focus(node);
-        label.call(this, node);
-    }
-
-    function label(node) {
-        this.label(node, count);
-        count++;
-    }
-
-});

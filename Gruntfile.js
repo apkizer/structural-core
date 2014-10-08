@@ -11,25 +11,15 @@ module.exports = function(grunt) {
             },
             js: {
                 src: [
-                    'src/js/core/header.js',
                     'src/js/core/core.js',
                     'src/js/core/config.js',
                     'src/js/core/utils.js',
-                    'src/js/core/EventEmitter.js',
                     'src/js/core/Component.js',
                     'src/js/core/View.js',
-                    'src/js/core/standardComponent.js',
-                    'src/js/core/Deferred.js',
-
                     'src/js/core/deferred/AsyncFunctionQueue.js',
-                    'src/js/core/deferred/DeferredInterface.js',
-                    'src/js/core/deferred/Scope.js',
-
-                    'src/js/core/api.js',
-                    'src/js/core/footer.js',
-                    'src/js/components/*.js',
-                    'src/js/algorithms/*.js'
-                    
+                    'src/js/core/deferred/Deferred.js',
+                    'src/js/components/*.js'
+                    //'src/js/algorithms/*.js'
                      ],
                 dest: 'build/structural.js'
             },

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
+    <style type="text/css">
+        #paper {
+            border: 1px solid black;
+        }
+
+        .arrow {
+            fill: none;
+            stroke-width: 2;
+            stroke: #000;
+        }
+
+        .arrowHead {
+            stroke: #000;
+            fill: #000;
+            stroke-width: 0;
+        }
+
+    </style>
+    <script type="text/javascript">
+        /**
+         * structuralArc plugin
+         */
+        Snap.plugin(function (Snap, Element, Paper, global, Fragment) {
+            function getArcString (rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y) {
+                return ['A'].concat(Array.prototype.slice.call(arguments)).join(' ');
+            }
+
+            function getArcStringRad (cx, cy, radius, rad) {
+                var x1 = cx + radius * Math.cos(-rad),
+                    y1 = cy + radius * Math.sin(-rad);
+                return getArcString(radius, radius, 0, 0, 0, x1, y1);
+            }
+
+            Paper.prototype.structuralArc = function (cx, cy, radius, ai, af, marker) {
+                return this.path(this.structuralArcString(cx, cy, radius, ai, af, marker));
+            };
+
+            Paper.prototype.structuralArcString = function (cx, cy, radius, ai, af, marker) {
+                // start point
+                var pix = cx + radius * Math.cos(-ai);
+                var piy = cy + radius * Math.sin(-ai);
+                // end point
+                var pfx = cx + radius * Math.cos(-af);
+                var pfy = cy + radius * Math.sin(-af);
+                // if af is greater than PI, we have to turn on the largeArcFlag
+                var largeArcFlag = 0;//af > Math.PI ? 1 : 0;
+                // arc string
+                var arcString = getArcString (radius, radius, 0, largeArcFlag, 0, pfx, pfy);
+                // complete path
+                var pathString = 'M' + pix + ' ' + piy + arcString;
+                // orient marker
+                if(marker) marker.attr('orient', -deg(af));
+                return pathString;
+            }
+
+            function deg (rad) {
+                return 180 * rad / Math.PI;
+            }
+        });
+
+        var x = 400,
+            y = 200,
+            radius = 16,
+            pad = 8,
+            angularLength = 3 * Math.PI / 8,
+            step = 10,
+            speed = Math.PI * 2.5, // radians per second
+            delay = 500; // delay at top
+        window.onload = function () {
+            var paper = Snap('#paper');
+            var node = paper.circle(x, y, radius)
+                        .attr('fill', '#0000ff');
+            var arrowHead = paper.polygon(0, 5, 5, 5, 2.5, 0).marker(0, 0, 5, 5, 2.5, 2.5)
+                    .attr('orient', '90')
+                    .attr('markerUnits', 'strokeWidth')
+                    .addClass('arrowHead');
+            console.dir(arrowHead);
+            var af = 0;
+            var ai = 0;
+            var arrow = paper.structuralArc(x, y, radius + pad, ai, af, arrowHead)
+                            .addClass('arrow')
+                            .attr('marker-end', arrowHead);
+            var phase1Interval = window.setInterval(phase1, step),
+                phase2Interval,
+                phase3Interval,
+                phase4Interval;
+            function phase1 () {
+                if(af >= angularLength) {
+                    window.clearInterval(phase1Interval);
+                    return phase2Interval = window.setInterval(phase2, step);
+                }
+
+                af += speed / 1000 * step;
+                arrow.remove();
+                arrow = paper.structuralArc(x, y, radius + pad, ai, af, arrowHead)
+                        .addClass('arrow')
+                        .attr('marker-end', arrowHead);
+            }
+            function phase2 () {
+                if(af >= Math.PI / 2 + angularLength / 2) {
+                    window.clearInterval(phase2Interval);
+                    return window.setTimeout(endDelay, delay);
+                }
+                af += speed / 1000 * step;
+                ai += speed / 1000 * step;
+                arrow.remove();
+                arrow = paper.structuralArc(x, y, radius + pad, ai, af, arrowHead)
+                        .addClass('arrow')
+                        .attr('marker-end', arrowHead);
+            }
+            function endDelay () {
+                //phase3Interval = window.setInterval(phase3, step);
+                arrow.animate({
+                    opacity: 0
+                }, 100, mina.easeout);
+            }
+            function phase3 () {
+                if(af >= Math.PI) {
+                    return phase4Interval = window.setInterval(phase4, step);
+                }
+                af += speed / 1000 * step;
+                ai += speed / 1000 * step;
+                arrow.remove();
+                arrow = paper.structuralArc(x, y, radius + pad, ai, af, arrowHead)
+                        .addClass('arrow')
+                        .attr('marker-end', arrowHead);
+            }
+            function phase4 () {
+                if(ai >= Math.PI)
+                    return;
+                ai += speed / 1000 * step;
+                arrow.remove();
+                arrow = paper.structuralArc(x, y, radius + pad, ai, af, arrowHead)
+                        .addClass('arrow')
+                        .attr('marker-end', arrowHead);
+
+            }
+        };
+    </script>
+</head>
+<body>
+<svg width="800" height="600" id="paper"></svg>
+</body>
+</html>

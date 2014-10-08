@@ -1,97 +1,91 @@
-S.VIEW_CLASS = 'structural_view';
-S.components = {};
-S.views = {};
+window.S = (function () {
+    "use strict";
+    var S = {};
+    S.definitions = {};
 
-var components = {},
-    componentMethods = {},
-    standaloneMethods = {},
-    componentMeta = {};
+    /**
+     * Global definition function. Allows properties to be defined in any order.
+     * @param obj
+     * @param path
+     */
+    S.define = function (obj, path) {
+        console.info('Defining %s', path);
+        var nest = path.split('.'),
+            last = S.definitions;
+        nest.forEach(function (property) {
+            if(!last[property]) {
+                (last[property] = {}).value = null;
+            }
+            last = last[property];
+        });
+        last.value = obj;
+    };
 
-/**
- * Registers a component.
- * @param name The name of the component.
- * @param factoryFunction A function which returns new instances of the component.
- * @param noDefault If true, Structural does not provide a default deferred execution context on instances of this component.
- */
-S.defineComponent = function(name, factoryFunction, noDefault) {
-    components[name] = factoryFunction;
-    /* middleware & default deferred context */
-    S.components[name] = function() {
-      var component = components[name].apply(this, arguments);
-      // provide default deferred context
-      if(S.config.provideDefaultDeferredContext && !noDefault) {
-        provideDefaultDeferredContext(component);
-      }
-      // give default view
-      if(S.views[name]) {
-        console.log('setting view ' + name);
-        component.view = S.views[name]();
-      }
-      // initialize component
-      if(component.init) component.init();
-      return component;
+    S.get = function (path) {
+        if(path.indexOf('undefined') > -1) return;
+        var nest = path.split('.'),
+            last = S.definitions;
+        nest.forEach(function (property) {
+            if(!last[property]) {
+                (last[property] = {}).value = null;
+            }
+            last = last[property];
+        });
+        return last.value;
+    };
+
+    /*S.modifier = function(component, func) {
+        S.define('components.' + component + '.modifiers')
+    }*/
+
+    S.component = function(name, ctor) {
+        if(ctor)
+            S.defineComponent(name, ctor);
+        else
+            return S.instantiateComponent(name);
+    };
+
+    S.defineComponent = function(name, ctor) {
+        S.define(ctor, 'components.' + name);
+    };
+
+    S.instantiateComponent = function(name) {
+        return new S.get('components.' + name);
     }
-}
 
-S.defineComponent2 = function(name, ctor, noDefault) {
-  components[name] = ctor;
-  S.components[name] = function(state, view) {
-    var component = new components[name](state, view);
+    S.method = function(func, name, component) {
+        var path = 'components.' + component + '.methods';
+        if(!S.get(path))
+            S.define([], path)
+        S.get(path).push({
+            name: name,
+            func: func
+        });
+    };
 
-    if(S.config.provideDefaultDeferredContext && !noDefault) {
-      provideDefaultDeferredContext(component);
+    S.components = function(name) {
+        if(typeof S.get('components.' + name) === 'function') {
+
+        }
+    };
+
+    S.EventEmitter = function () {
+        this.registeredEvents = {};
     }
 
-    if(S.views[name]) {
-      component.view = S.views[name]();
-    }
+    S.EventEmitter.prototype.on = function (eventName, fn) {
+        if(!this.registeredEvents[eventName])
+            this.registeredEvents[eventName] = [];
+        this.registeredEvents[eventName].push(fn);
+    };
 
-    //if(component.init) component.init();
+    S.EventEmitter.prototype.fire = function (eventName, event) {
+        if(!this.registeredEvents[eventName])
+            return;
+        for(var i = 0; i < this.registeredEvents[eventName].length; i++) {
+            this.registeredEvents[eventName][i].call(event, event);
+        }
+    };
 
-    return component;
-  }
-}
-
-S.defineMethodOn = function(name, methodName, func) {
-  if(!componentMethods[name])
-    componentMethods[name] = {};
-  componentMethods[name][methodName] = func;
-}
-
-S.defineStandaloneMethod = function(requirements, optionalRequirements, func) {
-  if(!standaloneMethods[name])
-    standaloneMethods[name] = {};
-  standaloneMethods[name].requirements = requirements;
-  standaloneMethods[name].optionalRequirements = optionalRequirements;
-  standaloneMethods[name][methodName] = func;
-}
-
-S.setMetaData = function(name, meta) {
-  componentMeta[name] = meta;
-}
-
-function provideDefaultDeferredContext(component) {
-  /*component.def = new S.Deferred(); //S.deferred();
-  component.def.wrap(component);
-  component.deferredContext = component.def.getContext();       */
-}
-
-S.setDefaultView = function(name, factory) {
-    S.views[name] = factory;
-}
-
-/*S.addView = function(component, name, func) {
-    if(!S.views[component])
-      S.views[component] = {};
-    S.views[component][name] = func;
-}*/
-
-S.addMethod = function(componentName, methodName, func) {
-  if(!componentMethods[componentName])
-    componentMethods[componentName] = {};
-  componentMethods[componentName][methodName] = func;
-}
-
-S.getComponentMethods = function(componentName) {
-  return componentMethods[componentName];
-}
+    return S;
+})();

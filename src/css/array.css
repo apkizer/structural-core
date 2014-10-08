@@ -3,7 +3,7 @@
     -webkit-user-select: none;
 }
 
-.array table {
+.array-table {
     table-layout: fixed;
     border-collapse: collapse;
     width: 100%;
@@ -48,7 +48,7 @@
     background-color: black !important;
 }
 
-.array .flagged:before {
+.array-flagged:before {
     content: "";
     position: absolute;
     top: 5px;
@@ -58,20 +58,20 @@
     border-radius: 50%;
 }
 
-.array .range1 {
+.array-range1 {
     background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAE0lEQVQIW2OUvuLwnwENMNJAEACP4QrsdsC6NQAAAABJRU5ErkJggg==');
     background-repeat: repeat-x;
 }
 
-.array .range2 {
+.array-range2 {
     background-color: #ffcc00 !important;
 }
 
-.array .range3 {
+.array-range3 {
     background-color: #0066cc !important;
 }
 
-.array .array-remove {
+.array-remove {
     color: red !important;
     text-decoration: line-through;
 }
