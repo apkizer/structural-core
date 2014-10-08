@@ -5,7 +5,6 @@ S.Tree = (function () {
         var copy = this.copyTree(state, null);
         S.Component.call(this, copy, view); // TODO handleState should be called
         this.height = this.computeHeights(this.state);
-        //this.component = this;
     }
 
     Tree.TreeNode = function (value, sid, left, right) {
@@ -17,7 +16,6 @@ S.Tree = (function () {
 
     Tree.prototype = Object.create(S.Component.prototype);
     Tree.prototype.constructor = Tree;
-    //Tree.prototype.live = {};
 
     Tree.prototype.handleState = function (state) {
         return this.copyTree(state, null);
@@ -27,11 +25,8 @@ S.Tree = (function () {
         console.dir(this);
         if (this._view)
             next(this.state);
-        else {
-            console.info('Operating in synchronous mode');
-            console.dir(this._view);
+        else
             return this.state;
-        }
     };
     Tree.prototype.root.live = true;
 
@@ -119,16 +114,6 @@ S.Tree = (function () {
     };
     Tree.prototype.clearPath.live = true;
 
-    // TODO delete
-    /*Tree.prototype.showHeights = function(next) {
-     if(this._view) this._view.showHeights(next);
-     };
-
-     // TODO delete
-     Tree.prototype.hideHeights = function(next) {
-     if(this._view) this._view.hideHeights(next);
-     };*/
-
     Tree.prototype.clearLabels = function (next) {
         if (this._view) this._view.clearLabels(next);
     };
@@ -175,32 +160,13 @@ S.Tree = (function () {
 
     Tree.prototype.copyTree = function (_node, parent) {
         if (!_node) return null;
-        console.log('copying ' + _node.value);
         var n = new Tree.TreeNode(_node.value, _node.sid || S.nextId(), null, null);
-        /*if (_node.sid)
-         n.sid = _node.sid;
-         else
-         n.sid = S.nextId();*/
         n.parent = parent;
         n.left = this.copyTree(_node.left || _node._left, n); // TODO get rid of ||
         n.right = this.copyTree(_node.right || _node._right, n); // TODO get rid of ||
-        /*if (n.sid == 'sid_0') {
-         console.log('ROOT');
-         console.dir(n);
-         }*/
-        //this.nodes[n.sid] = n;
         this.setNode(n);
         return n;
     };
-
-    /*Tree.prototype._makeTreeNodes = function (root) {
-     var treeNode = null;
-     if (root) {
-     treeNode = new Tree.TreeNode(root.sid, this._makeTreeNodes(root.left), this._makeTreeNodes(root.right));
-     this.nodes[treeNode.sid] = treeNode;
-     }
-     return treeNode;
-     };*/
 
     Tree.prototype.getNode = function (sidOrObject) {
         if (typeof sidOrObject === 'string')
@@ -218,15 +184,6 @@ S.Tree = (function () {
             return root.height = 1 + Math.max(this.computeHeights(root.left), this.computeHeights(root.right));
         return -1;
     };
-
-
-    /*function node(value) {
-     return {
-     value: value,
-     left: null,
-     right: null
-     };
-     }*/
 
     return Tree;
 })();
