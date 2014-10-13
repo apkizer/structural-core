@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tree Refactor</title>
+    <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
+    <script type="text/javascript" src="../lib/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../build/structural.js"></script>
+    <link rel="stylesheet" href="../build/structural.css"/>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var node = function(value) {
+                return {
+                    value: value,
+                    left: null,
+                    right: null
+                };
+            };
+
+            var root = node(17);
+            root.left = node(16);
+            root.right = node(18);
+            root.left.left = node(12);
+            root.left.left.right = node(13);
+
+            var treeView = new S.TreeView($('.tree-div'));
+            var tree = new S.Tree(root, treeView);
+            treeView.init();
+            tree.init();
+
+
+            function traversal(kind) {
+
+                var count = 0;
+                if(kind)
+                    kind = kind.trim().toLowerCase();
+
+                if(kind === 'pre' || kind === 'preorder') {
+                    preorder.call(this, this.root());
+                } else if(kind === 'in' || kind === 'inorder') {
+                    inorder.call(this, this.root());
+                } else if(kind === 'post' || kind === 'postorder') {
+                    postorder.call(this, this.root());
+                } else {
+                    inorder.call(this, this.root());
+                }
+
+                function preorder(node) {
+                    if(node) {
+                        visit.call(this, node);
+                        this.travel(node, false);
+                        preorder.call(this, node.left);
+                        this.travel(node, true);
+                        preorder.call(this, node.right);
+                    }
+                }
+
+                function inorder(node) {
+                    if (node) {
+                        this.travel(node, false);
+                        inorder.call(this, node.left);
+                        visit.call(this, node);
+                        this.travel(node, true);
+                        inorder.call(this, node.right);
+                    }
+                }
+
+                function postorder(node) {
+                    if(node) {
+                        this.travel(node, false);
+                        postorder.call(this, node.left);
+                        this.travel(node, true);
+                        postorder.call(this, node.right);
+                        visit.call(this, node);
+                    }
+                }
+
+                function visit(node) {
+                    this.focus(node);
+                    label.call(this, node);
+                }
+
+                function label(node) {
+                    this.label(node, count);
+                    count++;
+                }
+
+            }
+
+
+            window.queue = new S.AsyncFunctionQueue();
+            window.deferred = new S.Deferred(queue);
+            console.dir(deferred);
+            var copy = new S.Tree(tree.state)
+            deferred.include(tree, copy, {
+                name: 'tree'
+            });
+            window.actual = tree;
+            window.tree = deferred.handle.tree;
+
+            function makeTreeMask(copy, _interface) {
+                console.info('Generating array mask');
+                var mask = {};
+                check(mask, array);
+
+                Object.defineProperty(mask, 'length', {
+                    get: function () {
+                        return _interface.getLength();
+                    }
+                })
+
+                function check(mask, array) {
+                    for(var index in array.state) {
+                        if(!/^[0-9]/.test(index)) continue;
+                        (function(index) {
+                            Object.defineProperty(mask, index, {
+                                get: function () {
+                                    return _interface.getItem(index);
+                                },
+                                set: function(value) {
+                                    _interface.setItem(index, value);
+                                }
+                            });
+                        })(index);
+                    }
+                };
+
+                return mask;
+            }
+
+            //traversal.call(deferred.handle.tree, 'pre');
+        });
+    </script>
+
+</head>
+<body>
+<div class="tree-div" style="width: 400px; height: 500px;">
+
+</div>
+</body>
+</html>

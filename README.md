@@ -1,17 +1,10 @@
 structural-core  [![Build Status](https://travis-ci.org/AlexKizer/structural-core.svg?branch=master)](https://travis-ci.org/AlexKizer/structural-core)
 ===============
 
-The core library for the Structural web app. Allows you to create components with animated views that represent data structures, and write code for these structures that executes asynchronously. Specifically, structural-core lets you:
-* Create components with animated views.
-* Wrap the methods of these components with a deferred execution context which lets you animate the code you write.
-* Use or extend a set of standard, already-coded data structures.
-* Use a set of standard algorithms that operate on the aforementioned data structures.
+strucutral-core facilitates the development of programmable components with visual depictions. These components can represent data structures,  algorithmic visualizations, models of data, or many other things. The two characteristics that all structural-core components have is that they are programmable and able to be animated. Each component has an interface which declares its behavior. Code can then be written against this interface.
 
-### Bundled Data Structures
-* array
-* binary search tree (with AVL variant)
-* binary heap (coming soon)
-* stack/queue (coming soon)
+The design philosophy of components roughly follows MVC.
 
+For a concrete example, an Array component may have an interface with certain methods like "setValue" or "getValue", etc. Then, structural-core makes it easy for developers or students to write code, such as sorting algorithms, on top of this interface in a natural way. When these algorithms are run, structural-core allows code to be stepped through and replayed.
 ### How to Build
 `npm install`, then build with `grunt`.
