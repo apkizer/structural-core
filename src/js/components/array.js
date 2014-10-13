@@ -9,7 +9,6 @@ S.Array = (function () {
     Array.prototype = Object.create(S.Component.prototype);
     Array.prototype.constructor = Array;
 
-    // sync only
     Array.prototype.getLength = function (next) {
         if (this.view)
             next(this.state.length);
