@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style type="text/css">
+        body {
+            background: #eee;
+            padding: 0;
+            margin: 0;
+        }
+
+        #grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .grid-line {
+            stroke: rgba(0, 151, 255, 0.05);
+        }
+    </style>
+    <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+            var svg = document.getElementById('grid'),
+                    width = window.innerWidth,
+                    height = window.innerHeight;
+            svg.style.width = width;
+            svg.style.height = height;
+            var paper = Snap(svg),
+                div = 30,
+                stepX = Math.floor(width / div),
+                stepY = Math.floor(height /div);
+
+            for(var i = width / div; i <= width; i++) {
+                paper.line(i, 0, i, height).addClass('grid-line');
+                i += stepX;
+            }
+            for(var j = height / div; j <= height; j++) {
+                paper.line(0, j, width, j).addClass('grid-line');
+                j += stepY;
+            }
+        }
+    </script>
+</head>
+<body>
+<svg id="grid">
+
+</svg>
+</body>
+</html>
