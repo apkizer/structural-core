@@ -65,14 +65,14 @@ S.TreeView = (function () {
             width: _.width,
             height: _.height
         });
-        TreeView.rg(this.component.state, _.data, {
-            mh: _.mh,
-            mv: _.mv,
-            x0: _.x0,
-            y0: _.y0
-        });
+        TreeView.rg(this.component.state);
         this._drawLines(this.component.state);
         this.allNodes(this.component.state, function (node) {
+            // transform the node coordinates to appropriate coordinates and delete the position properties
+            _.data(node).x = _.x0 + node.x * _.mh / 2;
+            _.data(node).y = _.y0 + node.y * _.mv;
+            delete node.x;
+            delete node.y;
             console.log('drawing node with value ' + node.value);
             _.data(node).element = self._drawNode(node, _.data(node).x, _.data(node).y);
             _.data(node).s_value = self._drawValue(node.value, _.data(node).x, _.data(node).y);
@@ -336,6 +336,10 @@ S.TreeView = (function () {
         });
     };
 
+    TreeView.prototype.transformNodeCoordinates = function (root, x0, y0, xs, ys) {
+
+    };
+
     function getTreeElements(root, data) {
         var ret = [];
         if (root) {
@@ -350,260 +354,158 @@ S.TreeView = (function () {
         return ret;
     }
 
-
-    // TODO clean up:
     /**
-     * The Reingold-Tilford tree drawing algorithm.
-     * @param root The root of the tree to draw.
-     * @param store An S.Map where position data will be stored.
-     * @param options An object specifying
-     * `mh` The horizontal node margin.
-     * 'mv' The spacing between levels.
-     * `xProperty` The property to store x values.
-     * `yProperty` The property to store y values.
+     * An implementation of the Reingold-Tilford tree drawing algorithm.
+     * Adapted from http://emr.cs.iit.edu/~reingold/tidier-drawings.pdf
+     * @param tree The tree to assign x and y properties to. After this function is called, each node in `tree`
+     * will have x and y properties, where the root is at position 0, 0. Each level corresponds to an increment of y,
+     * and every right step or left step from the root corresponds to an increment and decrement to x, respectively.
      */
-    TreeView.rg = function (root, store, options) {
-        //1. copy tree
-        //2. run rg
-        //3. copy to store
+    TreeView.rg = function(tree) {
+        TreeView.rg.position(tree, 0, {
+            /* extremes */
+            lmost: {},
+            rmost: {}
+        }, {
+            minimumSeparation: 1 //
+        });
+        TreeView.rg.absolute(tree, 0);
+        TreeView.rg.cleanup(tree);
+    }
 
-
-        var config = {
-            mh: 10,
-            mv: 10,
-            xProperty: 'x',
-            yProperty: 'y'
-        };
-
-        $.extend(config, options);
-        var _root = copyTree(root);
-        //console.log('printing _root');
-        //printTree(_root);
-        setup(_root, 0, null, null);
-        assign(_root, 0, false);
-        copyToStore(_root, store);
-
-        function RNode(node) {
-            //console.log('R ' + node.value);
-            this.value = node.value;
-            this.left = null;//node.left;
-            this.right = null;//node.right;
-            this.x = 0;
-            this.y = 0;
-            this.thread = false;
-            this.offset = 0;
-            this.sid = node.sid;
-        }
-
-        function Extreme(node) {
-            this.node = node;
-            this.offset = 0;
-            this.level = 0;
-        }
-
-        function copyTree(node) {
-            var copy;
-            if (!node)
-                copy = null;
-            else {
-                /*copy = {};
-                 copy.value = node.value;*/
-                copy = new RNode(node);
-                copy.left = copyTree(node.left);
-                copy.right = copyTree(node.right);
+    TreeView.rg.position = function (root, level, extremes, options) {
+        var leftContourNode,
+            rightContourNode,
+            leftOffset, //
+            rightOffset, //
+            currentSeparation,
+            rootSeparation,
+            leftExtremes = {
+                lmost: {},
+                rmost: {}
+            },
+            rightExtremes = {
+                lmost: {},
+                rmost: {}
             }
-            return copy;
+        if(!root) {
+            extremes.lmost.level = -1;
+            extremes.rmost.level = -1;
+            return;
         }
-
-        function printTree(root) {
-            if (!root)
-                return;
-            console.log(root.value)
-            printTree(root.left);
-            printTree(root.right);
+        root.y = level;
+        leftContourNode = root.left;
+        rightContourNode = root.right;
+        TreeView.rg.position(leftContourNode, level + 1, leftExtremes, options); // recurse on left subtree
+        TreeView.rg.position(rightContourNode, level + 1, rightExtremes, options); // recurse on right subtree
+        if(!root.left && !root.right) {
+            extremes.rmost.node = root;
+            extremes.lmost.node = root;
+            extremes.rmost.level = level;
+            extremes.lmost.level = level;
+            extremes.rmost.offset = 0;
+            extremes.lmost.offset = 0;
+            root.offset = 0;
+            return;
         }
+        currentSeparation = options.minimumSeparation;
+        rootSeparation = options.minimumSeparation;
+        // move apart subtrees
+        while(leftContourNode && rightContourNode) {
 
-        function setup(node, level, rightMost, leftMost) {
-            var left,
-                right,
-                lRightMost = new Extreme(null),
-                lLeftMost = new Extreme(null),
-                rRightMost = new Extreme(null),
-                rLeftMost = new Extreme(null);
-
-            // while loop variables:
-            var currentSeparation, // The separation between contour nodes on the current level
-                rootSeparation, // ?
-                leftOffsetSum,  // offset from root
-                rightOffsetSum; // offset from root
-
-
-            if (!node /*== null*/) {
-                // base case ?
-                // ? update leftMost, rightMost
-                leftMost.level = -1;
-                rightMost.level = -1;
-                return;
+            if(currentSeparation < options.minimumSeparation) {
+                rootSeparation += (minimumSeparation - currentSeparation); // (minimumSeparation - currentSeparation) is the amount we have moved the nodes apart.
+                currentSeparation = minimumSeparation;
             }
 
-            node.y = level * config.mv;
-            left = node.left;
-            //console.log('left is ' + left);
-            right = node.right;
-            setup(left, level + 1, lRightMost, lLeftMost);
-            setup(right, level + 1, rRightMost, rLeftMost);
-            if (left === null && right === null) {
-                // node is a leaf
-                // base case?
-                if (leftMost && rightMost) {
-                    rightMost.node = node;
-                    leftMost.node = node;
-                    rightMost.level = level; // single node is both rightMost and leftMost on lowest level (which is current level)
-                    leftMost.level = level;
-                    rightMost.offset = 0; // ? TODO
-                    leftMost.offset = 0;  // ? TODO
-                }
-                node.offset = 0;
+            // since threading is done on left and right properties, we don't worry if things have been threaded here
+            if(leftContourNode.right) {
+                leftOffset += leftContourNode.offset;
+                currentSeparation -= leftContourNode.offset;
+                leftContourNode = leftContourNode.right;
             } else {
-                // node is not a leaf
-
-                currentSeparation = config.mh; // margin = minimum separation between two nodes on a level
-                rootSeparation = config.mh; // ? TODO
-                leftOffsetSum = 0;
-                rightOffsetSum = 0;
-
-                while (left !== null && right !== null) {
-
-                    if (currentSeparation < config.mh) { // nodes are too close together
-
-                        // Increase rootSeparation just enough so that it accounts for difference between
-                        // config.mh and currentSeparation:
-                        rootSeparation += (config.mh - currentSeparation);
-
-                        // Now, increase currentSeparation to the minimumSeparation:
-                        currentSeparation = config.mh;
-
-                    }
-
-// left contour:
-                    if (left.right !== null) {
-
-                        // leftOffsetSum is offset of left from root
-                        // left.offset = distance to each son
-                        // increase leftOffsetSum by left's offset from each child:
-                        leftOffsetSum += left.offset;
-
-                        // At this level, now, currentSeparation is decreased by left.offset,
-                        // because that is how far out left's right child is stick out.
-                        currentSeparation -= left.offset;
-
-                        // Go to next level, next on contour:
-                        left = left.right;
-                    } else {
-
-                        //left.right is null.
-
-                        // We can move left in now:
-                        leftOffsetSum -= left.offset; // ? TODO
-
-                        // We've allowed more separation ?
-                        currentSeparation += left.offset;
-
-                        // Go to next level, next on contour:
-                        left = left.left;
-                    }
-
-// right contour:
-                    if (right.left !== null) {
-                        rightOffsetSum -= right.offset;
-                        currentSeparation -= right.offset;
-                        right = right.left;
-                    } else {
-                        rightOffsetSum += right.offset;
-                        currentSeparation += right.offset;
-                        right = right.right;
-                    }
-
-                }
-
-// set root's offset:
-                node.offset = (rootSeparation + 1) / 2;
-// ? TODO :
-                leftOffsetSum -= node.offset;
-                rightOffsetSum += node.offset;
-
-// determine 2 extremes from the 4 we have:
-// pick leftMost:
-                if (rLeftMost.level > lLeftMost.level || node.left == null) {
-                    // rLeftMost wins
-                    leftMost = rLeftMost;
-                    leftMost.offset += node.offset; // ? TODO
-                } else {
-                    // lLeftMost wins
-                    leftMost = lLeftMost;
-                    leftMost.offset -= node.offset;
-                }
-
-
-// threading:
-// necessary if uneven heights? TODO
-
-                if (left != null && left != node.left && rRightMost.node) {
-                    rRightMost.node.thread = true;
-                    // no idea what's going on here: TODO
-                    rRightMost.node.offset = Math.abs((rRightMost.offset + node.offset) - leftOffsetSum);
-                    if (leftOffsetSum - node.offset <= rRightMost.offset) {
-                        rRightMost.node.left = left;
-                    } else {
-                        rRightMost.node.right = left;
-                    }
-                } else if (right != null && right != node.right && lLeftMost.node) {
-                    lLeftMost.node.thread = true;
-                    lLeftMost.node.offset = Math.abs((lLeftMost.offset - node.offset) - rightOffsetSum);
-                    if (rightOffsetSum + node.offset >= lLeftMost.offset) {
-                        lLeftMost.node.right = right;
-                    } else {
-                        lLeftMost.node.left = right;
-                    }
-                } else {
-                    // nothing
-                }
-
+                leftOffset -= leftContourNode.offset;
+                currentSeparation += leftContourNode.offset;
+                leftContourNode = leftContourNode.left;
+            }
+            if(rightContourNode.left) {
+                rightOffset -= rightContourNode.offset;
+                currentSeparation -= rightContourNode.offset;
+                rightContourNode = rightContourNode.left;
+            } else {
+                rightOffset += rightContourNode.offset;
+                currentSeparation += rightContourNode.offset;
+                rightContourNode = rightContourNode.right;
             }
 
-
         }
 
-        function assign(node, x, useNew) {
-            if (node != null) {
-                node.x = x;
-                if (node.thread) {
-                    // clean up threading:
-                    node.thread = false;
-                    node.right = null;
-                    node.left = null;
-                }
-                // ? TODO
-                assign(node.left, x - node.offset, useNew);
-                assign(node.right, x + node.offset, useNew);
+        // set root.offset
+        root.offset = (rootSeparation + 1) / 2; // why +1?
+        leftOffset -= root.offset // (subtrees have been moved)
+        rightOffset += root.offset
+
+        // set lmost and rmost. we are augmenting these parameters for on-the-way-up recusion.
+        // set lmost
+        if(!root.left || rightExtremes.lmost.level > leftExtremes.lmost.level) {
+            extremes.lmost = rightExtremes.lmost;
+            extremes.lmost.offset += root.offset;
+        } else {
+            extremes.lmost = leftExtremes.lmost;
+            extremes.lmost.offset -= root.offset;
+        }
+        // set rmost
+        if(!root.right || leftExtremes.rmost.level > rightExtremes.rmost.level) {
+            extremes.rmost = leftExtremes.rmost;
+            extremes.rmost.offset -= root.offset;
+        } else {
+            extremes.rmost = rightExtremes.rmost;
+            extremes.rmost.offset += root.offset;
+        }
+
+        // threading for next recursion only if subtrees are different heights and nonempty
+        // at most only one thread has to be inserted
+
+        if(leftContourNode && leftContourNode !== root.left) {
+            rightExtremes.rmost.node.thread = true;
+            rightExtremes.rmost.node.offset = Math.abs(rightExtremes.rmost.offset + root.offset - leftOffset);
+            if(leftOffset - root.offset <= rightExtremes.rmost.offset)
+                rightExtremes.rmost.node.left = leftContourNode;
+            else
+                rightExtremes.rmost.node.right = leftContourNode;
+        } else if(rightContourNode && rightContourNode !== root.right) {
+            leftExtremes.lmost.node.thread = true;
+            leftExtremes.lmost.node.offset = Math.abs(leftExtremes.lmost.offset - root.offset - rightOffset);
+            if(rightOffset + root.offset >= leftExtremes.lmost.offset)
+                leftExtremes.lmost.node.right = rightContourNode;
+            else
+                leftExtremes.lmost.node.left = rightContourNode;
+        }
+
+
+
+    };
+
+    TreeView.rg.absolute = function (tree, x) {
+        if(tree) {
+            tree.x = x;
+            if(tree.thread) {
+                tree.thread = false;
+                tree.left = null; // threaded node must have been a leaf
+                tree.right = null;
             }
+            TreeView.rg.absolute(tree.left, x - tree.offset);
+            TreeView.rg.absolute(tree.right, x + tree.offset);
         }
+    }
 
-        function copyToStore(root, store) {
-
-            if (!root)
-                return;
-            store(root)[config.xProperty] = root.x + config.x0 || 0;
-            store(root)[config.yProperty] = root.y + config.y0 || 0;
-            /*store(root, {
-             x: root.x,
-             y: root.y
-             });*/
-            copyToStore(root.left, store);
-            copyToStore(root.right, store);
+    TreeView.rg.cleanup = function (tree) {
+        if(tree) {
+            delete tree.offset;
+            delete tree.thread;
+            TreeView.rg.cleanup(tree.left);
+            TreeView.rg.cleanup(tree.right);
         }
-
-
     };
 
     return TreeView;
