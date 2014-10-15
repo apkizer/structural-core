@@ -176,13 +176,16 @@ S.Component.prototype = Object.create(S.EventEmitter.prototype);
 
 Object.defineProperty(S.Component.prototype, 'state', {
     get: function () {
-        return this._state;
+        var ret;
+        if (this.prepareState)
+            ret = this.prepareState(this._state) || this._state;
+        return ret;
     },
     set: function (state) {
-        /*if (this.handleState)
-         this._state = this.handleState(state);
-         else*/
-        this._state = state;
+        var toSet;
+        if (this.handleState)
+            toSet = this.handleState(state) || state;
+        this._state = toSet;
     }
 });
 
@@ -834,10 +837,13 @@ S.ArrayView = (function () {
 
 
 S.Tree = (function () {
+
     function Tree(state, view) {
         this.alias = 'tree';
         this.nodes = {};
+        this.lastId = state.lastId || 0;
         var copy = this.copyTree(state, null);
+        copy.lastId = this.lastId;
         S.Component.call(this, copy, view); // TODO handleState should be called
         this.height = this.computeHeights(this.state);
     }
@@ -852,9 +858,14 @@ S.Tree = (function () {
     Tree.prototype = Object.create(S.Component.prototype);
     Tree.prototype.constructor = Tree;
 
+
     Tree.prototype.handleState = function (state) {
-        return this.copyTree(state, null);
+        //
     };
+
+    Tree.prototype.prepareState = function (state) {
+        //state.lastId = this.lastId;
+    }
 
     Tree.prototype.root = function (next) {
         console.dir(this);
@@ -866,15 +877,19 @@ S.Tree = (function () {
     Tree.prototype.root.live = true;
 
     Tree.prototype.add = function (parent, direction, value, next) {
+        console.info('Adding node...');
+        console.dir(parent);
         parent = this.getNode(parent);
+        console.dir(parent);
         var added;
         if (direction) {
             if (parent.right) return; // a node is already there
-            added = parent.right = new Tree.TreeNode(value, S.nextId(), null, null);
+            added = parent.right = new Tree.TreeNode(value, this.nextId(), null, null);
         } else {
             if (parent.left) return; // a node is already there
-            added = parent.left = new Tree.TreeNode(value, S.nextId(), null, null);
+            added = parent.left = new Tree.TreeNode(value, this.nextId(), null, null);
         }
+        console.log('Calling setNode');
         this.setNode(added);
         this.height = this.computeHeights(this.state);
         if (this._view)
@@ -995,7 +1010,7 @@ S.Tree = (function () {
 
     Tree.prototype.copyTree = function (_node, parent) {
         if (!_node) return null;
-        var n = new Tree.TreeNode(_node.value, _node.sid || S.nextId(), null, null);
+        var n = new Tree.TreeNode(_node.value, _node.sid || this.nextId(), null, null);
         n.parent = parent;
         n.left = this.copyTree(_node.left || _node._left, n); // TODO get rid of ||
         n.right = this.copyTree(_node.right || _node._right, n); // TODO get rid of ||
@@ -1004,13 +1019,18 @@ S.Tree = (function () {
     };
 
     Tree.prototype.getNode = function (sidOrObject) {
-        if (typeof sidOrObject === 'string')
+        console.log('getNode, nodes is');
+        console.dir(this.nodes);
+        var sid = typeof sidOrObject === 'string' ? sidOrObject : sidOrObject.sid;
+        return this.nodes[sid];
+        /*if (typeof sidOrObject === 'string')
             return this.nodes[sidOrObject];
         else
-            return this.nodes[sidOrObject.sid];
+            return this.nodes[sidOrObject.sid];*/
     };
 
     Tree.prototype.setNode = function (treeNode) {
+        console.info('Setting node %s', treeNode.sid);
         this.nodes[treeNode.sid] = treeNode;
     };
 
@@ -1020,8 +1040,17 @@ S.Tree = (function () {
         return -1;
     };
 
+    Tree.prototype.nextId = function () {
+        var id = this.lastId;
+        this.lastId++;
+        if (this.state) this.state.lastId = this.lastId;
+        return 'sid' + this.lastId;
+    }
+
     return Tree;
+
 })();
+
 
 S.TreeView = (function () {
 
@@ -1090,12 +1119,6 @@ S.TreeView = (function () {
             width: _.width,
             height: _.height
         });
-        /*TreeView.rg(this.component.state, _.data, {
-            mh: _.mh,
-            mv: _.mv,
-            x0: _.x0,
-            y0: _.y0
-        });*/
         TreeView.rg(this.component.state);
         this._drawLines(this.component.state);
         this.allNodes(this.component.state, function (node) {
@@ -1109,8 +1132,19 @@ S.TreeView = (function () {
             _.data(node).s_value = self._drawValue(node.value, _.data(node).x, _.data(node).y);
             _.data(node).s_height = self._drawHeight(node.height, _.data(node).x, _.data(node).y);
         });
+        this.drawGridDots();
         this.$element.append(_._svg);
     };
+
+    TreeView.prototype.drawGridDots = function () {
+        for (var i = -2 * this._.mh; i < this._.svg.attr('width'); i += this._.mh * .5) {
+            for (var j = 0; j < this._.svg.attr('height'); j += this._.mv) {
+                this._.svg.circle(this._.x0 + i, this._.y0 + j, 2)
+                    .attr('fill', '#000000');
+            }
+        }
+
+    }
 
     TreeView.prototype._drawLines = function (tree) {
         var _ = this._;
@@ -1169,11 +1203,11 @@ S.TreeView = (function () {
     TreeView.prototype.add = function (parent, direction, value, fn) {
         var parent = this.component.getNode(parent.sid),
             _ = this.view._;
-        this.view.scaleTo({
+        this.scale({
             width: _.width,
             height: _.height
         });
-        this.view.render();
+        this.render();
         fn();
     };
 
@@ -1445,8 +1479,8 @@ S.TreeView = (function () {
         while (leftContourNode && rightContourNode) {
 
             if (currentSeparation < options.minimumSeparation) {
-                rootSeparation += (minimumSeparation - currentSeparation); // (minimumSeparation - currentSeparation) is the amount we have moved the nodes apart.
-                currentSeparation = minimumSeparation;
+                rootSeparation += (options.minimumSeparation - currentSeparation); // (minimumSeparation - currentSeparation) is the amount we have moved the nodes apart.
+                currentSeparation = options.minimumSeparation;
             }
 
             // since threading is done on left and right properties, we don't worry if things have been threaded here
@@ -1540,4 +1574,5 @@ S.TreeView = (function () {
     };
 
     return TreeView;
+
 })();

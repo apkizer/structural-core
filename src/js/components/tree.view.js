@@ -78,8 +78,19 @@ S.TreeView = (function () {
             _.data(node).s_value = self._drawValue(node.value, _.data(node).x, _.data(node).y);
             _.data(node).s_height = self._drawHeight(node.height, _.data(node).x, _.data(node).y);
         });
+        this.drawGridDots();
         this.$element.append(_._svg);
     };
+
+    TreeView.prototype.drawGridDots = function () {
+        for(var i = - 2 * this._.mh; i < this._.svg.attr('width'); i += this._.mh * .5) {
+            for(var j = 0; j < this._.svg.attr('height'); j += this._.mv) {
+                this._.svg.circle(this._.x0 + i, this._.y0 + j, 2)
+                    .attr('fill', '#000000');
+            }
+        }
+
+    }
 
     TreeView.prototype._drawLines = function (tree) {
         var _ = this._;
@@ -138,11 +149,11 @@ S.TreeView = (function () {
     TreeView.prototype.add = function (parent, direction, value, fn) {
         var parent = this.component.getNode(parent.sid),
             _ = this.view._;
-        this.view.scaleTo({
+        this.scale({
             width: _.width,
             height: _.height
         });
-        this.view.render();
+        this.render();
         fn();
     };
 
@@ -414,8 +425,8 @@ S.TreeView = (function () {
         while(leftContourNode && rightContourNode) {
 
             if(currentSeparation < options.minimumSeparation) {
-                rootSeparation += (minimumSeparation - currentSeparation); // (minimumSeparation - currentSeparation) is the amount we have moved the nodes apart.
-                currentSeparation = minimumSeparation;
+                rootSeparation += (options.minimumSeparation - currentSeparation); // (minimumSeparation - currentSeparation) is the amount we have moved the nodes apart.
+                currentSeparation = options.minimumSeparation;
             }
 
             // since threading is done on left and right properties, we don't worry if things have been threaded here
@@ -509,4 +520,5 @@ S.TreeView = (function () {
     };
 
     return TreeView;
+
 })();

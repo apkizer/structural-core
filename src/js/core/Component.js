@@ -10,13 +10,16 @@ S.Component.prototype = Object.create(S.EventEmitter.prototype);
 
 Object.defineProperty(S.Component.prototype, 'state', {
     get: function () {
-        return this._state;
+        var ret;
+        if(this.prepareState)
+            ret = this.prepareState(this._state) || this._state;
+        return ret;
     },
     set: function (state) {
-        /*if (this.handleState)
-         this._state = this.handleState(state);
-         else*/
-        this._state = state;
+        var toSet;
+        if (this.handleState)
+            toSet = this.handleState(state) || state;
+        this._state = toSet;
     }
 });
 
@@ -48,7 +51,6 @@ S.Component.prototype.makeViewOnly = function () {
 };
 
 S.Component.prototype.bindLive = function () {
-    console.info('bindLive');
     for (var property in this.live) {
         if (!this.live.hasOwnProperty(property) || typeof this.live[property] !== 'function')
             continue;
