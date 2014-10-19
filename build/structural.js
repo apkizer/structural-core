@@ -158,12 +158,6 @@ window.S = (function () {
     return S;
 })();
 
-S.config = {
-    provideDefaultDeferredContext: true,
-    /* Provide a deferred context on newly created components. */
-    viewClass: 'structural_view' /* CSS class for views */
-};
-
 S.Component = function (state, view) {
     console.info('Component constructor');
     if (state)
