@@ -1,4 +1,4 @@
-S.method('array', 'searchLinear', function (target) {
+/*S.method('array', 'searchLinear', function (target) {
     for (var i = 0; i < this.getLength(); i++) {
         this.focus(i);
         if (this.getItem(i) == target) {
@@ -39,3 +39,4 @@ S.method('array', 'searchBinary', function (target) {
     search.call(this, 0, this.getLength());
 
 });
+*/

@@ -17,7 +17,7 @@ module.exports = function(grunt) {
                     'src/js/core/deferred/AsyncFunctionQueue.js',
                     'src/js/core/deferred/Deferred.js',
                     'src/js/components/*.js',
-                    'src/js/algorithms/tree.traversals.js'
+                    'src/js/algorithms/*.js'
                      ],
                 dest: 'build/structural.js'
             },

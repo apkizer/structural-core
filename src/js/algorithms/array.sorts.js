@@ -1,23 +1,20 @@
-S.method('array', 'insertionSort', function () {
-    for (var i = 0; i < this.getLength(); i++) {
+S.method(function (array) {
+    for (var i = 0; i < array.getLength(); i++) {
         this('j', i);
-        while (this('j') > 0 && this.getItem(this('j') - 1) > this.getItem(this('j'))) {
-            //swap:
-            /*this.log('swapping');
-             this('temp', this.getItem(this('j')));
-             this.setItem(this('j'), this.getItem(this('j') - 1));
-             this.setItem(this('j') - 1, this('temp'));*/
-            this.swap(this('j'), this('j') - 1);
+        while (this('j') > 0 && array.getItem(this('j') - 1) > array.getItem(this('j'))) {
+            this('temp', array.getItem(this('j')));
+            array.setItem(this('j'), array.getItem(this('j') - 1));
+            array.setItem(this('j') - 1, this('temp'));
             this('swapped', true);
             this('j', this('j') - 1);
         }
-        this.range(0, i, 1); //show sorted portion of array
+        array.range(0, i, 1); //show sorted portion of array
     }
-    this.clearrange(1);
-    this.finish();
-});
+    array.clearrange(1);
+    //this.finish();
+}, 'insertionSort', 'array');
 
-S.method('array', 'bubbleSort', function () {
+/*S.method('array', 'bubbleSort', function () {
     this('swap', true);
     while (this.is('swap', true)) {
         this('swap', false);
@@ -29,7 +26,7 @@ S.method('array', 'bubbleSort', function () {
                 /*this('temp', this.getItem(i));
                  this.setItem(i, this.getItem(i + 1));
                  this.setItem(i + 1, this('temp'));*/
-                this.swap(i, i + 1);
+                /*this.swap(i, i + 1);
                 this('swap', true);
                 this.clearrange(2);
             }
@@ -40,4 +37,4 @@ S.method('array', 'bubbleSort', function () {
 
 S.method('array', 'quickSort', function () {
     // TODO
-});
+});*/

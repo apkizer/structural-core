@@ -46,7 +46,7 @@ S.Deferred = (function () {
                 _interface[definedMethod.name] = function () {
                     var args = Array.prototype.slice.call(arguments);
                     args.unshift(_interface);
-                    definedMethod.func.apply(self.standard, args);
+                    definedMethod.func.apply(self.handle.standard, args);
                 };
             }
         });

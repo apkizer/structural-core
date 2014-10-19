@@ -417,8 +417,7 @@ S.Deferred = (function () {
                 _interface[definedMethod.name] = function () {
                     var args = Array.prototype.slice.call(arguments);
                     args.unshift(_interface);
-                    definedMethod.func.apply(self.standard, args);
-                    //definedMethod.func.call(self.standard, _interface);
+                    definedMethod.func.apply(self.handle.standard, args);
                 };
             }
         });
@@ -1562,9 +1561,91 @@ S.TreeView = (function () {
 })();
 
 
-S.method(function traversal(tree, kind) {
+/*S.method('array', 'searchLinear', function (target) {
+    for (var i = 0; i < this.getLength(); i++) {
+        this.focus(i);
+        if (this.getItem(i) == target) {
+            this.flag(i);
+            return;
+        }
+    }
+    this.finish();
+});
 
-    console.info('Tree travesal');
+S.method('array', 'searchBinary', function (target) {
+
+    if (!this.isSorted()) {
+        this.warn('Array is not sorted. Binary search will not behave correctly.');
+    }
+
+    function search(left, right) {
+        if (right < left) {
+            this.clearrange(1);
+            this.finish();
+            return;
+        }
+        this.clearrange(1);
+        this.range(left, right, 1);
+        var mid = Math.floor((left + right) / 2);
+        this.focus(mid);
+        if (target < this.getItem(mid)) {
+            search.call(this, left, mid - 1);
+        } else if (target > this.getItem(mid)) {
+            search.call(this, mid + 1, right);
+        } else {
+            this.focus(mid);
+            this.flag(mid);
+            return;
+        }
+    }
+
+    search.call(this, 0, this.getLength());
+
+});
+*/
+
+S.method(function (array) {
+    for (var i = 0; i < array.getLength(); i++) {
+        this('j', i);
+        while (this('j') > 0 && array.getItem(this('j') - 1) > array.getItem(this('j'))) {
+            this('temp', array.getItem(this('j')));
+            array.setItem(this('j'), array.getItem(this('j') - 1));
+            array.setItem(this('j') - 1, this('temp'));
+            this('swapped', true);
+            this('j', this('j') - 1);
+        }
+        array.range(0, i, 1); //show sorted portion of array
+    }
+    array.clearrange(1);
+    //this.finish();
+}, 'insertionSort', 'array');
+
+/*S.method('array', 'bubbleSort', function () {
+    this('swap', true);
+    while (this.is('swap', true)) {
+        this('swap', false);
+        for (var i = 0; i < this.getLength() - 1; i++) {
+            this.focus(i);
+            if (this.getItem(i) > this.getItem(i + 1)) {
+                // swap
+                this.range(i, i + 1, 2);
+                /*this('temp', this.getItem(i));
+                 this.setItem(i, this.getItem(i + 1));
+                 this.setItem(i + 1, this('temp'));*/
+/*this.swap(i, i + 1);
+                this('swap', true);
+                this.clearrange(2);
+            }
+        }
+    }
+    this.finish();
+});
+
+S.method('array', 'quickSort', function () {
+    // TODO
+});*/
+
+S.method(function traversal(tree, kind) {
 
     var count = 0;
     if (kind)
