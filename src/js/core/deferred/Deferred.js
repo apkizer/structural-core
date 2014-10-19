@@ -44,7 +44,9 @@ S.Deferred = (function () {
         definedMethods.forEach(function (definedMethod) {
             if (!_interface[definedMethod.name]) {
                 _interface[definedMethod.name] = function () {
-                    definedMethod.func.call(self.standard, _interface);
+                    var args = Array.prototype.slice.call(arguments);
+                    args.unshift(_interface);
+                    definedMethod.func.apply(self.standard, args);
                 };
             }
         });
@@ -78,7 +80,7 @@ S.Deferred = (function () {
         };
         standard.comment.live = true;
         return standard;
-    }
+    };
 
     return Deferred;
 })();

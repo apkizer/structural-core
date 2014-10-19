@@ -28,7 +28,7 @@
             tree.init();
 
 
-            function traversal(kind) {
+            /*function traversal(kind) {
 
                 var count = 0;
                 if(kind)
@@ -84,7 +84,7 @@
                     count++;
                 }
 
-            }
+            }*/
 
 
             window.queue = new S.AsyncFunctionQueue();
@@ -95,8 +95,6 @@
             });
             window.actual = tree;
             window.tree = deferred.handle.tree;
-
-            traversal.call(deferred.handle.tree, 'pre');
         });
     </script>
 
