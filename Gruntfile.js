@@ -13,7 +13,7 @@ module.exports = function(grunt) {
                 src: [
                     'src/js/core/core.js',
                     'src/js/core/config.js',
-                    'src/js/core/utils.js',
+                    /*'src/js/core/utils.js',*/
                     'src/js/core/Component.js',
                     'src/js/core/View.js',
                     'src/js/core/deferred/AsyncFunctionQueue.js',
