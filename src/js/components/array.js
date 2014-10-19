@@ -2,12 +2,20 @@ S.Array = (function () {
 
     function Array(state, view) {
         this.alias = 'array';
-        S.Component.call(this, [].concat(state), view);
+        S.Component.call(this, state, view);
         this.state.flags = [];
     }
 
     Array.prototype = Object.create(S.Component.prototype);
     Array.prototype.constructor = Array;
+
+    Array.prototype.onSetState = function (state) {
+        return [].concat(state);
+    }
+
+    Array.prototype.onGetState = function (state) {
+        return state;
+    }
 
     Array.prototype.getLength = function (next) {
         if (this.view)
