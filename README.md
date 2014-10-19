@@ -31,97 +31,105 @@ The `S.Deferred` class provides a key, useful feature: it allows _synchronous_ c
 
 ## The Array Component
 
-Let's explore the bundled array component to gain some understanding. Here is its code as of 10/16/2014 :
+Let's explore the bundled array component to gain some understanding. Here is its code as of 10/18/2014 :
 
-    S.Array = (function () {
-    
-        function Array(state, view) {
-            this.alias = 'array';
-            S.Component.call(this, [].concat(state), view);
-            this.state.flags = [];
-        }
-    
-        Array.prototype = Object.create(S.Component.prototype);
-        Array.prototype.constructor = Array;
-    
-        Array.prototype.getLength = function (next) {
-            if (this.view)
-                next(this.state.length);
-            else
-                return this.state.length;
-        };
-        Array.prototype.getLength.live = true;
-    
-        Array.prototype.flag = function (index, next) {
-            this.state.flags[index] = true;
-            if (this.view)
-                this.view.flag(index, next);
-        };
-        Array.prototype.flag.live = true;
-    
-        Array.prototype.flagged = function (index, next) {
-            if (this.view)
-                next(this.state.length);
-            else
-                return this.state.flags[index];
-        };
-        Array.prototype.flagged.true;
-    
-        Array.prototype.setItem = function (index, value, next) {
-            this.state[index] = value;
-            if (this.view)
-                this.view.setItem(index, value, next);
-        };
-        Array.prototype.setItem.live = true;
-    
-        Array.prototype.getItem = function (index, next) {
-            if (this.view)
-                next(this.state[index]);
-            else
-                return this.state[index];
-        };
-        Array.prototype.getItem.live = true;
-    
-        Array.prototype.push = function (item, next) {
-            this.state.push(item);
-            if (this.view)
-                this.view.push(item, next);
-        };
-        Array.prototype.push.live = true;
-    
-        Array.prototype.focus = function (index, next) {
-            if (this.view) this.view.focus(index, next);
-        };
-        Array.prototype.focus.live = true;
-    
-        Array.prototype.range = function (start, end, num, next) {
-            if (this.view) this.view.range(start, end, num, next);
-        };
-        Array.prototype.range.live = true;
-    
-        Array.prototype.clearfocus = function (next) {
-            if (this.view) this.view.clearfocus(next);
-        };
-        Array.prototype.clearfocus.live = true;
-    
-        Array.prototype.clearrange = function (num, next) {
-            if (this.view) this.view.clearrange(num, next);
-        };
-        Array.prototype.clearrange.live = true;
-    
-        Array.prototype.leftTo = function (index, next) {
-            if (this.view) this.view.leftTo(index, next);
-        };
-        Array.prototype.leftTo.live = true;
-    
-    
-        return Array;
-    
-    })();
+	S.Array = (function () {
+
+	    function Array(state, view) {
+	        this.alias = 'array';
+	        S.Component.call(this, state, view);
+	    }
+
+	    Array.prototype = Object.create(S.Component.prototype);
+	    Array.prototype.constructor = Array;
+
+	    Array.prototype.onSetState = function (state) {
+	        var ret = [].concat(state);
+	        ret.flags = [];
+	    }
+
+	    Array.prototype.onGetState = function (state) {
+	        return state;
+	    }
+
+	    Array.prototype.getLength = function (next) {
+	        if (this.view)
+	            next(this.state.length);
+	        else
+	            return this.state.length;
+	    };
+	    Array.prototype.getLength.live = true;
+
+	    Array.prototype.flag = function (index, next) {
+	        this.state.flags[index] = true;
+	        if (this.view)
+	            this.view.flag(index, next);
+	    };
+	    Array.prototype.flag.live = true;
+
+	    Array.prototype.flagged = function (index, next) {
+	        if (this.view)
+	            next(this.state.length);
+	        else
+	            return this.state.flags[index];
+	    };
+	    Array.prototype.flagged.true;
+
+	    Array.prototype.setItem = function (index, value, next) {
+	        this.state[index] = value;
+	        if (this.view)
+	            this.view.setItem(index, value, next);
+	    };
+	    Array.prototype.setItem.live = true;
+
+	    Array.prototype.getItem = function (index, next) {
+	        if (this.view)
+	            next(this.state[index]);
+	        else
+	            return this.state[index];
+	    };
+	    Array.prototype.getItem.live = true;
+
+	    Array.prototype.push = function (item, next) {
+	        this.state.push(item);
+	        if (this.view)
+	            this.view.push(item, next);
+	    };
+	    Array.prototype.push.live = true;
+
+	    Array.prototype.focus = function (index, next) {
+	        if (this.view) this.view.focus(index, next);
+	    };
+	    Array.prototype.focus.live = true;
+
+	    Array.prototype.range = function (start, end, num, next) {
+	        if (this.view) this.view.range(start, end, num, next);
+	    };
+	    Array.prototype.range.live = true;
+
+	    Array.prototype.clearfocus = function (next) {
+	        if (this.view) this.view.clearfocus(next);
+	    };
+	    Array.prototype.clearfocus.live = true;
+
+	    Array.prototype.clearrange = function (num, next) {
+	        if (this.view) this.view.clearrange(num, next);
+	    };
+	    Array.prototype.clearrange.live = true;
+
+	    Array.prototype.leftTo = function (index, next) {
+	        if (this.view) this.view.leftTo(index, next);
+	    };
+	    Array.prototype.leftTo.live = true;
+
+
+	    return Array;
+
+	})();
 
 If you look at the code, much of it should be straightforward. It extends the `S.Component` class and calls its constructor.   
 
-The `Array` constructor  takes in a state and a view. The state gives us initialization data. In this case, it is simply an array object. Notice that we pass `[].concat(state)` to the `Component` constructor. The reason for this is that we want an independent copy of the state data. If we didn't have an independent copy, the state could be altered and the array view would not be able to animate the change. The `flags` property on the state is just for a utility that allows boolean flags to be set on any array index.
+The `Array` constructor  takes in a state and a view. The state gives us initialization data. In this case, it is simply an array object. The S.Component class calls the `onSetState` method on the component if it exists. This method is intended to handle the state and return it. Notice that we return `[].concat(state)`. The reason for this is that we want an independent copy of the state data. If we didn't have an independent copy, the state could be altered and the array view would not be able to animate the change. The `flags` property on the state is just for a utility that allows boolean flags to be set on any array index.
 
 After the constructor are a bunch of methods that make up the interface of the array component. After each method, you see that we set a `live` property on the method to true. This is simply for the deferred execution utility; it needs to know which functions are part of the actual interface of the component. Since this is pretty ugly, it may be changed in the future. But, for now, all interface methods of components should have a property called `live` set to a truthy value. 
 
