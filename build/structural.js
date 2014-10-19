@@ -260,7 +260,7 @@ S.AsyncFunctionQueue = (function () {
     function AsyncFunctionQueue() {
         this.functionList = []; // the array of functions.
         this.position = 0; // the current function to be executed.
-        this.sleep = 100; // the time to wait between executing functions after `exec` is called.
+        this.sleep = 10; // the time to wait between executing functions after `exec` is called.
         this.states = []; //
         this._open = false; // If true, auto execution is enabled.
         this.clearOnFinish = true; // If true, clears `functionList` once the last function is executed.
