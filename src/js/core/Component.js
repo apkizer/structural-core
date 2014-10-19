@@ -10,16 +10,16 @@ S.Component.prototype = Object.create(S.EventEmitter.prototype);
 
 Object.defineProperty(S.Component.prototype, 'state', {
     get: function () {
-        var ret;
-        if(this.prepareState)
-            ret = this.prepareState(this._state) || this._state;
-        return ret;
+        var val;
+        if(this.onGetState)
+            val = this.onGetState(this._state) || this._state;
+        return val;
     },
     set: function (state) {
-        var toSet;
-        if (this.handleState)
-            toSet = this.handleState(state) || state;
-        this._state = toSet;
+        var val;
+        if (this.onSetState)
+            val = this.onSetState(state) || state;
+        this._state = val;
     }
 });
 

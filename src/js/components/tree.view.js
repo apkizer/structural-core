@@ -147,7 +147,7 @@ S.TreeView = (function () {
     };
 
     TreeView.prototype.add = function (parent, direction, value, fn) {
-        var parent = this.component.getNode(parent.sid),
+        var parent = this.component.getNodeById(parent.id),
             _ = this.view._;
         this.scale({
             width: _.width,
@@ -222,14 +222,14 @@ S.TreeView = (function () {
     };
 
     TreeView.prototype.focus = function (node, fn) {
-        node = this.view.component.getNode(node.sid);
+        node = this.view.component.getNodeById(node.id);
         if (node)
             this.view._.data(node).element.addClass('focus');
         fn();
     };
 
     TreeView.prototype.unfocus = function (node, fn) {
-        node = this.view.component.getNode(node.sid);
+        node = this.view.component.getNodeById(node.id);
         if (node)
             this.view._.data(node).element.removeClass('focus');
         fn();

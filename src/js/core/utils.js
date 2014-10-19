@@ -16,22 +16,22 @@ S.extend = function () {
 }
 
 S.nextId = function () {
-    return 'sid_' + id++;
+    return 'id_' + id++;
 }
 
 S.map = function () {
     var values = {},
         keys = {},
         map = function (key, value) {
-            if (!key.sid)
-                throw new Error('S.map() requires sid property. Use S.nextId().');
+            if (!key.id)
+                throw new Error('S.map() requires id property. Use S.nextId().');
             if (typeof value === 'undefined') {
-                if (!values[key.sid])
-                    values[key.sid] = {};
-                return values[key.sid];
+                if (!values[key.id])
+                    values[key.id] = {};
+                return values[key.id];
             }
-            values[key.sid] = value;
-            keys[key.sid] = key;
+            values[key.id] = value;
+            keys[key.id] = key;
         };
 
     map.clear = function () {
@@ -40,22 +40,22 @@ S.map = function () {
     };
 
     map.delete = function (key) {
-        if (!key.sid)
-            throw new Error('S.map() requires sid property. Use S.nextId().');
-        delete values[key.sid];
+        if (!key.id)
+            throw new Error('S.map() requires id property. Use S.nextId().');
+        delete values[key.id];
     };
 
     map.has = function (key) {
-        if (!key.sid)
-            throw new Error('S.map() requires sid property. Use S.nextId().');
-        return typeof values[key.sid] !== 'undefined';
+        if (!key.id)
+            throw new Error('S.map() requires id property. Use S.nextId().');
+        return typeof values[key.id] !== 'undefined';
     }
 
     map.forEach = function (fn, thisArg) {
         if (!thisArg)
             thisArg = {};
-        for (var sid in values) {
-            fn.call(thisArg, [keys[sid], values[sid]]);
+        for (var id in values) {
+            fn.call(thisArg, [keys[id], values[id]]);
         }
     }
 
