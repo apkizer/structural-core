@@ -461,14 +461,14 @@ S.Array = (function () {
     function Array(state, view) {
         this.alias = 'array';
         S.Component.call(this, state, view);
-        this.state.flags = [];
     }
 
     Array.prototype = Object.create(S.Component.prototype);
     Array.prototype.constructor = Array;
 
     Array.prototype.onSetState = function (state) {
-        return [].concat(state);
+        var ret = [].concat(state);
+        ret.flags = [];
     }
 
     Array.prototype.onGetState = function (state) {
@@ -1120,12 +1120,12 @@ S.TreeView = (function () {
     };
 
     TreeView.prototype.drawGridDots = function () {
-        for (var i = -2 * this._.mh; i < this._.svg.attr('width'); i += this._.mh * .5) {
-            for (var j = 0; j < this._.svg.attr('height'); j += this._.mv) {
+        /*for(var i = - 2 * this._.mh; i < this._.svg.attr('width'); i += this._.mh * .5) {
+            for(var j = 0; j < this._.svg.attr('height'); j += this._.mv) {
                 this._.svg.circle(this._.x0 + i, this._.y0 + j, 2)
                     .attr('fill', '#000000');
             }
-        }
+        }*/
 
     }
 
@@ -1560,6 +1560,92 @@ S.TreeView = (function () {
 
 })();
 
+
+S.Heap = (function () {
+
+    function Heap(state, view) {
+        // assuming state is a valid heap
+        this.alias = 'heap';
+        this.tree = new S.Tree(this.makeTree(state, null, 0), view.treeView);
+        this.array = new S.Array(state, view.arrayView);
+        S.Component.call(this, state, view);
+    }
+
+    Heap.prototype = Object.create(S.Component.prototype);
+    Heap.prototype.constructor = Heap;
+
+    Heap.prototype.push = function (value, next) {
+        var oneFinished = false;
+        this.array.push(value, function () {
+            if (oneFinished)
+                next();
+            else
+                oneFinished = true;
+        });
+        var index = this.array.state.length - 1;
+        this.tree.add(this.getNodeByIndex(this.getParentIndex(index)),
+            getAvailableDirection(index), value, function () {
+                if (oneFinished)
+                    next();
+                else
+                    oneFinished = true;
+            });
+    }
+
+    Heap.prototype.makeTree = function (array, parent, index) {
+        if (index > array.length - 1)
+            return null;
+        // TODO don't pass in index for id, pass in id
+        var node = new S.Tree.Node(array[index], index, null, null);
+        node.left = this.makeTree(array, node, (index + 1) * 2 - 1);
+        node.right = this.makeTree(array, node, (index + 1) * 2);
+        node.parent = parent;
+        return node;
+    };
+
+    Heap.prototype.getParentIndex = function (index) {
+        return Math.floor((index + 1) / 2) - 1;
+    }
+
+    Heap.prototype.getAvailableDirection = function (index) {
+        if (index % 2 == 0)
+            return true;
+        return false;
+    };
+
+    Heap.prototype.getNodeByIndex = function (index) {
+
+    };
+
+
+
+    return Heap;
+
+})();
+
+
+S.HeapView = (function () {
+
+    function HeapView(element) {
+        S.View.call(this, element);
+        this.$element.append($('<div class="heap-tree" style="height: 75%;"></div>'));
+        this.$element.append($('<div class="heap-array" style="height: 25%;"></div>'));
+        this.treeElement = this.$element.find('.heap-tree');
+        this.arrayElement = this.$element.find('.heap-array');
+        this.treeView = new S.TreeView(this.treeElement);
+        this.arrayView = new S.ArrayView(this.arrayElement);
+    };
+
+    HeapView.prototype = Object.create(S.View.prototype);
+    HeapView.prototype.constructor = HeapView;
+
+    HeapView.prototype.init = function () {
+
+    };
+
+    return HeapView;
+
+})();
 
 /*S.method('array', 'searchLinear', function (target) {
     for (var i = 0; i < this.getLength(); i++) {

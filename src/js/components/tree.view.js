@@ -83,12 +83,12 @@ S.TreeView = (function () {
     };
 
     TreeView.prototype.drawGridDots = function () {
-        for(var i = - 2 * this._.mh; i < this._.svg.attr('width'); i += this._.mh * .5) {
+        /*for(var i = - 2 * this._.mh; i < this._.svg.attr('width'); i += this._.mh * .5) {
             for(var j = 0; j < this._.svg.attr('height'); j += this._.mv) {
                 this._.svg.circle(this._.x0 + i, this._.y0 + j, 2)
                     .attr('fill', '#000000');
             }
-        }
+        }*/
 
     }
 

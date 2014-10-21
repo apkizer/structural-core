@@ -16,7 +16,14 @@ module.exports = function(grunt) {
                     'src/js/core/View.js',
                     'src/js/core/deferred/AsyncFunctionQueue.js',
                     'src/js/core/deferred/Deferred.js',
-                    'src/js/components/*.js',
+                    //'src/js/components/*.js',
+                    'src/js/components/array.js',
+                    'src/js/components/array.view.js',
+                    'src/js/components/tree.js',
+                    'src/js/components/tree.view.js',
+                    'src/js/components/heap.js',
+                    'src/js/components/heap.view.js',
+                    
                     'src/js/algorithms/*.js'
                      ],
                 dest: 'build/structural.js'
