@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Heap</title>
+    <script type="text/javascript" src="../lib/snap.svg-min.js"></script>
+    <script type="text/javascript" src="../lib/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../build/structural.js"></script>
+    <link rel="stylesheet" href="../build/structural.css"/>
+    <style type="text/css">
+    .heap-tree {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 50%;
+    }
+
+    .heap-array {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        bottom: 0;
+    }
+
+    </style>
+    <script type="text/javascript">
+        $(document).ready(function() {
+
+            var array = [2, 58, 92, 38, 44, 9];
+
+
+            var heapView = new S.HeapView($('.heap-div'));
+            var heap = new S.Heap(array, heapView);
+            heapView.init();
+            //heap.init();
+
+        });
+    </script>
+
+</head>
+<body>
+<div class="heap-div" style="width: 800px; height: 600px;">
+</div>
+</body>
+</html>
