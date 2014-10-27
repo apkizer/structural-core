@@ -34,10 +34,6 @@ window.S = (function () {
         return last.value;
     };
 
-    /*S.modifier = function(component, func) {
-     S.define('components.' + component + '.modifiers')
-     }*/
-
     S.component = function (name, ctor) {
         if (ctor)
             S.defineComponent(name, ctor);
@@ -61,12 +57,6 @@ window.S = (function () {
             name: name,
             func: func
         });
-    };
-
-    S.components = function (name) {
-        if (typeof S.get('components.' + name) === 'function') {
-
-        }
     };
 
     S.EventEmitter = function () {

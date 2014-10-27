@@ -15,4 +15,4 @@ S.View.prototype.enableInteractivity = function () {
 
 S.View.prototype.disableInteractivity = function () {
     this.interactive = false;
-}
+};
