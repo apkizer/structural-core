@@ -89,7 +89,6 @@ S.ArrayView = (function () {
         var self = this;
         this.$cells.click(function (e) {
             if (!self.interactive) return;
-            console.log('handleTdClick');
             self.focus($(this).data('index'));
         });
         this.$cells.dblclick(function (e) {

@@ -3,8 +3,9 @@ S.Heap = (function () {
     function Heap (state, view) {
         // assuming state is a valid heap
         this.alias = 'heap';
-        this.tree = new S.Tree(this.makeTree(state, null, 0), view.treeView);
-        this.array = new S.Array(state, view.arrayView);
+        this.nodesByIndex = [];
+        this.tree = new S.Tree(this.makeTree(state, null, 0), view ? view.treeView : null);
+        this.array = new S.Array(state, view ? view.arrayView : null);
         S.Component.call(this, state, view);
     }
 
@@ -27,7 +28,7 @@ S.Heap = (function () {
                 else
                     oneFinished = true;
             });
-    }
+    };
     Heap.prototype.push.live = true;
 
     Heap.prototype.makeTree = function (array, parent, index) {
@@ -38,6 +39,7 @@ S.Heap = (function () {
         node.left = this.makeTree(array, node, (index + 1) * 2 - 1);
         node.right = this.makeTree(array, node, (index + 1) * 2);
         node.parent = parent;
+        this.nodesByIndex[index] = node;
         return node;
     };
 
@@ -52,9 +54,37 @@ S.Heap = (function () {
     };
 
     Heap.prototype.getNodeByIndex = function (index) {
-
+        return this.nodesByIndex[index];
     };
 
+    Heap.prototype.getLength = function (fn) {
+        //this.array.getLength(fn);
+        if(this.array.view)
+            this.array.getLength(fn);
+        else
+            return this.array.getLength();
+    };
+
+    Heap.prototype.getLength.live = true;
+
+
+    Heap.prototype.focus = function (index, next) {
+        var oneFinished = false;
+        this.tree.focus(this.getNodeByIndex(index), function () {
+            if(oneFinished)
+                next();
+            else
+                oneFinished = true;
+        });
+        this.array.focus(index, function() {
+            if(oneFinished)
+                next();
+            else
+                oneFinished = true;
+        });
+    };
+
+    Heap.prototype.focus.live = true;
 
 
     return Heap;

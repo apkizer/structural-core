@@ -99,7 +99,7 @@ window.S = (function () {
         var values = {},
             keys = {},
             map = function (key, value) {
-                if (!key.id)
+                if (typeof key.id === 'undefined')
                     throw new Error('S.map() requires id property');
                 if (typeof value === 'undefined') {
                     if (!values[key.id])

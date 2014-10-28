@@ -34,10 +34,6 @@ window.S = (function () {
         return last.value;
     };
 
-    /*S.modifier = function(component, func) {
-     S.define('components.' + component + '.modifiers')
-     }*/
-
     S.component = function (name, ctor) {
         if (ctor)
             S.defineComponent(name, ctor);
@@ -61,12 +57,6 @@ window.S = (function () {
             name: name,
             func: func
         });
-    };
-
-    S.components = function (name) {
-        if (typeof S.get('components.' + name) === 'function') {
-
-        }
     };
 
     S.EventEmitter = function () {
@@ -109,7 +99,7 @@ window.S = (function () {
         var values = {},
             keys = {},
             map = function (key, value) {
-                if (!key.id)
+                if (typeof key.id === 'undefined')
                     throw new Error('S.map() requires id property');
                 if (typeof value === 'undefined') {
                     if (!values[key.id])
@@ -158,8 +148,8 @@ window.S = (function () {
     return S;
 })();
 
+
 S.Component = function (state, view) {
-    console.info('Component constructor');
     if (state)
         this.state = state;
     if (view)
@@ -194,34 +184,8 @@ Object.defineProperty(S.Component.prototype, 'view', {
     }
 });
 
-/**
- * Convenience method. Makes all properties set to null on this.live view-only methods.
- */
-// TODO
-S.Component.prototype.makeViewOnly = function () {
-    for (var property in this.live) {
-        if (this.live.hasOwnProperty(property) && property === null) {
-            this.live[property] = (function (property) {
-                var fn = function () {
-                    this.view.live[property].apply(this.view.live, Array.prototype.slice.call(arguments));
-                };
-            })(property);
-        }
-    }
-};
+S.Component.prototype.init = function () {}
 
-S.Component.prototype.bindLive = function () {
-    for (var property in this.live) {
-        if (!this.live.hasOwnProperty(property) || typeof this.live[property] !== 'function')
-            continue;
-        this.live[property].bind(this);
-    }
-};
-
-S.Component.prototype.init = function () {
-    // this.makeViewOnly(); // TODO
-    // this.bindLive(); // TODO
-}
 
 S.View = function (element) {
     this.$element = element instanceof jQuery ? element : jQuery(element);
@@ -240,7 +204,7 @@ S.View.prototype.enableInteractivity = function () {
 
 S.View.prototype.disableInteractivity = function () {
     this.interactive = false;
-}
+};
 
 
 S.AsyncFunctionQueue = (function () {
@@ -641,7 +605,6 @@ S.ArrayView = (function () {
         var self = this;
         this.$cells.click(function (e) {
             if (!self.interactive) return;
-            console.log('handleTdClick');
             self.focus($(this).data('index'));
         });
         this.$cells.dblclick(function (e) {
@@ -844,6 +807,7 @@ S.Tree = (function () {
     function Tree(state, view) {
         this.alias = 'tree';
         this.nodes = {};
+
         S.Component.call(this, state, view);
     }
 
@@ -971,6 +935,7 @@ S.Tree = (function () {
     Tree.prototype.label.live = true;
 
     Tree.prototype.focus = function (node, next) {
+        console.log('tree has view? ' + !!this._view);
         if (this._view) this._view.focus(node, next);
     };
     Tree.prototype.focus.live = true;
@@ -1009,7 +974,7 @@ S.Tree = (function () {
     };
 
     Tree.prototype.getNodeById = function (idOrObject) {
-        var id = typeof idOrObject === 'string' ? idOrObject : idOrObject.id;
+        var id = typeof idOrObject === 'object' ? idOrObject.id : idOrObject;
         return this.nodes[id];
     };
 
@@ -1027,7 +992,7 @@ S.Tree = (function () {
         var id = this.lastId;
         this.lastId++;
         if (this._state) this._state.lastId = this.lastId;
-        return this.lastId;
+        return id;
     };
 
     return Tree;
@@ -1103,14 +1068,18 @@ S.TreeView = (function () {
             height: _.height
         });
         TreeView.rg(this.component.state);
-        this._drawLines(this.component.state);
         this.allNodes(this.component.state, function (node) {
             // transform the node coordinates to appropriate coordinates and delete the position properties
             _.data(node).x = _.x0 + node.x * _.mh / 2;
             _.data(node).y = _.y0 + node.y * _.mv;
+            console.log("" + _.data(node).x + ", " + _.data(node).y);
             delete node.x;
             delete node.y;
+        });
+        this._drawLines(this.component.state);
+        this.allNodes(this.component.state, function (node) {
             console.log('drawing node with value ' + node.value);
+            console.log("" + _.data(node).x + ", " + _.data(node).y);
             _.data(node).element = self._drawNode(node, _.data(node).x, _.data(node).y);
             _.data(node).s_value = self._drawValue(node.value, _.data(node).x, _.data(node).y);
             _.data(node).s_height = self._drawHeight(node.height, _.data(node).x, _.data(node).y);
@@ -1260,8 +1229,9 @@ S.TreeView = (function () {
 
     TreeView.prototype.focus = function (node, fn) {
         node = this.view.component.getNodeById(node.id);
-        if (node)
+        if (node) {
             this.view._.data(node).element.addClass('focus');
+        }
         fn();
     };
 
@@ -1566,8 +1536,9 @@ S.Heap = (function () {
     function Heap(state, view) {
         // assuming state is a valid heap
         this.alias = 'heap';
-        this.tree = new S.Tree(this.makeTree(state, null, 0), view.treeView);
-        this.array = new S.Array(state, view.arrayView);
+        this.nodesByIndex = [];
+        this.tree = new S.Tree(this.makeTree(state, null, 0), view ? view.treeView : null);
+        this.array = new S.Array(state, view ? view.arrayView : null);
         S.Component.call(this, state, view);
     }
 
@@ -1584,13 +1555,15 @@ S.Heap = (function () {
         });
         var index = this.array.state.length - 1;
         this.tree.add(this.getNodeByIndex(this.getParentIndex(index)),
-            getAvailableDirection(index), value, function () {
+            getAvailableDirection(index), value,
+            function () {
                 if (oneFinished)
                     next();
                 else
                     oneFinished = true;
             });
-    }
+    };
+    Heap.prototype.push.live = true;
 
     Heap.prototype.makeTree = function (array, parent, index) {
         if (index > array.length - 1)
@@ -1600,6 +1573,7 @@ S.Heap = (function () {
         node.left = this.makeTree(array, node, (index + 1) * 2 - 1);
         node.right = this.makeTree(array, node, (index + 1) * 2);
         node.parent = parent;
+        this.nodesByIndex[index] = node;
         return node;
     };
 
@@ -1614,9 +1588,37 @@ S.Heap = (function () {
     };
 
     Heap.prototype.getNodeByIndex = function (index) {
-
+        return this.nodesByIndex[index];
     };
 
+    Heap.prototype.getLength = function (fn) {
+        //this.array.getLength(fn);
+        if (this.array.view)
+            this.array.getLength(fn);
+        else
+            return this.array.getLength();
+    };
+
+    Heap.prototype.getLength.live = true;
+
+
+    Heap.prototype.focus = function (index, next) {
+        var oneFinished = false;
+        this.tree.focus(this.getNodeByIndex(index), function () {
+            if (oneFinished)
+                next();
+            else
+                oneFinished = true;
+        });
+        this.array.focus(index, function () {
+            if (oneFinished)
+                next();
+            else
+                oneFinished = true;
+        });
+    };
+
+    Heap.prototype.focus.live = true;
 
 
     return Heap;

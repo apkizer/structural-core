@@ -3,6 +3,7 @@ S.Tree = (function () {
     function Tree (state, view) {
         this.alias = 'tree';
         this.nodes = {};
+
         S.Component.call(this, state, view);
     }
 
@@ -168,7 +169,7 @@ S.Tree = (function () {
     };
 
     Tree.prototype.getNodeById = function (idOrObject) {
-        var id = typeof idOrObject === 'string' ? idOrObject : idOrObject.id;
+        var id = typeof idOrObject === 'object' ? idOrObject.id : idOrObject;
         return this.nodes[id];
     };
 
@@ -186,7 +187,7 @@ S.Tree = (function () {
         var id = this.lastId;
         this.lastId++;
         if(this._state) this._state.lastId = this.lastId;
-        return this.lastId;
+        return id;
     };
 
     return Tree;

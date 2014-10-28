@@ -52,7 +52,6 @@ S.TreeView = (function () {
     };
 
     TreeView.prototype.render = function () {
-        console.log('state is ');
         console.dir(this.component.state);
         var self = this,
             _ = self._;
@@ -66,14 +65,15 @@ S.TreeView = (function () {
             height: _.height
         });
         TreeView.rg(this.component.state);
-        this._drawLines(this.component.state);
         this.allNodes(this.component.state, function (node) {
             // transform the node coordinates to appropriate coordinates and delete the position properties
             _.data(node).x = _.x0 + node.x * _.mh / 2;
             _.data(node).y = _.y0 + node.y * _.mv;
             delete node.x;
             delete node.y;
-            console.log('drawing node with value ' + node.value);
+        });
+        this._drawLines(this.component.state);
+        this.allNodes(this.component.state, function (node) {
             _.data(node).element = self._drawNode(node, _.data(node).x, _.data(node).y);
             _.data(node).s_value = self._drawValue(node.value, _.data(node).x, _.data(node).y);
             _.data(node).s_height = self._drawHeight(node.height, _.data(node).x, _.data(node).y);
@@ -223,8 +223,9 @@ S.TreeView = (function () {
 
     TreeView.prototype.focus = function (node, fn) {
         node = this.view.component.getNodeById(node.id);
-        if (node)
+        if (node) {
             this.view._.data(node).element.addClass('focus');
+        }
         fn();
     };
 
@@ -285,7 +286,6 @@ S.TreeView = (function () {
     };
 
     TreeView.prototype.label = function (node, label, fn) {
-        console.log('trying to label ' + node.value);
         var _ = this.view._;
         if (node && _.data(node)) {
             _.data(node).label = label;

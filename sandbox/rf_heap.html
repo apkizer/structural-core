@@ -33,8 +33,21 @@
             var heapView = new S.HeapView($('.heap-div'));
             var heap = new S.Heap(array, heapView);
             heapView.init();
-            //heap.init();
+        
+            S.method(function (heap) {
+                for(var i = 0; i < heap.getLength(); i++) {
+                    this.flog('i: ' + i);
+                    heap.focus(i);
+                }
+            }, 'focusEach', 'heap');
 
+            window.queue = new S.AsyncFunctionQueue();
+            window.deferred = new S.Deferred(queue);
+            deferred.include(heap, new S.Heap(array), {
+                name: 'heap'
+            });
+            window.actual = heap;
+            window.heap = deferred.handle.heap;
         });
     </script>
 
