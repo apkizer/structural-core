@@ -9,9 +9,14 @@
     <script type="text/javascript">
         $(document).ready(function() {
             var state = [12, 3, 97, 16, 82, 39, 71, 92];
-            console.log('creating array view');
-            var view = new S.ArrayView('.array-div');
-            var array = new S.Array(state, view);
+
+            var startingState = {
+                array: state
+            };
+
+            var view = new S.ArrayView(null, '.array-div');
+            var array = new S.Array(startingState, view);
+            view.render();
 
             function markEach(array) {
                 for(var i = 0; i < array.getLength(); i++) {
@@ -26,7 +31,7 @@
 
             window.queue = new S.AsyncFunctionQueue();
             window.deferred = new S.Deferred(queue);
-            deferred.include(array, new S.Array(state), {
+            deferred.include(array, new S.Array(array.state), {
                 name: 'array'
             });
 

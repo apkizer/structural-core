@@ -1,6 +1,7 @@
 S.ArrayView = (function () {
-    function ArrayView(element) {
-        S.View.call(this, element);
+
+    function ArrayView(state, element) {
+        S.View.call(this, state, element);
         this.options = {
             hiddenDelimiter: ',',
             numElements: 5,
@@ -22,18 +23,17 @@ S.ArrayView = (function () {
         this.border = 0;
         this.computedCellWidth = null;
         this.height = null;
-    }
-
-    ArrayView.prototype = Object.create(S.View.prototype);
-    ArrayView.prototype.constructor = ArrayView;
-
-    ArrayView.prototype.init = function () {
         this.$e = $('<div class="array"></div>');
         this.scaleTo({
             width: this.$element.width(),
             height: this.$element.height()
         });
-    };
+        if(this.state)
+            this.render();
+    }
+
+    ArrayView.prototype = Object.create(S.View.prototype);
+    ArrayView.prototype.constructor = ArrayView;
 
     ArrayView.prototype.scaleTo = function (dimensions) {
         this.width = dimensions.width;
@@ -41,8 +41,7 @@ S.ArrayView = (function () {
         this.$e.css('width', dimensions.width);
         this.$e.css('height', dimensions.height);
         this.computedCellWidth = Math.floor(this.width / this.options.numElements) - this.border;
-        this.render();
-    }
+    };
 
     ArrayView.prototype.render = function () {
         this.clear();
@@ -62,8 +61,8 @@ S.ArrayView = (function () {
             fontSize: Math.round(this.$table.height() * .25)
         });
 
-        for (var i = 0; i < this.component.state.length; i++) {
-            var $td = $('<td>' + this.component.state[i] + '<span style="font-size: 0;">' + this.options.hiddenDelimiter + '</span></td>'),
+        for (var i = 0; i < this.state.array.length; i++) {
+            var $td = $('<td>' + this.state.array[i] + '<span style="font-size: 0;">' + this.options.hiddenDelimiter + '</span></td>'),
                 $th = $('<th>' + i + '</th>');
             $td.data('index', i);
             $th.data('index', i);
@@ -100,7 +99,7 @@ S.ArrayView = (function () {
         });
     };
     ArrayView.prototype.focus = function (index, fn) {
-        if (index < 0 || index > this.component.state.length - 1)
+        if (index < 0 || index > this.state.array.length - 1)
             return;
         this.$cells.removeClass('focus');
         this.$indices.removeClass('focus');
@@ -159,8 +158,8 @@ S.ArrayView = (function () {
     ArrayView.prototype.setItem.live = true;
 
     ArrayView.prototype.push = function (item, fn) {
-        var $added = this.addItem(item, this.component.state.length - 1);
-        this.leftTo(this.component.state.length - 1, function () {
+        var $added = this.addItem(item, this.state.array.length - 1);
+        this.leftTo(this.state.array.length - 1, function () {
             $added.animate({
                 opacity: 1
             }, 200, function () {
@@ -194,15 +193,15 @@ S.ArrayView = (function () {
             return;
         if (index <= 0)
             index = 0;
-        if (index >= this.component.state.length - 1)
-            index = this.component.state.length - 1;
+        if (index >= this.state.array.length - 1)
+            index = this.state.array.length - 1;
         var time = Math.min(Math.abs(index - this.leftBound) * this.options.stepTime, this.options.maxScrollTime);
         if (index == 0) {
             this.leftBound = 0;
             this.rightBound = this.options.numElements - 1;
-        } else if (index > this.component.state.length - this.options.numElements) {
-            this.leftBound = this.component.state.length - this.options.numElements;
-            this.rightBound = this.component.state.length - 1;
+        } else if (index > this.state.array.length - this.options.numElements) {
+            this.leftBound = this.state.array.length - this.options.numElements;
+            this.rightBound = this.state.array.length - 1;
         } else {
             this.leftBound = index;
             this.rightBound = index + this.options.numElements - 1;
@@ -216,15 +215,15 @@ S.ArrayView = (function () {
             return;
         if (index <= 0)
             index = 0;
-        if (index >= this.component.state.length - 1)
-            index = this.component.state.length - 1;
+        if (index >= this.state.array.length - 1)
+            index = this.state.array.length - 1;
         var time = Math.min(Math.abs(index - this.leftBound) * this.options.stepTime, this.options.maxScrollTime);
         if (index <= this.options.numElements - 1) {
             this.leftBound = 0;
             this.rightBound = this.options.numElements - 1;
-        } else if (index == this.component.state.length - 1) {
-            this.leftBound = this.component.state.length - this.options.numElements;
-            this.rightBound = this.component.state.length - 1;
+        } else if (index == this.state.array.length - 1) {
+            this.leftBound = this.state.array.length - this.options.numElements;
+            this.rightBound = this.state.array.length - 1;
         } else {
             this.leftBound = index - this.options.numElements + 1;
             this.rightBound = index;
@@ -233,8 +232,8 @@ S.ArrayView = (function () {
     }
 
     ArrayView.prototype.pageRight = function () {
-        this.leftBound = this.leftBound + this.options.numElements <= this.component.state.length - this.options.numElements ? this.leftBound + this.options.numElements : this.component.state.length - this.options.numElements;
-        this.rightBound = this.rightBound + this.options.numElements <= this.component.state.length - 1 ? this.rightBound + this.options.numElements : this.component.state.length - 1;
+        this.leftBound = this.leftBound + this.options.numElements <= this.state.array.length - this.options.numElements ? this.leftBound + this.options.numElements : this.state.array.length - this.options.numElements;
+        this.rightBound = this.rightBound + this.options.numElements <= this.state.array.length - 1 ? this.rightBound + this.options.numElements : this.state.array.length - 1;
         page(true);
     }
 
@@ -245,8 +244,8 @@ S.ArrayView = (function () {
     }
 
     ArrayView.prototype.right = function () {
-        this.leftBound = this.leftBound + 1 <= this.component.state.length - this.options.numElements ? this.leftBound + 1 : this.component.state.length - this.options.numElements;
-        this.rightBound = this.rightBound + 1 <= this.component.state.length - 1 ? this.rightBound + 1 : this.component.state.length - 1;
+        this.leftBound = this.leftBound + 1 <= this.state.array.length - this.options.numElements ? this.leftBound + 1 : this.state.array.length - this.options.numElements;
+        this.rightBound = this.rightBound + 1 <= this.state.array.length - 1 ? this.rightBound + 1 : this.state.array.length - 1;
         this.step(true);
     }
 

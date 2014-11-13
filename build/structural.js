@@ -150,49 +150,46 @@ window.S = (function () {
 
 
 S.Component = function (state, view) {
-    if (state)
+    if (state) {
         this.state = state;
-    if (view)
+    }
+    if (view) {
         this.view = view;
+        this.view.state = this.state;
+    }
 };
 
 S.Component.prototype = Object.create(S.EventEmitter.prototype);
+S.Component.prototype.constructor = S.Component;
 
 Object.defineProperty(S.Component.prototype, 'state', {
     get: function () {
-        var val;
+        var val = this._state;
         if (this.onGetState)
-            val = this.onGetState(this._state) || this._state;
+            val = this.onGetState(val) || val;
         return val;
     },
     set: function (state) {
-        var val;
+        var val = state;
         if (this.onSetState)
-            val = this.onSetState(state) || state;
+            val = this.onSetState(val) || val;
         this._state = val;
     }
 });
 
-Object.defineProperty(S.Component.prototype, 'view', {
-    get: function () {
-        return this._view;
-    },
-    set: function (view) {
-        this._view = view;
-        view.component = this;
-        view.init();
-    }
-});
 
-S.Component.prototype.init = function () {}
-
-
-S.View = function (element) {
+S.View = function (state, element) {
     this.$element = element instanceof jQuery ? element : jQuery(element);
+    this.state = state;
     this.interactive = true;
 };
 
 S.View.prototype = Object.create(S.EventEmitter.prototype);
+S.View.prototype.constructor = S.View;
+
+S.View.prototype.onResize = function () {
+
+};
 
 S.View.prototype.clear = function () {
     this.$element.empty();
@@ -431,8 +428,12 @@ S.Array = (function () {
     Array.prototype.constructor = Array;
 
     Array.prototype.onSetState = function (state) {
-        var ret = [].concat(state);
-        ret.flags = [];
+        var returnState = {};
+        returnState.array = [].concat(state.array);
+        console.log('array.onSetState state.array is ');
+        console.dir(returnState.array);
+        returnState.flags = [];
+        return returnState;
     }
 
     Array.prototype.onGetState = function (state) {
@@ -440,10 +441,12 @@ S.Array = (function () {
     }
 
     Array.prototype.getLength = function (next) {
+        console.log('getLength length is %s', this.state.array.length);
+        console.dir(this.state.array);
         if (this.view)
-            next(this.state.length);
+            next(this.state.array.length);
         else
-            return this.state.length;
+            return this.state.array.length;
     };
     Array.prototype.getLength.live = true;
 
@@ -455,15 +458,15 @@ S.Array = (function () {
     Array.prototype.flag.live = true;
 
     Array.prototype.flagged = function (index, next) {
-        if (this.view)
+        /*if (this.view)
             next(this.state.length);
         else
-            return this.state.flags[index];
+            return this.state.flags[index];*/
     };
     Array.prototype.flagged.true;
 
     Array.prototype.setItem = function (index, value, next) {
-        this.state[index] = value;
+        this.state.array[index] = value;
         if (this.view)
             this.view.setItem(index, value, next);
     };
@@ -471,14 +474,14 @@ S.Array = (function () {
 
     Array.prototype.getItem = function (index, next) {
         if (this.view)
-            next(this.state[index]);
+            next(this.state.array[index]);
         else
-            return this.state[index];
+            return this.state.array[index];
     };
     Array.prototype.getItem.live = true;
 
     Array.prototype.push = function (item, next) {
-        this.state.push(item);
+        this.state.array.push(item);
         if (this.view)
             this.view.push(item, next);
     };
@@ -515,8 +518,9 @@ S.Array = (function () {
 })();
 
 S.ArrayView = (function () {
-    function ArrayView(element) {
-        S.View.call(this, element);
+
+    function ArrayView(state, element) {
+        S.View.call(this, state, element);
         this.options = {
             hiddenDelimiter: ',',
             numElements: 5,
@@ -538,18 +542,17 @@ S.ArrayView = (function () {
         this.border = 0;
         this.computedCellWidth = null;
         this.height = null;
-    }
-
-    ArrayView.prototype = Object.create(S.View.prototype);
-    ArrayView.prototype.constructor = ArrayView;
-
-    ArrayView.prototype.init = function () {
         this.$e = $('<div class="array"></div>');
         this.scaleTo({
             width: this.$element.width(),
             height: this.$element.height()
         });
-    };
+        if (this.state)
+            this.render();
+    }
+
+    ArrayView.prototype = Object.create(S.View.prototype);
+    ArrayView.prototype.constructor = ArrayView;
 
     ArrayView.prototype.scaleTo = function (dimensions) {
         this.width = dimensions.width;
@@ -557,8 +560,7 @@ S.ArrayView = (function () {
         this.$e.css('width', dimensions.width);
         this.$e.css('height', dimensions.height);
         this.computedCellWidth = Math.floor(this.width / this.options.numElements) - this.border;
-        this.render();
-    }
+    };
 
     ArrayView.prototype.render = function () {
         this.clear();
@@ -578,8 +580,8 @@ S.ArrayView = (function () {
             fontSize: Math.round(this.$table.height() * .25)
         });
 
-        for (var i = 0; i < this.component.state.length; i++) {
-            var $td = $('<td>' + this.component.state[i] + '<span style="font-size: 0;">' + this.options.hiddenDelimiter + '</span></td>'),
+        for (var i = 0; i < this.state.array.length; i++) {
+            var $td = $('<td>' + this.state.array[i] + '<span style="font-size: 0;">' + this.options.hiddenDelimiter + '</span></td>'),
                 $th = $('<th>' + i + '</th>');
             $td.data('index', i);
             $th.data('index', i);
@@ -616,7 +618,7 @@ S.ArrayView = (function () {
         });
     };
     ArrayView.prototype.focus = function (index, fn) {
-        if (index < 0 || index > this.component.state.length - 1)
+        if (index < 0 || index > this.state.array.length - 1)
             return;
         this.$cells.removeClass('focus');
         this.$indices.removeClass('focus');
@@ -675,8 +677,8 @@ S.ArrayView = (function () {
     ArrayView.prototype.setItem.live = true;
 
     ArrayView.prototype.push = function (item, fn) {
-        var $added = this.addItem(item, this.component.state.length - 1);
-        this.leftTo(this.component.state.length - 1, function () {
+        var $added = this.addItem(item, this.state.array.length - 1);
+        this.leftTo(this.state.array.length - 1, function () {
             $added.animate({
                 opacity: 1
             }, 200, function () {
@@ -710,15 +712,15 @@ S.ArrayView = (function () {
             return;
         if (index <= 0)
             index = 0;
-        if (index >= this.component.state.length - 1)
-            index = this.component.state.length - 1;
+        if (index >= this.state.array.length - 1)
+            index = this.state.array.length - 1;
         var time = Math.min(Math.abs(index - this.leftBound) * this.options.stepTime, this.options.maxScrollTime);
         if (index == 0) {
             this.leftBound = 0;
             this.rightBound = this.options.numElements - 1;
-        } else if (index > this.component.state.length - this.options.numElements) {
-            this.leftBound = this.component.state.length - this.options.numElements;
-            this.rightBound = this.component.state.length - 1;
+        } else if (index > this.state.array.length - this.options.numElements) {
+            this.leftBound = this.state.array.length - this.options.numElements;
+            this.rightBound = this.state.array.length - 1;
         } else {
             this.leftBound = index;
             this.rightBound = index + this.options.numElements - 1;
@@ -732,15 +734,15 @@ S.ArrayView = (function () {
             return;
         if (index <= 0)
             index = 0;
-        if (index >= this.component.state.length - 1)
-            index = this.component.state.length - 1;
+        if (index >= this.state.array.length - 1)
+            index = this.state.array.length - 1;
         var time = Math.min(Math.abs(index - this.leftBound) * this.options.stepTime, this.options.maxScrollTime);
         if (index <= this.options.numElements - 1) {
             this.leftBound = 0;
             this.rightBound = this.options.numElements - 1;
-        } else if (index == this.component.state.length - 1) {
-            this.leftBound = this.component.state.length - this.options.numElements;
-            this.rightBound = this.component.state.length - 1;
+        } else if (index == this.state.array.length - 1) {
+            this.leftBound = this.state.array.length - this.options.numElements;
+            this.rightBound = this.state.array.length - 1;
         } else {
             this.leftBound = index - this.options.numElements + 1;
             this.rightBound = index;
@@ -749,8 +751,8 @@ S.ArrayView = (function () {
     }
 
     ArrayView.prototype.pageRight = function () {
-        this.leftBound = this.leftBound + this.options.numElements <= this.component.state.length - this.options.numElements ? this.leftBound + this.options.numElements : this.component.state.length - this.options.numElements;
-        this.rightBound = this.rightBound + this.options.numElements <= this.component.state.length - 1 ? this.rightBound + this.options.numElements : this.component.state.length - 1;
+        this.leftBound = this.leftBound + this.options.numElements <= this.state.array.length - this.options.numElements ? this.leftBound + this.options.numElements : this.state.array.length - this.options.numElements;
+        this.rightBound = this.rightBound + this.options.numElements <= this.state.array.length - 1 ? this.rightBound + this.options.numElements : this.state.array.length - 1;
         page(true);
     }
 
@@ -761,8 +763,8 @@ S.ArrayView = (function () {
     }
 
     ArrayView.prototype.right = function () {
-        this.leftBound = this.leftBound + 1 <= this.component.state.length - this.options.numElements ? this.leftBound + 1 : this.component.state.length - this.options.numElements;
-        this.rightBound = this.rightBound + 1 <= this.component.state.length - 1 ? this.rightBound + 1 : this.component.state.length - 1;
+        this.leftBound = this.leftBound + 1 <= this.state.array.length - this.options.numElements ? this.leftBound + 1 : this.state.array.length - this.options.numElements;
+        this.rightBound = this.rightBound + 1 <= this.state.array.length - 1 ? this.rightBound + 1 : this.state.array.length - 1;
         this.step(true);
     }
 
@@ -807,7 +809,6 @@ S.Tree = (function () {
     function Tree(state, view) {
         this.alias = 'tree';
         this.nodes = {};
-
         S.Component.call(this, state, view);
     }
 
@@ -822,22 +823,23 @@ S.Tree = (function () {
     };
 
     Tree.prototype.onSetState = function (state) {
-        this.lastId = state.lastId || 0;
-        var copiedTree = this.copy(state, null);
-        copiedTree.lastId = this.lastId;
-        this.computeHeights(copiedTree);
-        return copiedTree;
+        var returnState = {};
+        returnState.nextId = state.nextId || 0;
+        returnState.root = this.copyTree(state.root, null);
+        this.setNodeIds(returnState.root, returnState);
+        this.computeHeights(returnState.root);
+        return returnState;
     };
 
     Tree.prototype.onGetState = function (state) {
         return state;
-    }
+    };
 
     Tree.prototype.root = function (next) {
-        if (this._view)
-            next(this.state);
+        if (this.view)
+            next(this.state.root);
         else
-            return this.state;
+            return this.state.root;
     };
     Tree.prototype.root.live = true;
 
@@ -851,10 +853,10 @@ S.Tree = (function () {
             if (parent.left) return;
             added = parent.left = new Tree.Node(value, this.getNextNodeId(), null, null);
         }
-        this.setNodeById(added.id, added);
+        this.nodes[added.id] = added;
         this.computeHeights(this.state);
-        if (this._view)
-            this._view.add(parent, direction, value, function () {
+        if (this.view)
+            this.view.add(parent, direction, value, function () {
                 next(added);
             });
         else
@@ -871,16 +873,16 @@ S.Tree = (function () {
             node.parent.right = null;
         }
         this.computeHeights(this.state);
-        if (this._view)
-            this._view.remove(node, next);
+        if (this.view)
+            this.view.remove(node, next);
     };
     Tree.prototype.remove.live = true;
 
     Tree.prototype.set = function (node, value, next) {
         node = this.getNodeById(node);
         node.value = value;
-        if (this._view)
-            this._view.set(node, value, function () {
+        if (this.view)
+            this.view.set(node, value, function () {
                 next(node);
             });
         else
@@ -890,7 +892,7 @@ S.Tree = (function () {
 
     Tree.prototype.get = function (node, next) {
         node = this.getNodeById(node);
-        if (this._view)
+        if (this.view)
             next(node.value);
         else
             return node.value;
@@ -898,78 +900,80 @@ S.Tree = (function () {
     Tree.prototype.get.live = true;
 
     Tree.prototype.height = function (next) {
-        if (this._view)
+        if (this.view)
             next(this.computeHeights(this._state));
         return this.computeHeights(this._state);
     };
     Tree.prototype.height.live = true;
 
     Tree.prototype.mark = function (next) {
-        if (this._view) this._view.mark(next);
+        if (this.view) this.view.mark(next);
     };
     Tree.prototype.mark.live = true;
 
     Tree.prototype.markPath = function (next) {
-        if (this._view) this._view.markPath(next);
+        if (this.view) this.view.markPath(next);
     };
     Tree.prototype.markPath.live = true;
 
     Tree.prototype.clearPath = function (next) {
-        if (this._view) this._view.clearPath(next);
+        if (this.view) this.view.clearPath(next);
     };
     Tree.prototype.clearPath.live = true;
 
     Tree.prototype.clearLabels = function (next) {
-        if (this._view) this._view.clearLabels(next);
+        if (this.view) this.view.clearLabels(next);
     };
     Tree.prototype.clearLabels.live = true;
 
     Tree.prototype.travel = function (parent, direction, next) {
-        if (this._view) this._view.travel(parent, direction, next);
+        console.log('Travelling!');
+        if (this.view) this.view.travel(parent, direction, next);
     };
     Tree.prototype.travel.live = true;
 
     Tree.prototype.label = function (node, label, next) {
-        if (this._view) this._view.label(node, label, next);
+        if (this.view) this.view.label(node, label, next);
     };
     Tree.prototype.label.live = true;
 
     Tree.prototype.focus = function (node, next) {
-        console.log('tree has view? ' + !!this._view);
-        if (this._view) this._view.focus(node, next);
+        if (this.view) this.view.focus(node, next);
     };
     Tree.prototype.focus.live = true;
 
     Tree.prototype.unfocus = function (node, next) {
-        if (this._view) this._view.unfocus(node, next);
+        if (this.view) this.view.unfocus(node, next);
     };
     Tree.prototype.unfocus.live = true;
 
     Tree.prototype.clearFocus = function (node, next) {
-        if (this._view) this._view.clearFocus(node, next);
+        if (this.view) this.view.clearFocus(node, next);
     };
     Tree.prototype.clearFocus.live = true;
 
     Tree.prototype.display = function (options, next) {
-        if (this._view) this._view.display(options, next);
+        if (this.view) this.view.display(options, next);
     };
     Tree.prototype.display.live = true;
 
-    Tree.prototype.all = function (tree, fn) {
+    Tree.prototype.allNodes = function (tree, fn) {
         if (tree) {
             fn(tree);
-            this.all(tree.left, fn);
-            this.all(tree.right, fn);
+            this.allNodes(tree.left, fn);
+            this.allNodes(tree.right, fn);
         }
     };
 
-    Tree.prototype.copy = function (targetNode, parent) {
-        if (!targetNode) return null;
-        var node = new Tree.Node(targetNode.value, targetNode.id || this.getNextNodeId(), null, null);
-        node.parent = parent;
-        node.left = this.copy(targetNode.left, node);
-        node.right = this.copy(targetNode.right, node);
-        this.setNodeById(node.id, node);
+    Tree.prototype.copyTree = function (targetNode, parent) {
+        var node = null;
+        if (targetNode) {
+            node = new Tree.Node(targetNode.value, targetNode.id, null, null);
+            node.parent = parent;
+            node.left = this.copyTree(targetNode.left, node);
+            node.right = this.copyTree(targetNode.right, node);
+            this.nodes[node.id] = node;
+        }
         return node;
     };
 
@@ -988,11 +992,17 @@ S.Tree = (function () {
         return -1;
     };
 
-    Tree.prototype.getNextNodeId = function () {
-        var id = this.lastId;
-        this.lastId++;
-        if (this._state) this._state.lastId = this.lastId;
-        return id;
+    Tree.prototype.setNodeIds = function (root, state) {
+        if (root) {
+            if (typeof root.id === 'undefined')
+                root.id = this.getNextNodeId(state);
+            this.setNodeIds(root.left, state);
+            this.setNodeIds(root.right, state);
+        }
+    }
+
+    Tree.prototype.getNextNodeId = function (state) {
+        return state.nextId++;
     };
 
     return Tree;
@@ -1002,10 +1012,12 @@ S.Tree = (function () {
 
 S.TreeView = (function () {
 
-    function TreeView(element) {
-        S.View.call(this, element);
-        this._ = {};
-        this._.data = S.map();
+    function TreeView(state, element) {
+        S.View.call(this, state, element);
+        this.elementMap = {};
+        this.positionMap = {};
+        this.labelMap = {};
+        this.lastState = {};
         this.options = {
             classes: {
                 svg: 'tree-svg',
@@ -1019,100 +1031,112 @@ S.TreeView = (function () {
             },
             easings: {
                 remove: mina.easeinout
-            }
+            },
+            autoScale: true,
+            autoScaleOptions: {
+                proportionalTo: 'height',
+                scaleX: .1,
+                scaleY: .15,
+                nodeRadius: .05
+            },
+            offsetX: 0,
+            offsetY: 0,
+            scaleX: 75,
+            scaleY: 50,
+            nodeRadius: 32
         };
-        this.view = this;
+        if (this.state)
+            this.render();
     }
 
     TreeView.prototype = Object.create(S.View.prototype);
     TreeView.prototype.constructor = TreeView;
 
-    TreeView.prototype.init = function () {
-        this.scale({
+    TreeView.prototype.autoScale = function (width, height) {
+        var dimension = this.options.autoScaleOptions.proportionalTo == 'height' ? height : width;
+        this.options.nodeRadius = this.options.autoScaleOptions.nodeRadius * dimension;
+        this.options.offsetX = width / 2;
+        this.options.offsetY = this.options.nodeRadius;
+        this.options.scaleY = dimension * this.options.autoScaleOptions.scaleY;
+        this.options.scaleX = dimension * this.options.autoScaleOptions.scaleX;
+    };
+
+    TreeView.prototype.render = function () {
+        var self = this;
+        this.clear();
+        // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
+        this._svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        this.svg = Snap(this._svg);
+        this.svg.addClass(this.options.classes.svg);
+        this.svg.attr({
             width: this.$element.width(),
             height: this.$element.height()
+        });
+        this.positionNodes();
+        this._drawLines(this.state.root);
+        this.allNodes(this.state.root, function (node) {
+            var x = self.positionMap[node.id].x,
+                y = self.positionMap[node.id].y;
+            self.elementMap[node.id].node = self.drawNode(node, x, y);
+            self.elementMap[node.id].value = self.drawValue(node.value, x, y);
+            self.elementMap[node.id].height = self.drawHeight(node.height, x, y);
+        });
+        this.$element.append(this._svg);
+    };
+
+    TreeView.prototype.positionNodes = function () {
+        var self = this,
+            nodePosition;
+        TreeView.rg(this.state.root);
+        this.allNodes(this.state.root, function (node) {
+            if (!self.positionMap[node.id])
+                self.positionMap[node.id] = {};
+            nodePosition = self.transformNodeCoordinates(node.x, node.y);
+            self.positionMap[node.id].x = nodePosition.x;
+            self.positionMap[node.id].y = nodePosition.y;
+            self.positionMap[node.id].nodeSpaceX = node.x;
+            self.positionMap[node.id].nodeSpaceY = node.y;
+            delete node.x;
+            delete node.y;
         });
     };
 
     /**
-     * Sets drawing variables based on dimensions.width and dimensions.height
-     * @param dimensions
-     * @returns {*}
+     * Transforms coordinates from node-space to actual space.
+     * @param x
+     * @param y
+     * @returns {{x: number, y: number}}
      */
-    TreeView.prototype.scale = function (dimensions) {
-        var _ = this._,
-            nodeRadiusPct = .05,
-            nodeMvPct = .2;
-        _.width = dimensions.width;
-        _.height = dimensions.height;
-        _.x0 = _.width / 2;
-        _.nodeRadius = nodeRadiusPct * _.height; // TODO
-        _.y0 = _.nodeRadius;
-        _.mv = nodeMvPct * _.height; // TODO
-        _.mh = _.mv + _.nodeRadius / 2; // TODO
-        return this.render();
+    TreeView.prototype.transformNodeCoordinates = function (x, y) {
+        return {
+            x: this.options.offsetX + x * this.options.scaleX,
+            y: this.options.offsetY + y * this.options.scaleY
+        };
     };
 
-    TreeView.prototype.render = function () {
-        console.log('state is ');
-        console.dir(this.component.state);
-        var self = this,
-            _ = self._;
-        this.clear();
-        // http://stackoverflow.com/questions/20045532/snap-svg-cant-find-dynamically-and-successfully-appended-svg-element-with-jqu
-        _._svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        _.svg = Snap(_._svg);
-        _.svg.addClass(this.options.classes.svg);
-        this._.svg.attr({
-            width: _.width,
-            height: _.height
-        });
-        TreeView.rg(this.component.state);
-        this.allNodes(this.component.state, function (node) {
-            // transform the node coordinates to appropriate coordinates and delete the position properties
-            _.data(node).x = _.x0 + node.x * _.mh / 2;
-            _.data(node).y = _.y0 + node.y * _.mv;
-            console.log("" + _.data(node).x + ", " + _.data(node).y);
-            delete node.x;
-            delete node.y;
-        });
-        this._drawLines(this.component.state);
-        this.allNodes(this.component.state, function (node) {
-            console.log('drawing node with value ' + node.value);
-            console.log("" + _.data(node).x + ", " + _.data(node).y);
-            _.data(node).element = self._drawNode(node, _.data(node).x, _.data(node).y);
-            _.data(node).s_value = self._drawValue(node.value, _.data(node).x, _.data(node).y);
-            _.data(node).s_height = self._drawHeight(node.height, _.data(node).x, _.data(node).y);
-        });
-        this.drawGridDots();
-        this.$element.append(_._svg);
+    TreeView.prototype.onResize = function () {
+        if (this.options.autoScale)
+            this.autoScale(this.$element.width(), this.$element.height());
+        this.render();
     };
 
     TreeView.prototype.drawGridDots = function () {
-        /*for(var i = - 2 * this._.mh; i < this._.svg.attr('width'); i += this._.mh * .5) {
-            for(var j = 0; j < this._.svg.attr('height'); j += this._.mv) {
-                this._.svg.circle(this._.x0 + i, this._.y0 + j, 2)
-                    .attr('fill', '#000000');
-            }
-        }*/
 
-    }
+    };
 
     TreeView.prototype._drawLines = function (tree) {
-        var _ = this._;
+        var treeX = this.positionMap[tree.id].x,
+            treeY = this.positionMap[tree.id].y;
+        if (!this.elementMap[tree.id])
+            this.elementMap[tree.id] = {};
         if (tree.left) {
-            _.data(tree).leftLine = this._drawLine(_.data(tree).x, _.data(tree).y, _.data(tree.left).x, _.data(tree.left).y);
+            this.elementMap[tree.id].leftLine = this.drawLine(treeX, treeY, this.positionMap[tree.left.id].x, this.positionMap[tree.left.id].y);
             this._drawLines(tree.left);
         }
         if (tree.right) {
-            _.data(tree).rightLine = this._drawLine(_.data(tree).x, _.data(tree).y, _.data(tree.right).x, _.data(tree.right).y);
+            this.elementMap[tree.id].rightLine = this.drawLine(treeX, treeY, this.positionMap[tree.right.id].x, this.positionMap[tree.right.id].y);
             this._drawLines(tree.right);
         }
-    };
-
-    TreeView.prototype._drawLine = function (xi, yi, xf, yf) {
-        return this._.svg.line(xi, yi, xf, yf)
-            .addClass(this.options.classes.line);
     };
 
     TreeView.prototype.allNodes = function (tree, fn) {
@@ -1123,43 +1147,54 @@ S.TreeView = (function () {
         }
     };
 
-    TreeView.prototype._drawNode = function (node, x, y) {
-        return this._.svg.circle(x, y + 2, this._.nodeRadius)
+    TreeView.prototype.drawLine = function (xi, yi, xf, yf) {
+        return this.svg.line(xi, yi, xf, yf)
+            .addClass(this.options.classes.line);
+    };
+
+    TreeView.prototype.drawNode = function (node, x, y) {
+        return this.svg.circle(x, y, this.options.nodeRadius)
             .addClass(this.options.classes.node);
     };
 
-    TreeView.prototype._drawValue = function (value, x, y) {
-        // TODO get rid of magic numbers
-        var _ = this._;
-        return _.svg.text(x, y + _.nodeRadius * .5 + 2, value + '')
-            .addClass(this.options.classes.value)
-            .attr('text-anchor', 'middle')
-            .attr('font-size', _.nodeRadius * 1.25);
+    TreeView.prototype.drawNodeShadow = function (x, y, offsetX, offsetY) {
+        return this.svg.circle(x + offsetX, y + offsetY, this.options.nodeRadius)
+            .attr('fill', '#000000');
     };
 
-    TreeView.prototype._drawHeight = function (height, nodeX, nodeY) {
-        var _ = this._;
-        return _.svg.text(nodeX - _.nodeRadius - _.nodeRadius * .85, nodeY + _.nodeRadius / 2 - 3, height + '')
-            .attr('font-size', _.nodeRadius)
+    TreeView.prototype.drawValue = function (value, x, y) {
+        // TODO get rid of magic numbers
+        return this.svg.text(x, y + this.options.nodeRadius * .5, value + '')
+            .addClass(this.options.classes.value)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', this.options.nodeRadius * 1.25);
+    };
+
+    TreeView.prototype.drawHeight = function (height, nodeX, nodeY) {
+        // TODO get rid of magic numbers
+        return this.svg.text(nodeX - this.options.nodeRadius - this.options.nodeRadius * .85, nodeY + this.options.nodeRadius / 2 - 3, height + '')
+            .attr('font-size', this.options.nodeRadius)
             .addClass(this.options.classes.height);
     };
 
-    TreeView.prototype._drawLabel = function (node, label) {
-        var _ = this._;
-        return _.svg.text(_.data(node).x + _.nodeRadius + 5, _.data(node).y + _.nodeRadius / 2 - 3, '/' + label)
+    TreeView.prototype.drawLabel = function (node, label) {
+        /*return this.svg.text(this.data(node).x + this.options.nodeRadius + 5, this.data(node).y + this.options.nodeRadius / 2 - 3, '/' + label)
             .addClass(this.options.classes.label)
             .attr('text-anchor', 'right')
-            .attr('font-size', _.nodeRadius);
+            .attr('font-size', this.options.nodeRadius);*/
     };
 
     TreeView.prototype.add = function (parent, direction, value, fn) {
-        var parent = this.component.getNodeById(parent.id),
-            _ = this.view._;
-        this.scale({
+        //var parent = this.component.getNodeById(parent.id),
+        // _ = this.view._;
+        /*this.scale({
             width: _.width,
             height: _.height
-        });
-        this.render();
+        });*/
+        //this.render();
+        parent = this.component.getNodeById(parent.id); // TODO
+        var addedNode = direction ? parent.right : parent.left;
+
         fn();
     };
 
@@ -1181,7 +1216,7 @@ S.TreeView = (function () {
     };
 
     TreeView.prototype.remove = function (node, fn) {
-        var view = this.view,
+        /*var view = this.view,
             _ = view._,
             elements = getTreeElements(node, _.data),
             parent = node.parent,
@@ -1213,7 +1248,6 @@ S.TreeView = (function () {
                 }, 500, view.options.easings.remove, checkIfAllRemoved);
             }
         });
-
         function checkIfAllRemoved() {
             if (count >= max) {
                 elements.forEach(function (element) {
@@ -1224,33 +1258,65 @@ S.TreeView = (function () {
                 view.render();
                 fn();
             }
-        }
+        }*/
     };
 
     TreeView.prototype.focus = function (node, fn) {
-        node = this.view.component.getNodeById(node.id);
+        console.log('Focusing');
         if (node) {
-            this.view._.data(node).element.addClass('focus');
+            this.elementMap[node.id].node.addClass('focus'); //this.view._.data(node).element.addClass('focus');
         }
         fn();
     };
 
     TreeView.prototype.unfocus = function (node, fn) {
-        node = this.view.component.getNodeById(node.id);
-        if (node)
-            this.view._.data(node).element.removeClass('focus');
+        if (node) {
+            this.elementMap[node.id].node.removeClass('focus'); //this.view._.data(node).element.addClass('focus');
+        }
         fn();
     };
 
     TreeView.prototype.clearFocus = function (node, fn) {
-        var view = this.view,
+        /*var view = this.view,
             _ = view._;
         view.allNodes(view.component.state, function (node) {
             _.data(node).element.removeClass('focus');
+        });*/
+    };
+
+    TreeView.prototype.animateTravel = function (line, fn) {
+        console.log('Animating travel!');
+        line.addClass('tree-line-active');
+        var orb = this.spawnTravelOrb(line);
+        orb.animate({
+            cx: line.attr('x2'),
+            cy: line.attr('y2')
+        }, 500, null, function () {
+            orb.remove();
+            line.removeClass('tree-line-active');
+            fn();
         });
-    }
+    };
+
+    TreeView.prototype.spawnTravelOrb = function (line) {
+        return this.svg.circle(line.attr('x1'), line.attr('y1'), 5)
+            .addClass('tree-travelorb')
+            .insertAfter(line);
+    };
 
     TreeView.prototype.travel = function (parent, direction, fn) {
+        console.log('travel: parent.id is %s', parent.id);
+        console.dir(parent);
+        console.dir(this.elementMap[parent.id]);
+        if (direction && this.elementMap[parent.id].rightLine) {
+            this.animateTravel(this.elementMap[parent.id].rightLine, fn);
+        } else if (!direction && this.elementMap[parent.id].leftLine) {
+            this.animateTravel(this.elementMap[parent.id].leftLine, fn);
+        } else {
+            console.log('Cannnot travel.');
+            fn();
+        }
+        /*
         var _ = this.view._;
         if (direction) {
             if (_.data(parent).rightLine) {
@@ -1288,27 +1354,27 @@ S.TreeView = (function () {
             } else {
                 fn();
             }
-        }
+        }*/
     };
 
     TreeView.prototype.label = function (node, label, fn) {
-        console.log('trying to label ' + node.value);
-        var _ = this.view._;
+        /*var _ = this.view._;
         if (node && _.data(node)) {
             _.data(node).label = label;
-            _.data(node).s_label = this.view._drawLabel(node, label);
+            _.data(node).s_label = this.view.drawLabel(node, label);
             fn();
         } else {
             fn();
-        }
+        }*/
+        fn();
     };
 
     TreeView.prototype.clearLabels = function (fn) {
-        var view = this.view,
+        /*var view = this.view,
             _ = view._;
         view.allNodes(view.component.state, function (node) {
             _.data(node).s_label.remove();
-        });
+        });*/
     };
 
     /*
@@ -1322,7 +1388,7 @@ S.TreeView = (function () {
      */
     // TODO
     TreeView.prototype.display = function (options, fn) {
-        console.info('display');
+        /*console.info('display');
         var view = this.view,
             _ = view._;
         view.allNodes(view.component.state, function (node) {
@@ -1351,14 +1417,25 @@ S.TreeView = (function () {
                 data.element.removeClass(view.options.classes.hidden);
             if (options.nodes === false)
                 data.element.addClass(view.options.classes.hidden);
-        });
+        });*/
     };
 
-    TreeView.prototype.transformNodeCoordinates = function (root, x0, y0, xs, ys) {
+    function getSubtreeElements(root) {
+        var ret = [],
+            elements = [];
+        if (root) {
+            elements = this.elementMap[root.id];
+            ret.push(elements.node);
+            ret.push(elements.value);
+            ret.push(elements.height);
+            ret.push(elements.label);
+            ret.push(elements.leftLine);
+            ret.push(elements.rightLine);
+            return ret.concat(getSubtreeElements(root.left).concat(getSubtreeElements(root.right)));
+        }
+    }
 
-    };
-
-    function getTreeElements(root, data) {
+    /*function getTreeElements(root, data) {
         var ret = [];
         if (root) {
             ret.push(data(root).element);
@@ -1370,7 +1447,7 @@ S.TreeView = (function () {
             return ret.concat(getTreeElements(root.left, data).concat(getTreeElements(root.right, data)));
         }
         return ret;
-    }
+    }*/
 
     /**
      * An implementation of the Reingold-Tilford tree drawing algorithm.
@@ -1500,8 +1577,6 @@ S.TreeView = (function () {
                 leftExtremes.lmost.node.left = rightContourNode;
         }
 
-
-
     };
 
     TreeView.rg.absolute = function (tree, x) {
@@ -1515,7 +1590,7 @@ S.TreeView = (function () {
             TreeView.rg.absolute(tree.left, x - tree.offset);
             TreeView.rg.absolute(tree.right, x + tree.offset);
         }
-    }
+    };
 
     TreeView.rg.cleanup = function (tree) {
         if (tree) {
@@ -1555,8 +1630,7 @@ S.Heap = (function () {
         });
         var index = this.array.state.length - 1;
         this.tree.add(this.getNodeByIndex(this.getParentIndex(index)),
-            getAvailableDirection(index), value,
-            function () {
+            getAvailableDirection(index), value, function () {
                 if (oneFinished)
                     next();
                 else

@@ -1,37 +1,27 @@
 S.Component = function (state, view) {
-    if (state)
+    if (state) {
         this.state = state;
-    if (view)
+    }
+    if (view) {
         this.view = view;
+        this.view.state = this.state;
+    }
 };
 
 S.Component.prototype = Object.create(S.EventEmitter.prototype);
+S.Component.prototype.constructor = S.Component;
 
 Object.defineProperty(S.Component.prototype, 'state', {
     get: function () {
-        var val;
+        var val = this._state;
         if(this.onGetState)
-            val = this.onGetState(this._state) || this._state;
+            val = this.onGetState(val) || val;
         return val;
     },
     set: function (state) {
-        var val;
+        var val = state;
         if (this.onSetState)
-            val = this.onSetState(state) || state;
+            val = this.onSetState(val) || val;
         this._state = val;
     }
 });
-
-Object.defineProperty(S.Component.prototype, 'view', {
-    get: function () {
-        return this._view;
-    },
-    set: function (view) {
-        this._view = view;
-        view.component = this;
-        view.init();
-    }
-});
-
-S.Component.prototype.init = function () {
-}
