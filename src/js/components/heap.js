@@ -4,7 +4,12 @@ S.Heap = (function () {
         // assuming state is a valid heap
         this.alias = 'heap';
         this.nodesByIndex = [];
-        this.tree = new S.Tree(this.makeTree(state, null, 0), view ? view.treeView : null);
+        var treeState = {
+            root: this.makeTree(state.array, null, 0),
+            lastId: state.lastId || 0
+        };
+        console.log('Heap()');
+        this.tree = new S.Tree(treeState, view ? view.treeView : null);
         this.array = new S.Array(state, view ? view.arrayView : null);
         S.Component.call(this, state, view);
     }
@@ -13,16 +18,18 @@ S.Heap = (function () {
     Heap.prototype.constructor = Heap;
 
     Heap.prototype.push = function (value, next) {
-        var oneFinished = false;
+        var oneFinished = false,
+            self = this;
         this.array.push(value, function () {
             if(oneFinished)
                 next();
             else
                 oneFinished = true;
         });
-        var index = this.array.state.length - 1;
-        this.tree.add(this.getNodeByIndex(this.getParentIndex(index)), 
-            getAvailableDirection(index), value, function () {
+        var index = this.array.state.array.length - 1;
+        this.tree.add(this.getNodeByIndex(this.getParentIndex(index)),
+            this.getAvailableDirection(index), value, function (added) {
+                self.nodesByIndex[index] = added;
                 if(oneFinished)
                     next();
                 else

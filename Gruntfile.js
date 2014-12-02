@@ -61,7 +61,7 @@ module.exports = function(grunt) {
             }
         },
         qunit: {
-          files: ['test/index.html']
+          files: ['test/test.html']
         }
     });
     

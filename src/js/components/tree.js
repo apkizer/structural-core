@@ -1,6 +1,7 @@
 S.Tree = (function () {
 
     function Tree (state, view) {
+        console.info('Calling tree constructor.');
         this.alias = 'tree';
         this.nodes = {};
         S.Component.call(this, state, view);
@@ -37,24 +38,28 @@ S.Tree = (function () {
     };
     Tree.prototype.root.live = true;
 
-    Tree.prototype.add = function (parent, direction, value, next) {
-        parent = this.getNodeById(parent);
-        var added;
-        if (direction) {
-            if (parent.right) return;
-            added = parent.right = new Tree.Node(value, this.getNextNodeId(), null, null);
-        } else {
-            if (parent.left) return;
-            added = parent.left = new Tree.Node(value, this.getNextNodeId(), null, null);
+    Tree.prototype.add = function (_parent, direction, value, next) {
+        var parent = this.nodes[_parent.id],
+            childProperty = direction ? 'right' : 'left',
+            added;
+        if(parent[childProperty] && this.view) {
+            console.log('Node already present.');
+            return next();
+        } else if(parent[childProperty]) {
+            console.log('Node already present.');
+            return;
         }
+        added = parent[childProperty] = new Tree.Node(value, this.getNextNodeId(this.state), null, null);
         this.nodes[added.id] = added;
-        this.computeHeights(this.state);
-        if (this.view)
+        this.computeHeights(this.state.root);
+        if (this.view) {
             this.view.add(parent, direction, value, function () {
                 next(added);
             });
-        else
+        }
+        else {
             return added;
+        }
     };
     Tree.prototype.add.live = true;
 
@@ -166,7 +171,6 @@ S.Tree = (function () {
             node.parent = parent;
             node.left = this.copyTree(targetNode.left, node);
             node.right = this.copyTree(targetNode.right, node);
-            this.nodes[node.id] = node;
         }
         return node;
     };
@@ -190,6 +194,8 @@ S.Tree = (function () {
         if(root) {
             if(typeof root.id === 'undefined')
                 root.id = this.getNextNodeId(state);
+            console.info('Setting node id.')
+            this.nodes[root.id] = root;
             this.setNodeIds(root.left, state);
             this.setNodeIds(root.right, state);
         }

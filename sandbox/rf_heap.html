@@ -28,12 +28,14 @@
         $(document).ready(function() {
 
             var array = [2, 58, 92, 38, 44, 9];
+            var arrayState = {
+                array: array
+            };
 
+            var heapView = new S.HeapView(null, $('.heap-div'));
+            var heap = new S.Heap(arrayState, heapView);
+            heapView.onResize();
 
-            var heapView = new S.HeapView($('.heap-div'));
-            var heap = new S.Heap(array, heapView);
-            heapView.init();
-        
             S.method(function (heap) {
                 for(var i = 0; i < heap.getLength(); i++) {
                     this.flog('i: ' + i);
@@ -43,7 +45,7 @@
 
             window.queue = new S.AsyncFunctionQueue();
             window.deferred = new S.Deferred(queue);
-            deferred.include(heap, new S.Heap(array), {
+            deferred.include(heap, new S.Heap(arrayState), {
                 name: 'heap'
             });
             window.actual = heap;

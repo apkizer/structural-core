@@ -42,12 +42,15 @@ S.AsyncFunctionQueue = (function () {
      */
     AsyncFunctionQueue.prototype.next = function (fn) {
         var self = this;
-        // TODO bind self as this?
-        this.functionList[this.position].call(self, function () {
-            self.position++;
-            fn();
-        });
-    }
+        if(this.position >= this.functionList.length) {
+            fn(true);
+        } else {
+            this.functionList[this.position].call(self, function () {
+                self.position++;
+                fn();
+            });
+        }
+    };
 
     /**
      * Begins executing all functions starting with the next function.

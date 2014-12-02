@@ -248,12 +248,15 @@ S.AsyncFunctionQueue = (function () {
      */
     AsyncFunctionQueue.prototype.next = function (fn) {
         var self = this;
-        // TODO bind self as this?
-        this.functionList[this.position].call(self, function () {
-            self.position++;
-            fn();
-        });
-    }
+        if (this.position >= this.functionList.length) {
+            fn(true);
+        } else {
+            this.functionList[this.position].call(self, function () {
+                self.position++;
+                fn();
+            });
+        }
+    };
 
     /**
      * Begins executing all functions starting with the next function.
@@ -807,6 +810,7 @@ S.ArrayView = (function () {
 S.Tree = (function () {
 
     function Tree(state, view) {
+        console.info('Calling tree constructor.');
         this.alias = 'tree';
         this.nodes = {};
         S.Component.call(this, state, view);
@@ -843,24 +847,27 @@ S.Tree = (function () {
     };
     Tree.prototype.root.live = true;
 
-    Tree.prototype.add = function (parent, direction, value, next) {
-        parent = this.getNodeById(parent);
-        var added;
-        if (direction) {
-            if (parent.right) return;
-            added = parent.right = new Tree.Node(value, this.getNextNodeId(), null, null);
-        } else {
-            if (parent.left) return;
-            added = parent.left = new Tree.Node(value, this.getNextNodeId(), null, null);
+    Tree.prototype.add = function (_parent, direction, value, next) {
+        var parent = this.nodes[_parent.id],
+            childProperty = direction ? 'right' : 'left',
+            added;
+        if (parent[childProperty] && this.view) {
+            console.log('Node already present.');
+            return next();
+        } else if (parent[childProperty]) {
+            console.log('Node already present.');
+            return;
         }
+        added = parent[childProperty] = new Tree.Node(value, this.getNextNodeId(this.state), null, null);
         this.nodes[added.id] = added;
-        this.computeHeights(this.state);
-        if (this.view)
+        this.computeHeights(this.state.root);
+        if (this.view) {
             this.view.add(parent, direction, value, function () {
                 next(added);
             });
-        else
+        } else {
             return added;
+        }
     };
     Tree.prototype.add.live = true;
 
@@ -972,7 +979,6 @@ S.Tree = (function () {
             node.parent = parent;
             node.left = this.copyTree(targetNode.left, node);
             node.right = this.copyTree(targetNode.right, node);
-            this.nodes[node.id] = node;
         }
         return node;
     };
@@ -996,6 +1002,8 @@ S.Tree = (function () {
         if (root) {
             if (typeof root.id === 'undefined')
                 root.id = this.getNextNodeId(state);
+            console.info('Setting node id.')
+            this.nodes[root.id] = root;
             this.setNodeIds(root.left, state);
             this.setNodeIds(root.right, state);
         }
@@ -1016,6 +1024,7 @@ S.TreeView = (function () {
         S.View.call(this, state, element);
         this.elementMap = {};
         this.positionMap = {};
+        this.futurePositionMap = {};
         this.labelMap = {};
         this.lastState = {};
         this.options = {
@@ -1147,9 +1156,27 @@ S.TreeView = (function () {
         }
     };
 
-    TreeView.prototype.drawLine = function (xi, yi, xf, yf) {
-        return this.svg.line(xi, yi, xf, yf)
+    TreeView.prototype.getValuePosition = function (nodeX, nodeY) {
+        return {
+            x: nodeX,
+            y: this.options.nodeRadius * 0.5 + nodeY
+        };
+    };
+
+    TreeView.prototype.getHeightPosition = function (nodeX, nodeY) {
+        return {
+            x: nodeX - this.options.nodeRadius - this.options.nodeRadius * 0.85,
+            y: nodeY + this.options.nodeRadius * 0.5 - 3
+        };
+    };
+
+    TreeView.prototype.drawLine = function (xi, yi, xf, yf, underNode) {
+        var line = this.svg.line(xi, yi, xf, yf)
             .addClass(this.options.classes.line);
+        if (underNode) {
+            line.insertBefore(underNode);
+        }
+        return line;
     };
 
     TreeView.prototype.drawNode = function (node, x, y) {
@@ -1163,16 +1190,16 @@ S.TreeView = (function () {
     };
 
     TreeView.prototype.drawValue = function (value, x, y) {
-        // TODO get rid of magic numbers
-        return this.svg.text(x, y + this.options.nodeRadius * .5, value + '')
+        var valuePosition = this.getValuePosition(x, y);
+        return this.svg.text(valuePosition.x, valuePosition.y, value + '')
             .addClass(this.options.classes.value)
             .attr('text-anchor', 'middle')
             .attr('font-size', this.options.nodeRadius * 1.25);
     };
 
     TreeView.prototype.drawHeight = function (height, nodeX, nodeY) {
-        // TODO get rid of magic numbers
-        return this.svg.text(nodeX - this.options.nodeRadius - this.options.nodeRadius * .85, nodeY + this.options.nodeRadius / 2 - 3, height + '')
+        var heightPosition = this.getHeightPosition(nodeX, nodeY);
+        return this.svg.text(heightPosition.x, heightPosition.y, height + '')
             .attr('font-size', this.options.nodeRadius)
             .addClass(this.options.classes.height);
     };
@@ -1184,18 +1211,147 @@ S.TreeView = (function () {
             .attr('font-size', this.options.nodeRadius);*/
     };
 
-    TreeView.prototype.add = function (parent, direction, value, fn) {
-        //var parent = this.component.getNodeById(parent.id),
-        // _ = this.view._;
-        /*this.scale({
-            width: _.width,
-            height: _.height
-        });*/
-        //this.render();
-        parent = this.component.getNodeById(parent.id); // TODO
-        var addedNode = direction ? parent.right : parent.left;
+    TreeView.prototype.calculateFuturePositions = function (root) {
+        console.info('Calculating future positions.');
+        var self = this;
+        TreeView.rg(root);
+        this.allNodes(root, function (node) {
+            self.futurePositionMap[node.id] = self.transformNodeCoordinates(node.x, node.y);
+        });
+        console.log('Future positions:');
+        console.dir(this.futurePositionMap);
+    };
 
+    TreeView.prototype.updateHeights = function (root) {
+        var self = this;
+        this.allNodes(root, function (node) {
+            if (self.elementMap[node.id])
+                self.elementMap[node.id].height.attr('text', node.height + '');
+        });
+    };
+
+    TreeView.prototype.add = function (parent, direction, value, fn) {
+        var self = this,
+            added = direction ? parent.right : parent.left,
+            parentX = this.positionMap[parent.id].x,
+            parentY = this.positionMap[parent.id].y,
+            addedNodeX,
+            addedNodeY = this.positionMap[parent.id].y + this.options.scaleY;
+        this.updateHeights(this.state.root);
+        if (direction) {
+            addedNodeX = this.positionMap[parent.id].x + this.options.scaleX
+        } else {
+            addedNodeX = this.positionMap[parent.id].x - this.options.scaleX
+        }
+        this.elementMap[added.id] = {
+            node: this.drawNode(added, addedNodeX, addedNodeY),
+            value: this.drawValue(added.value, addedNodeX, addedNodeY),
+            height: this.drawHeight(added.height, addedNodeX, addedNodeY)
+        };
+        if (direction) {
+            this.elementMap[parent.id].rightLine = this.drawLine(parentX, parentY, addedNodeX, addedNodeY, this.elementMap[parent.id].node);
+        } else {
+            this.elementMap[parent.id].leftLine = this.drawLine(parentX, parentY, addedNodeX, addedNodeY, this.elementMap[parent.id].node);
+        }
+        this.positionNodes();
+        this.allNodes(this.state.root, function (node) {
+            var newNodePosition = self.positionMap[node.id],
+                newValuePosition = self.getValuePosition(self.positionMap[node.id].x, self.positionMap[node.id].y),
+                newHeightPosition = self.getHeightPosition(self.positionMap[node.id].x, self.positionMap[node.id].y),
+                nodeElements = self.elementMap[node.id];
+            nodeElements.value.animate({
+                x: newValuePosition.x,
+                y: newHeightPosition.y
+            }, 250, mina.easein, function () {
+                // TODO
+            });
+            nodeElements.height.animate({
+                x: newHeightPosition.x,
+                y: newHeightPosition.y
+            }, 250, mina.easein, function () {
+                // TODO
+            });
+            if (nodeElements.rightLine) {
+                var newRightPosition = self.positionMap[node.right.id];
+                nodeElements.rightLine.animate({
+                    x1: newNodePosition.x,
+                    y1: newNodePosition.y,
+                    x2: newRightPosition.x,
+                    y2: newRightPosition.y
+                }, 250, mina.easein, function () {
+                    // TODO
+                });
+            }
+            if (nodeElements.leftLine) {
+                var newLeftPosition = self.positionMap[node.left.id];
+                nodeElements.leftLine.animate({
+                    x1: newNodePosition.x,
+                    y1: newNodePosition.y,
+                    x2: newLeftPosition.x,
+                    y2: newLeftPosition.y
+                }, 250, mina.easein, function () {
+                    // TODO
+                });
+            }
+            nodeElements.node.animate({
+                cx: newNodePosition.x,
+                cy: newNodePosition.y
+            }, 250, mina.easein, function () {
+                // TODO
+            });
+        });
         fn();
+    };
+
+    TreeView.prototype.tweenToPositions = function (easing) {
+        var numberNodes = 0; // TODO
+
+        this.allNodes(this.state.root, function (node) {
+            var newNodePosition = self.positionMap[node.id],
+                newValuePosition = self.getValuePosition(newNodePosition.x, newNodePosition.y),
+                newHeightPosition = self.getHeightPosition(newNodePosition.x, newNodePosition.y),
+                nodeElements = self.elementMap[node.id];
+            nodeElements.value.animate({
+                x: newValuePosition.x,
+                y: newHeightPosition.y
+            }, 250, mina.easein, function () {
+                // TODO
+            });
+            nodeElements.height.animate({
+                x: newHeightPosition.x,
+                y: newHeightPosition.y
+            }, 250, mina.easein, function () {
+                // TODO
+            });
+            if (nodeElements.rightLine) {
+                var newRightPosition = self.positionMap[node.right.id];
+                nodeElements.rightLine.animate({
+                    x1: newNodePosition.x,
+                    y1: newNodePosition.y,
+                    x2: newRightPosition.x,
+                    y2: newRightPosition.y
+                }, 250, mina.easein, function () {
+                    // TODO
+                });
+            }
+            if (nodeElements.leftLine) {
+                var newLeftPosition = self.positionMap[node.left.id];
+                nodeElements.leftLine.animate({
+                    x1: newNodePosition.x,
+                    y1: newNodePosition.y,
+                    x2: newLeftPosition.x,
+                    y2: newLeftPosition.y
+                }, 250, mina.easein, function () {
+                    // TODO
+                });
+            }
+            nodeElements.node.animate({
+                cx: newNodePosition.x,
+                cy: newNodePosition.y
+            }, 250, mina.easein, function () {
+                // TODO
+            });
+        });
     };
 
     TreeView.prototype.set = function (node, value, fn) {
@@ -1612,7 +1768,12 @@ S.Heap = (function () {
         // assuming state is a valid heap
         this.alias = 'heap';
         this.nodesByIndex = [];
-        this.tree = new S.Tree(this.makeTree(state, null, 0), view ? view.treeView : null);
+        var treeState = {
+            root: this.makeTree(state.array, null, 0),
+            lastId: state.lastId || 0
+        };
+        console.log('Heap()');
+        this.tree = new S.Tree(treeState, view ? view.treeView : null);
         this.array = new S.Array(state, view ? view.arrayView : null);
         S.Component.call(this, state, view);
     }
@@ -1621,16 +1782,19 @@ S.Heap = (function () {
     Heap.prototype.constructor = Heap;
 
     Heap.prototype.push = function (value, next) {
-        var oneFinished = false;
+        var oneFinished = false,
+            self = this;
         this.array.push(value, function () {
             if (oneFinished)
                 next();
             else
                 oneFinished = true;
         });
-        var index = this.array.state.length - 1;
+        var index = this.array.state.array.length - 1;
+        console.log('Parent of %s is %s', value, this.array.state.array[this.getParentIndex(index)]);
         this.tree.add(this.getNodeByIndex(this.getParentIndex(index)),
-            getAvailableDirection(index), value, function () {
+            this.getAvailableDirection(index), value, function (added) {
+                self.nodesByIndex[index] = added;
                 if (oneFinished)
                     next();
                 else
@@ -1702,14 +1866,15 @@ S.Heap = (function () {
 
 S.HeapView = (function () {
 
-    function HeapView(element) {
-        S.View.call(this, element);
+    function HeapView(state, element) {
+        S.View.call(this, state, element);
         this.$element.append($('<div class="heap-tree" style="height: 75%;"></div>'));
         this.$element.append($('<div class="heap-array" style="height: 25%;"></div>'));
         this.treeElement = this.$element.find('.heap-tree');
         this.arrayElement = this.$element.find('.heap-array');
-        this.treeView = new S.TreeView(this.treeElement);
-        this.arrayView = new S.ArrayView(this.arrayElement);
+        this.treeView = new S.TreeView(null, this.treeElement);
+        this.arrayView = new S.ArrayView(null, this.arrayElement);
+        this.treeView.options.autoScaleOptions.scaleY = .2;
     };
 
     HeapView.prototype = Object.create(S.View.prototype);
@@ -1717,6 +1882,11 @@ S.HeapView = (function () {
 
     HeapView.prototype.init = function () {
 
+    };
+
+    HeapView.prototype.onResize = function () {
+        this.treeView.onResize();
+        this.arrayView.render();
     };
 
     return HeapView;
