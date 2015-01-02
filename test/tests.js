@@ -1,5 +1,8 @@
 QUnit.module('AsyncFunctionQueue');
 
+/**
+ * Test that AsyncFunctionQueue length is correct.
+ */
 QUnit.test('AsyncFunctionQueue_length', function (assert) {
     var asyncFunctionQueue = new S.AsyncFunctionQueue();
     for(var i = 0; i < 100; i++) {
@@ -10,6 +13,9 @@ QUnit.test('AsyncFunctionQueue_length', function (assert) {
     assert.equal(asyncFunctionQueue.functionList.length, 100, 'functionList.length should be 100');
 });
 
+/**
+ * Test that function push onto the AsyncFunctionQueue correctly.
+ */
 QUnit.asyncTest('AsyncFunctionQueue_pushThree', function (assert) {
     expect(3);
     var asyncFunctionQueue = new S.AsyncFunctionQueue(),
@@ -38,6 +44,9 @@ QUnit.asyncTest('AsyncFunctionQueue_pushThree', function (assert) {
     asyncFunctionQueue.exec();
 });
 
+/**
+ * Test that AsyncFunctionQueue executes next queued function.
+ */
 QUnit.asyncTest('AsyncFunctionQueue_next', function (assert) {
     expect(4);
     var asyncFunctionQueue = new S.AsyncFunctionQueue(),
@@ -75,6 +84,9 @@ QUnit.asyncTest('AsyncFunctionQueue_next', function (assert) {
     }
 });
 
+/**
+ * Test that the `completion` property on AsyncFunctionQueue is updated correctly.
+ */
 QUnit.asyncTest('AsyncFunctionQueue_completion', function (assert) {
     expect(2);
     var asyncFunctionQueue = new S.AsyncFunctionQueue();
@@ -98,6 +110,13 @@ QUnit.asyncTest('AsyncFunctionQueue_completion', function (assert) {
 
 QUnit.module('Deferred');
 
+QUnit.test('Deferred_include_asyncFunctionQueueDependence', function (assert) {
+    // TODO
+});
+
+/**
+ * Test that Deferred calls methods on the clone object right away.
+ */
 QUnit.test('Deferred_include_worksOnCopy', function (assert) {
     var deferred = new S.Deferred(new S.AsyncFunctionQueue());
     deferred.queue.open();
@@ -129,3 +148,4 @@ QUnit.test('Deferred_include_worksOnCopy', function (assert) {
     assert.equal(clone.propOne, 'George', 'clone.propOne should still be George');
     assert.equal(clone.propTwo, 'Washington', 'clone.propTwo should have changed to Washington');
 });
+
