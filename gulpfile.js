@@ -3,20 +3,21 @@ var gulp = require('gulp'),
     uglify = require('gulp-uglify'),
     rename = require('gulp-rename');
 
-/* build everything */
-gulp.task('default', ['buildJSRepresentationsAlgorithms', 'buildCSS']);
+/* default build */
+gulp.task('default', ['buildJSRepresentations', 'buildCSS']);
 
 /* build only the core library */
 gulp.task('buildJSCore', function () {
-    return gulp.src(['src/js/structural.js'])
-        .pipe(gulp.dest('build')
-        .pipe(rename('structural.min.js')
-        .pipe(gulp.des('build'));
+    return gulp.src(['src/structural.js'])
+        .pipe(gulp.dest('build'))
+        .pipe(rename('structural.min.js'))
+        .pipe(uglify())
+        .pipe(gulp.dest('build'));
 });
 
 /* build only the core library and included representations */
 gulp.task('buildJSRepresentations', function () {
-    return gulp.src(['src/js/structural.js', 'src/js/representations/**/*.js'])
+    return gulp.src(['src/structural.js', 'src/representations/**/*.js'])
         .pipe(concat('structural.js'))
         .pipe(gulp.dest('build'))
         .pipe(rename('structural.min.js'))
@@ -26,12 +27,12 @@ gulp.task('buildJSRepresentations', function () {
 
 /* build the core library, included representations, and included algorithms */
 gulp.task('buildJSRepresentationsAlgorithms', function () {
-    return gulp.src(['src/js/structural.js', 'src/js/representations/**/*.js', 'src/js/algorithms/**/*.js'])
+    return gulp.src(['src/structural.js', 'src/representations/**/*.js', 'src/algorithms/**/*.js'])
         .pipe(concat('structural.js'))
         .pipe(gulp.dest('build'))
-        .pipe(rename('structural.min.js'))
+        /*.pipe(rename('structural.min.js'))
         .pipe(uglify())
-        .pipe(gulp.dest('build'));
+        .pipe(gulp.dest('build'));*/
 });
 
 /* concatenate css files of every representation */
