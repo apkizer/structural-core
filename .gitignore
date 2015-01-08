@@ -3,6 +3,7 @@ node_modules
 .DS_STORE
 src/img
 ./idea
+lib
 sandbox/new1.html
 build
 .idea
